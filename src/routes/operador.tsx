@@ -12,7 +12,6 @@ import {
   Siren,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import type { Session } from "@supabase/supabase-js";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -134,10 +133,19 @@ function Login() {
         <button
           type="button"
           onClick={async () => {
-            const r = await lovable.auth.signInWithOAuth("google", {
-              redirect_uri: `${window.location.origin}/operador`,
+            setMsg("");
+            const basePath = import.meta.env.BASE_URL || "/";
+            const redirectTo = new URL(
+              `operador`,
+              `${window.location.origin}${basePath}`,
+            ).toString();
+            const { error } = await supabase.auth.signInWithOAuth({
+              provider: "google",
+              options: {
+                redirectTo,
+              },
             });
-            if (r.error) setMsg(r.error.message ?? "Erro ao entrar com Google");
+            if (error) setMsg(error.message ?? "Erro ao entrar com Google");
           }}
           className="w-full rounded-xl border bg-secondary py-3 text-sm font-semibold"
         >
