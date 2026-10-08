@@ -25,10 +25,22 @@ type Msg =
 
 const FIELDS = [
   { key: "nome", q: "Qual o seu nome?" },
+  { key: "cpf", q: "Qual o seu CPF? (somente números)" },
   { key: "telefone", q: "Telefone para contato?" },
+  { key: "endereco_solicitante", q: "Qual o seu endereço (residência do solicitante)?" },
   { key: "endereco", q: "Endereço ou ponto de referência da ocorrência?" },
   { key: "descricao", q: "Descreva rapidamente o que está acontecendo." },
 ] as const;
+
+function validaCpf(c: string) {
+  if (c.length !== 11 || /^(\d)\1+$/.test(c)) return false;
+  for (const t of [9, 10]) {
+    let sum = 0;
+    for (let i = 0; i < t; i++) sum += Number(c[i]) * (t + 1 - i);
+    if (((sum * 10) % 11) % 10 !== Number(c[t])) return false;
+  }
+  return true;
+}
 
 function Index() {
   const [msgs, setMsgs] = useState<Msg[]>([]);
@@ -57,16 +69,26 @@ function Index() {
     e.preventDefault();
     if (!form || !input.trim()) return;
     const f = FIELDS[form.step]!;
-    const data = { ...form.data, [f.key]: input.trim() };
+    let value = input.trim();
+    if (f.key === "cpf") {
+      const d = value.replace(/\D/g, "");
+      if (!validaCpf(d)) {
+        setMsgs((m) => [...m, { from: "user", text: value }, { from: "bot", text: "CPF inválido. Digite os 11 números do seu CPF." }]);
+        setInput("");
+        return;
+      }
+      value = d;
+    }
+    const data = { ...form.data, [f.key]: value };
     setInput("");
     const next = form.step + 1;
     if (next < FIELDS.length) {
       setForm({ ...form, step: next, data });
-      setMsgs((m) => [...m, { from: "user", text: input.trim() }, { from: "bot", text: FIELDS[next]!.q }]);
+      setMsgs((m) => [...m, { from: "user", text: value }, { from: "bot", text: FIELDS[next]!.q }]);
     } else {
       const protocol = `GCM-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
       const prioridade = ["Atitude suspeita", "Perturbação do sossego"].includes(form.category) ? "alta" : "media";
-      supabase.from("ocorrencias").insert({ protocolo: protocol, categoria: form.category, prioridade, nome: data['nome']!, telefone: data['telefone']!, endereco: data['endereco']!, descricao: data['descricao']! }).then(({ error }) => {
+      supabase.from("ocorrencias").insert({ protocolo: protocol, categoria: form.category, prioridade, nome: data['nome']!, cpf: data['cpf']!, endereco_solicitante: data['endereco_solicitante']!, telefone: data['telefone']!, endereco: data['endereco']!, descricao: data['descricao']! }).then(({ error }) => {
         if (error) setMsgs((m) => [...m, { from: "bot", text: "Falha ao enviar. Ligue 153.", urgent: true }]);
       });
       setForm(null);

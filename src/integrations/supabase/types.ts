@@ -17,9 +17,11 @@ export type Database = {
       ocorrencias: {
         Row: {
           categoria: string
+          cpf: string | null
           created_at: string
           descricao: string
           endereco: string
+          endereco_solicitante: string | null
           id: string
           nome: string
           observacao: string | null
@@ -32,9 +34,11 @@ export type Database = {
         }
         Insert: {
           categoria: string
+          cpf?: string | null
           created_at?: string
           descricao: string
           endereco: string
+          endereco_solicitante?: string | null
           id?: string
           nome: string
           observacao?: string | null
@@ -47,9 +51,11 @@ export type Database = {
         }
         Update: {
           categoria?: string
+          cpf?: string | null
           created_at?: string
           descricao?: string
           endereco?: string
+          endereco_solicitante?: string | null
           id?: string
           nome?: string
           observacao?: string | null

@@ -1,0 +1,1 @@
+ALTER TABLE public.ocorrencias ADD COLUMN endereco_solicitante text;
