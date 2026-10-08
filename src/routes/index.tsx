@@ -77,8 +77,20 @@ function Index() {
       ]);
     else if (n.kind === "ask") setMsgs((m) => [...m, { from: "bot", text: n.text }]);
     else {
-      setForm({ category: n.category, step: 0, data: {} });
-      setMsgs((m) => [...m, { from: "bot", text: n.text }, { from: "bot", text: FIELDS[0]!.q }]);
+      setForm(null);
+      setMsgs((m) => [
+        ...m,
+        { from: "bot", text: n.text },
+        {
+          from: "bot",
+          text:
+            "TERMO DE CIÊNCIA — COMUNICAÇÃO FALSA DE CRIME OU DE CONTRAVENÇÃO\n\n" +
+            "Antes de prosseguir, você declara ciência de que, nos termos do art. 340 do Código Penal, provocar a ação de autoridade comunicando a ocorrência de crime ou de contravenção que sabe não ter ocorrido constitui crime de comunicação falsa de crime ou de contravenção.\n\n" +
+            "Art. 340 — Provocar a ação de autoridade, comunicando-lhe a ocorrência de crime ou de contravenção que sabe não se ter verificado.\n\n" +
+            "Pena: detenção, de 1 (um) a 6 (seis) meses, ou multa.\n\n" +
+            "Ao prosseguir, você confirma que as informações prestadas correspondem aos fatos que está comunicando e que compreendeu esta orientação. A ciência deste termo não implica confissão de crime nem substitui o registro ou procedimento legal cabível."
+        },
+      ]);
     }
   };
 
@@ -310,6 +322,45 @@ function Index() {
                 {o.label}
               </button>
             ))}
+          </div>
+        ) : current?.kind === "gcm" ? (
+          <div className="space-y-2">
+            <p className="px-2 text-center text-xs text-muted-foreground">
+              É necessário declarar ciência para prosseguir com a solicitação.
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => {
+                  setMsgs((m) => [
+                    ...m,
+                    { from: "user", text: "Li e estou ciente. Prosseguir." },
+                    { from: "bot", text: FIELDS[0]!.q },
+                  ]);
+                  setForm({ category: current.category, step: 0, data: {} });
+                }}
+                className="rounded-full bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground"
+              >
+                Li e estou ciente
+              </button>
+              <button
+                onClick={() => {
+                  setForm(null);
+                  setNode("__closed");
+                  setMsgs((m) => [
+                    ...m,
+                    { from: "user", text: "Recuso-me a tomar ciência." },
+                    {
+                      from: "bot",
+                      text:
+                        "Você optou por não tomar ciência do termo. Por esse motivo, a solicitação foi encerrada e nenhum dado pessoal será coletado neste atendimento.",
+                    },
+                  ]);
+                }}
+                className="rounded-full border border-destructive/60 px-4 py-3 text-sm font-semibold text-destructive hover:bg-destructive/10"
+              >
+                Recuso-me a tomar ciência
+              </button>
+            </div>
           </div>
         ) : (
           <button
