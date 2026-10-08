@@ -5,20 +5,33 @@ const basePath = isGitHubPages ? "/aracoiaba-citizen-helper/" : "/";
 
 export default defineConfig({
   base: basePath,
+  nitro: isGitHubPages ? false : undefined,
   tanstackStart: {
     router: {
       basepath: basePath,
     },
-    server: {
-      entry: "server",
-    },
-    prerender: {
-      enabled: true,
-      autoSubfolderIndex: true,
-      autoStaticPathsDiscovery: false,
-      crawlLinks: false,
-      failOnError: true,
-      routes: ["/"],
-    },
+    ...(isGitHubPages
+      ? {
+          spa: {
+            enabled: true,
+            prerender: {
+              outputPath: "/index.html",
+              crawlLinks: false,
+            },
+          },
+        }
+      : {
+          server: {
+            entry: "server",
+          },
+          prerender: {
+            enabled: true,
+            autoSubfolderIndex: true,
+            autoStaticPathsDiscovery: false,
+            crawlLinks: false,
+            failOnError: true,
+            routes: ["/"],
+          },
+        }),
   },
 });
