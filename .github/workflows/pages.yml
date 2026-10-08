@@ -35,7 +35,7 @@ jobs:
       - name: Build for GitHub Pages
         env:
           GITHUB_PAGES: "true"
-          NITRO_PRESET: node-server
+          NITRO_PRESET: github_pages
         run: bun run build
 
       - name: Ensure GitHub Pages fallback
