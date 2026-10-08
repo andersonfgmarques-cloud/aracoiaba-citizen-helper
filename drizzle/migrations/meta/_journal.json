@@ -15,6 +15,13 @@
       "when": 1791463619908,
       "tag": "0001_add_cpf_ocorrencias",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791463632734,
+      "tag": "0002_add_endereco_solicitante",
+      "breakpoints": true
     }
   ]
 }

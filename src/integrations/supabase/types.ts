@@ -21,6 +21,7 @@ export type Database = {
           created_at: string
           descricao: string
           endereco: string
+          endereco_solicitante: string | null
           id: string
           nome: string
           observacao: string | null
@@ -37,6 +38,7 @@ export type Database = {
           created_at?: string
           descricao: string
           endereco: string
+          endereco_solicitante?: string | null
           id?: string
           nome: string
           observacao?: string | null
@@ -53,6 +55,7 @@ export type Database = {
           created_at?: string
           descricao?: string
           endereco?: string
+          endereco_solicitante?: string | null
           id?: string
           nome?: string
           observacao?: string | null

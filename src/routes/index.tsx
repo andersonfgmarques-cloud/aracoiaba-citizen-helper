@@ -25,7 +25,9 @@ type Msg =
 
 const FIELDS = [
   { key: "nome", q: "Qual o seu nome?" },
+  { key: "cpf", q: "Qual o seu CPF? (somente números)" },
   { key: "telefone", q: "Telefone para contato?" },
+  { key: "endereco_solicitante", q: "Qual o seu endereço (residência do solicitante)?" },
   { key: "endereco", q: "Endereço ou ponto de referência da ocorrência?" },
   { key: "descricao", q: "Descreva rapidamente o que está acontecendo." },
 ] as const;
