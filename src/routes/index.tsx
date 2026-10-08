@@ -87,6 +87,13 @@ function Index() {
       }
       value = d;
     }
+    if (f.key === "endereco") {
+      if (!validaEndereco(value)) {
+        setMsgs((m) => [...m, { from: "user", text: value }, { from: "bot", text: "Endereço incompleto. Informe rua, número e bairro — por exemplo: Rua das Flores, 123, Jardim Primavera." }]);
+        setInput("");
+        return;
+      }
+    }
     const data = { ...form.data, [f.key]: value };
     setInput("");
     const next = form.step + 1;
