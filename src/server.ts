@@ -3,19 +3,46 @@ import "./lib/error-capture";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 
-type ServerEntry = {
-  fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
+type ServerFetch = (
+  request: Request,
+  env: unknown,
+  ctx: unknown,
+) => Promise<Response> | Response;
+
+type ServerEntryModule = {
+  default?: unknown;
+  fetch?: ServerFetch;
 };
 
-let serverEntryPromise: Promise<ServerEntry> | undefined;
+let serverFetchPromise: Promise<ServerFetch> | undefined;
 
-async function getServerEntry(): Promise<ServerEntry> {
-  if (!serverEntryPromise) {
-    serverEntryPromise = import("@tanstack/react-start/server-entry").then(
-      (m) => (m.default ?? m) as ServerEntry,
-    );
+async function getServerFetch(): Promise<ServerFetch> {
+  if (!serverFetchPromise) {
+    serverFetchPromise = import("@tanstack/react-start/server-entry").then((module) => {
+      const candidates: unknown[] = [module.default, module];
+
+      for (const candidate of candidates) {
+        if (typeof candidate === "function") {
+          return candidate as ServerFetch;
+        }
+
+        if (
+          candidate &&
+          typeof candidate === "object" &&
+          "fetch" in candidate &&
+          typeof (candidate as ServerEntryModule).fetch === "function"
+        ) {
+          return (candidate as ServerEntryModule).fetch!.bind(candidate) as ServerFetch;
+        }
+      }
+
+      throw new TypeError(
+        "TanStack Start server entry does not expose a callable fetch handler.",
+      );
+    });
   }
-  return serverEntryPromise;
+
+  return serverFetchPromise;
 }
 
 // h3 swallows in-handler throws into a normal 500 Response with body
@@ -47,8 +74,8 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
-      const handler = await getServerEntry();
-      const response = await handler.fetch(request, env, ctx);
+      const fetchServer = await getServerFetch();
+      const response = await fetchServer(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
     } catch (error) {
       console.error(error);
