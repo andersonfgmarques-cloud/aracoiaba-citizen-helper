@@ -79,7 +79,7 @@ export const TREE: Record<string, Node> = {
     text: "Há feridos no local?",
     options: [
       { label: "Sim", next: "r_samu" },
-      { label: "Não – acidente sem vítima", next: "g_transito" },
+      { label: "Não – acidente sem vítima", next: "r_transito_sem_vitima" },
       { label: "Veículo abandonado / estacionamento irregular", next: "g_transito" },
     ],
   },
@@ -144,6 +144,11 @@ export const TREE: Record<string, Node> = {
     kind: "route",
     text: "Este caso é de responsabilidade da FISCALIZAÇÃO MUNICIPAL / MEIO AMBIENTE da Prefeitura.",
     contacts: [CONTACTS.prefeitura],
+  },
+  r_transito_sem_vitima: {
+    kind: "route",
+    text: "Tratando-se de sinistro de trânsito sem vítima, não é necessário aguardar viatura no local. Retirem os veículos da via (se possível e seguro), troquem os dados, façam registros fotográficos e registrem o fato na Delegacia Eletrônica da Polícia Civil ou na sede/unidade da Polícia Militar. O boletim é importante para o seguro.",
+    contacts: [],
   },
   g_sossego: {
     kind: "gcm",
