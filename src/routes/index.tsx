@@ -66,7 +66,7 @@ function Index() {
     } else {
       const protocol = `GCM-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
       const prioridade = ["Atitude suspeita", "Perturbação do sossego"].includes(form.category) ? "alta" : "media";
-      supabase.from("ocorrencias").insert({ protocolo: protocol, categoria: form.category, prioridade, nome: data.nome!, telefone: data.telefone!, endereco: data.endereco!, descricao: data.descricao! }).then(({ error }) => {
+      supabase.from("ocorrencias").insert({ protocolo: protocol, categoria: form.category, prioridade, nome: data['nome']!, telefone: data['telefone']!, endereco: data['endereco']!, descricao: data['descricao']! }).then(({ error }) => {
         if (error) setMsgs((m) => [...m, { from: "bot", text: "Falha ao enviar. Ligue 153.", urgent: true }]);
       });
       setForm(null);
