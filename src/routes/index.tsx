@@ -37,13 +37,13 @@ function Index() {
   const endRef = useRef<HTMLDivElement>(null);
 
   const say = (key: string) => {
-    const n = TREE[key];
+    const n = TREE[key]!;
     setNode(key);
     if (n.kind === "route") setMsgs((m) => [...m, { from: "bot", text: n.text, contacts: n.contacts, urgent: n.urgent }]);
     else if (n.kind === "ask") setMsgs((m) => [...m, { from: "bot", text: n.text }]);
     else {
       setForm({ category: n.category, step: 0, data: {} });
-      setMsgs((m) => [...m, { from: "bot", text: n.text }, { from: "bot", text: FIELDS[0].q }]);
+      setMsgs((m) => [...m, { from: "bot", text: n.text }, { from: "bot", text: FIELDS[0]!.q }]);
     }
   };
 
@@ -55,13 +55,13 @@ function Index() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form || !input.trim()) return;
-    const f = FIELDS[form.step];
+    const f = FIELDS[form.step]!;
     const data = { ...form.data, [f.key]: input.trim() };
     setInput("");
     const next = form.step + 1;
     if (next < FIELDS.length) {
       setForm({ ...form, step: next, data });
-      setMsgs((m) => [...m, { from: "user", text: input.trim() }, { from: "bot", text: FIELDS[next].q }]);
+      setMsgs((m) => [...m, { from: "user", text: input.trim() }, { from: "bot", text: FIELDS[next]!.q }]);
     } else {
       const protocol = `GCM-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
       const saved = JSON.parse(localStorage.getItem("gcm_pedidos") || "[]");
