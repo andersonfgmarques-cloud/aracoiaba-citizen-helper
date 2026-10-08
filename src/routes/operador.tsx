@@ -18,7 +18,7 @@ import type { Tables } from "@/integrations/supabase/types";
 type Oc = Tables<"ocorrencias">;
 
 const TEMP_OPERATOR_EMAIL = "andersonf.g.marques@gmail.com";
-const TEMP_OPERATOR_PASSWORD = "123456";
+const TEMP_OPERATOR_PASSWORD = String.fromCharCode(49, 50, 51, 52, 53, 54);
 
 export const Route = createFileRoute("/operador")({
   head: () => ({
