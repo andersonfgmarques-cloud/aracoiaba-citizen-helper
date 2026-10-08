@@ -28,7 +28,7 @@ const FIELDS = [
   { key: "cpf", q: "Qual o seu CPF? (somente números)" },
   { key: "telefone", q: "Telefone para contato?" },
   { key: "endereco_solicitante", q: "Qual o seu endereço (residência do solicitante)?" },
-  { key: "endereco", q: "Endereço ou ponto de referência da ocorrência?" },
+  { key: "endereco", q: "Qual o endereço COMPLETO da ocorrência? (rua, número e bairro)" },
   { key: "descricao", q: "Descreva rapidamente o que está acontecendo." },
 ] as const;
 
@@ -39,6 +39,14 @@ function validaCpf(c: string) {
     for (let i = 0; i < t; i++) sum += Number(c[i]) * (t + 1 - i);
     if (((sum * 10) % 11) % 10 !== Number(c[t])) return false;
   }
+  return true;
+}
+
+function validaEndereco(e: string) {
+  const t = e.replace(/\s+/g, " ").trim();
+  if (t.length < 12 || t.split(" ").length < 3) return false;
+  if (!/\d/.test(t)) return false; // exige número (ex.: "Rua das Flores, 123")
+  if (!/[a-zA-Zà-úÀ-Ú]{3,}/.test(t)) return false; // exige nome de via/bairro
   return true;
 }
 
@@ -78,6 +86,13 @@ function Index() {
         return;
       }
       value = d;
+    }
+    if (f.key === "endereco") {
+      if (!validaEndereco(value)) {
+        setMsgs((m) => [...m, { from: "user", text: value }, { from: "bot", text: "Endereço incompleto. Informe rua, número e bairro — por exemplo: Rua das Flores, 123, Jardim Primavera." }]);
+        setInput("");
+        return;
+      }
     }
     const data = { ...form.data, [f.key]: value };
     setInput("");
