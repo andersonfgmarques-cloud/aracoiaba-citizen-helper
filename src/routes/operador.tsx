@@ -210,6 +210,8 @@ function Detalhe({ o, update }: { o: Oc; update: (id: string, p: Partial<Oc>) =>
         <p className="leading-relaxed">{o.descricao}</p>
         <a href={`https://www.google.com/maps/search/${encodeURIComponent(o.endereco + ", Araçoiaba da Serra - SP")}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-primary"><MapPin className="h-4 w-4" /> {o.endereco}</a>
         <a href={`tel:${o.telefone}`} className="flex items-center gap-2 text-sm"><Phone className="h-4 w-4" /> {o.nome} · {o.telefone}</a>
+        <p className="text-sm text-muted-foreground">CPF: {o.cpf ? o.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4") : "—"}</p>
+        <p className="text-sm text-muted-foreground">Residência do solicitante: {o.endereco_solicitante ?? "—"}</p>
       </div>
       <div className="space-y-3 rounded-2xl bg-card p-5">
         <p className="text-sm font-semibold">Viatura</p>

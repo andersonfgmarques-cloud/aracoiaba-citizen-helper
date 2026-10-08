@@ -32,6 +32,16 @@ const FIELDS = [
   { key: "descricao", q: "Descreva rapidamente o que está acontecendo." },
 ] as const;
 
+function validaCpf(c: string) {
+  if (c.length !== 11 || /^(\d)\1+$/.test(c)) return false;
+  for (const t of [9, 10]) {
+    let sum = 0;
+    for (let i = 0; i < t; i++) sum += Number(c[i]) * (t + 1 - i);
+    if (((sum * 10) % 11) % 10 !== Number(c[t])) return false;
+  }
+  return true;
+}
+
 function Index() {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [node, setNode] = useState("start");
@@ -74,11 +84,11 @@ function Index() {
     const next = form.step + 1;
     if (next < FIELDS.length) {
       setForm({ ...form, step: next, data });
-      setMsgs((m) => [...m, { from: "user", text: input.trim() }, { from: "bot", text: FIELDS[next]!.q }]);
+      setMsgs((m) => [...m, { from: "user", text: value }, { from: "bot", text: FIELDS[next]!.q }]);
     } else {
       const protocol = `GCM-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
       const prioridade = ["Atitude suspeita", "Perturbação do sossego"].includes(form.category) ? "alta" : "media";
-      supabase.from("ocorrencias").insert({ protocolo: protocol, categoria: form.category, prioridade, nome: data['nome']!, telefone: data['telefone']!, endereco: data['endereco']!, descricao: data['descricao']! }).then(({ error }) => {
+      supabase.from("ocorrencias").insert({ protocolo: protocol, categoria: form.category, prioridade, nome: data['nome']!, cpf: data['cpf']!, endereco_solicitante: data['endereco_solicitante']!, telefone: data['telefone']!, endereco: data['endereco']!, descricao: data['descricao']! }).then(({ error }) => {
         if (error) setMsgs((m) => [...m, { from: "bot", text: "Falha ao enviar. Ligue 153.", urgent: true }]);
       });
       setForm(null);
