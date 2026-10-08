@@ -17,6 +17,9 @@ import type { Tables } from "@/integrations/supabase/types";
 
 type Oc = Tables<"ocorrencias">;
 
+const TEMP_OPERATOR_EMAIL = "andersonf.g.marques@gmail.com";
+const TEMP_OPERATOR_PASSWORD = "123456";
+
 export const Route = createFileRoute("/operador")({
   head: () => ({
     meta: [
@@ -49,8 +52,13 @@ const VIATURAS = ["VTR-01", "VTR-02", "VTR-03", "MOTO-01", "MOTO-02", "Ambiental
 
 function Operador() {
   const [session, setSession] = useState<Session | null>(null);
+  const [demoOperator, setDemoOperator] = useState(false);
   const [ready, setReady] = useState(false);
+
   useEffect(() => {
+    const localAccess = localStorage.getItem("cad-temp-operator") === "1";
+    setDemoOperator(localAccess);
+
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
@@ -58,30 +66,30 @@ function Operador() {
     });
     return () => data.subscription.unsubscribe();
   }, []);
+
   if (!ready) return null;
-  return session ? <Painel session={session} /> : <Login />;
+  if (demoOperator) return <Painel session={null} demoOperator />;
+  return session ? <Painel session={session} /> : <Login onTemporaryLogin={() => setDemoOperator(true)} />;
 }
 
-function Login() {
+function Login({ onTemporaryLogin }: { onTemporaryLogin: () => void }) {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [modo, setModo] = useState<"entrar" | "criar">("entrar");
   const [msg, setMsg] = useState("");
+
   const go = async (e: React.FormEvent) => {
     e.preventDefault();
     setMsg("");
-    const { data, error } =
-      modo === "entrar"
-        ? await supabase.auth.signInWithPassword({ email, password: senha })
-        : await supabase.auth.signUp({
-            email,
-            password: senha,
-            options: { emailRedirectTo: new URL("operador", window.location.href).toString() },
-          });
-    if (error) setMsg(error.message);
-    else if (modo === "criar" && !data.session)
-      setMsg("Conta criada. Confirme pelo link enviado ao seu e-mail.");
+
+    if (email.trim().toLowerCase() === TEMP_OPERATOR_EMAIL && senha === TEMP_OPERATOR_PASSWORD) {
+      localStorage.setItem("cad-temp-operator", "1");
+      onTemporaryLogin();
+      return;
+    }
+
+    setMsg("E-mail ou senha inválidos.");
   };
+
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <form
@@ -97,6 +105,7 @@ function Login() {
             <p className="text-xs text-muted-foreground">Acesso restrito a operadores</p>
           </div>
         </div>
+
         <input
           type="email"
           required
@@ -108,45 +117,22 @@ function Login() {
         <input
           type="password"
           required
-          minLength={6}
           placeholder="Senha"
           value={senha}
           onChange={(e) => setSenha(e.target.value)}
           className="w-full rounded-xl border bg-input px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
         />
-        {msg && <p className="text-sm text-muted-foreground">{msg}</p>}
+
+        {msg && <p className="text-sm text-destructive">{msg}</p>}
+
         <button className="w-full rounded-xl bg-primary py-3 font-semibold text-primary-foreground">
-          {modo === "entrar" ? "Entrar" : "Criar conta"}
+          Entrar
         </button>
-        <button
-          type="button"
-          onClick={() => setModo(modo === "entrar" ? "criar" : "entrar")}
-          className="w-full text-xs text-muted-foreground underline"
-        >
-          {modo === "entrar" ? "Criar conta de operador" : "Já tenho conta"}
-        </button>
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <div className="h-px flex-1 bg-border" />
-          ou
-          <div className="h-px flex-1 bg-border" />
-        </div>
-        <button
-          type="button"
-          onClick={async () => {
-            setMsg("");
-            const redirectTo = new URL("operador", window.location.href).toString();
-            const { error } = await supabase.auth.signInWithOAuth({
-              provider: "google",
-              options: {
-                redirectTo,
-              },
-            });
-            if (error) setMsg(error.message ?? "Erro ao entrar com Google");
-          }}
-          className="w-full rounded-xl border bg-secondary py-3 text-sm font-semibold"
-        >
-          Entrar com Google
-        </button>
+
+        <p className="text-center text-[11px] text-muted-foreground">
+          Acesso temporário do CAD
+        </p>
+
         <Link to="/" className="block text-center text-xs text-muted-foreground">
           ← Voltar ao atendimento
         </Link>
@@ -155,9 +141,9 @@ function Login() {
   );
 }
 
-function Painel({ session }: { session: Session }) {
+function Painel({ session, demoOperator = false }: { session: Session | null; demoOperator?: boolean }) {
   const [ocs, setOcs] = useState<Oc[]>([]);
-  const [autorizado, setAutorizado] = useState<boolean | null>(null);
+  const [autorizado, setAutorizado] = useState<boolean | null>(demoOperator ? true : null);
   const [filtro, setFiltro] = useState("ativas");
   const [sel, setSel] = useState<string | null>(null);
 
@@ -171,15 +157,20 @@ function Painel({ session }: { session: Session }) {
   };
 
   useEffect(() => {
-    supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", session.user.id)
-      .then(({ data }) => {
-        const ok = !!data?.length;
-        setAutorizado(ok);
-        if (ok) load();
-      });
+    if (!demoOperator && session) {
+      supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", session.user.id)
+        .then(({ data }) => {
+          const ok = !!data?.length;
+          setAutorizado(ok);
+          if (ok) load();
+        });
+    } else {
+      load();
+    }
+
     const ch = supabase
       .channel("ocorrencias-cad")
       .on("postgres_changes", { event: "*", schema: "public", table: "ocorrencias" }, (p) => {
@@ -196,10 +187,11 @@ function Painel({ session }: { session: Session }) {
           setOcs((o) => o.map((x) => (x.id === (p.new as Oc).id ? (p.new as Oc) : x)));
       })
       .subscribe();
+
     return () => {
       supabase.removeChannel(ch);
     };
-  }, [session.user.id]);
+  }, [session?.user.id, demoOperator]);
 
   const lista = useMemo(
     () =>
@@ -220,12 +212,18 @@ function Painel({ session }: { session: Session }) {
     await supabase.from("ocorrencias").update(patch).eq("id", id);
   };
 
+  const sair = async () => {
+    localStorage.removeItem("cad-temp-operator");
+    if (session) await supabase.auth.signOut();
+    window.location.reload();
+  };
+
   if (autorizado === false)
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4 text-center">
         <p>Sua conta ainda não foi liberada como operador. Peça ao administrador da central.</p>
         <button
-          onClick={() => supabase.auth.signOut()}
+          onClick={sair}
           className="rounded-xl bg-secondary px-4 py-2 text-sm"
         >
           Sair
@@ -242,9 +240,9 @@ function Painel({ session }: { session: Session }) {
           <span className="h-2 w-2 animate-pulse rounded-full bg-success" /> Ao vivo
         </span>
         <div className="ml-auto flex items-center gap-3 text-xs text-muted-foreground">
-          {session.user.email}
+          {session?.user.email ?? TEMP_OPERATOR_EMAIL}
           <button
-            onClick={() => supabase.auth.signOut()}
+            onClick={sair}
             aria-label="Sair"
             className="rounded-full p-2 hover:bg-secondary"
           >
