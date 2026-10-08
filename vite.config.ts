@@ -9,6 +9,9 @@ export default defineConfig({
     router: {
       basepath: basePath,
     },
+    server: {
+      entry: "server",
+    },
     prerender: {
       enabled: true,
       autoSubfolderIndex: true,
