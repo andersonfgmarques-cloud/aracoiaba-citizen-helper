@@ -30,10 +30,7 @@ type Msg =
   | { from: "done"; protocol: string; category: string };
 
 const FIELDS = [
-  { key: "nome", q: "Qual o seu nome?" },
-  { key: "cpf", q: "Qual o seu CPF? (somente números)" },
   { key: "telefone", q: "Telefone para contato?" },
-  { key: "endereco_solicitante", q: "Qual o seu endereço (residência do solicitante)?" },
   { key: "endereco", q: "Qual o endereço COMPLETO da ocorrência? (rua, número e bairro)" },
   { key: "descricao", q: "Descreva rapidamente o que está acontecendo." },
 ] as const;
@@ -77,6 +74,7 @@ function Index() {
   const aceitarTermo = () => {
     setCiencia("aceita");
     setMsgs([]);
+    setForm(null);
     setNode("start");
   };
 
@@ -117,7 +115,11 @@ function Index() {
   const reset = () => {
     setMsgs([]);
     setForm(null);
-    say("start");
+    setPreData({ nome: "", cpf: "", endereco_solicitante: "" });
+    setPreStep(0);
+    setCiencia("dados");
+    setNode("start");
+    setInput("");
   };
 
   const submit = (e: React.FormEvent) => {
@@ -440,7 +442,7 @@ function Index() {
                     { from: "user", text: "Li e estou ciente. Prosseguir." },
                     { from: "bot", text: FIELDS[0]!.q },
                   ]);
-                  setForm({ category: current.category, step: 0, data: {} });
+                  setForm({ category: current.category, step: 0, data: { ...preData } });
                 }}
                 className="rounded-full bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground"
               >
