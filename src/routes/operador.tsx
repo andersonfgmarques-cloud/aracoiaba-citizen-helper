@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Shield, LogOut, MapPin, Phone, Clock, Radio, CheckCircle2, XCircle, Siren } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import type { Session } from "@supabase/supabase-js";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -70,6 +71,11 @@ function Login() {
         <button type="button" onClick={() => setModo(modo === "entrar" ? "criar" : "entrar")} className="w-full text-xs text-muted-foreground underline">
           {modo === "entrar" ? "Criar conta de operador" : "Já tenho conta"}
         </button>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground"><div className="h-px flex-1 bg-border" />ou<div className="h-px flex-1 bg-border" /></div>
+        <button type="button" onClick={async () => {
+          const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/operador` });
+          if (r.error) setMsg(r.error.message ?? "Erro ao entrar com Google");
+        }} className="w-full rounded-xl border bg-secondary py-3 text-sm font-semibold">Entrar com Google</button>
         <Link to="/" className="block text-center text-xs text-muted-foreground">← Voltar ao atendimento</Link>
       </form>
     </div>
