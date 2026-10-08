@@ -37,6 +37,21 @@ jobs:
           GITHUB_PAGES: "true"
         run: bun run build
 
+      - name: Fix project-site asset paths
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          root = Path("dist/client")
+          prefix = "/aracoiaba-citizen-helper"
+
+          for path in root.rglob("*.html"):
+              text = path.read_text(encoding="utf-8")
+              text = text.replace('="/assets/', '="/aracoiaba-citizen-helper/assets/')
+              text = text.replace('="/favicon.ico"', '="/aracoiaba-citizen-helper/favicon.ico"')
+              path.write_text(text, encoding="utf-8")
+          PY
+
       - name: Ensure GitHub Pages fallback
         run: cp dist/client/index.html dist/client/404.html
 
