@@ -12,9 +12,10 @@ export default defineConfig({
     prerender: {
       enabled: true,
       autoSubfolderIndex: true,
-      autoStaticPathsDiscovery: true,
-      crawlLinks: true,
+      autoStaticPathsDiscovery: false,
+      crawlLinks: false,
       failOnError: true,
+      routes: ["/"],
     },
     server: {
       entry: "server",
