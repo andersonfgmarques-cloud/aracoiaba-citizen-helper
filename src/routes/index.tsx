@@ -65,7 +65,20 @@ function Index() {
     data: Record<string, string>;
   } | null>(null);
   const [input, setInput] = useState("");
+  const [preData, setPreData] = useState({ nome: "", cpf: "", endereco_solicitante: "" });
+  const [preStep, setPreStep] = useState<0 | 1 | 2>(0);
+  const [ciencia, setCiencia] = useState<"dados" | "termo" | "aceita" | "recusada">("dados");
   const endRef = useRef<HTMLDivElement>(null);
+
+  const iniciarServico = () => {
+    setCiencia("termo");
+  };
+
+  const aceitarTermo = () => {
+    setCiencia("aceita");
+    setMsgs([]);
+    setNode("start");
+  };
 
   const say = (key: string) => {
     const n = TREE[key]!;
@@ -95,8 +108,8 @@ function Index() {
   };
 
   useEffect(() => {
-    say("start");
-  }, []);
+    if (ciencia === "aceita" && msgs.length === 0) say("start");
+  }, [ciencia, msgs.length]);
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [msgs]);
@@ -181,6 +194,97 @@ function Index() {
   };
 
   const current = TREE[node];
+
+  if (ciencia !== "aceita") {
+    const preLabels = [
+      { key: "nome", label: "Nome completo", placeholder: "Digite seu nome completo" },
+      { key: "cpf", label: "CPF", placeholder: "Digite seu CPF" },
+      { key: "endereco_solicitante", label: "Endereço", placeholder: "Rua, número e bairro" },
+    ] as const;
+    const field = preLabels[preStep];
+
+    if (ciencia === "recusada") {
+      return (
+        <div className="mx-auto flex min-h-screen max-w-lg flex-col bg-background">
+          <header className="bg-header flex items-center gap-3 border-b px-4 py-4 shadow-lg">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground"><Shield className="h-6 w-6" /></div>
+            <div><h1 className="text-base font-bold">GCM Araçoiaba da Serra</h1><p className="text-xs text-muted-foreground">Atendimento ao cidadão</p></div>
+          </header>
+          <main className="flex flex-1 items-center px-4 py-6">
+            <div className="w-full rounded-2xl border bg-card p-5 shadow-sm">
+              <h2 className="text-lg font-bold text-destructive">Solicitação encerrada</h2>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                Você recusou a tomada de ciência do termo. O atendimento foi encerrado.
+              </p>
+              <button onClick={() => { setPreData({ nome: "", cpf: "", endereco_solicitante: "" }); setPreStep(0); setCiencia("dados"); }}
+                className="mt-5 w-full rounded-full bg-primary py-3 font-semibold text-primary-foreground">
+                Iniciar novamente
+              </button>
+            </div>
+          </main>
+        </div>
+      );
+    }
+
+    if (ciencia === "dados") {
+      return (
+        <div className="mx-auto flex min-h-screen max-w-lg flex-col bg-background">
+          <header className="bg-header flex items-center gap-3 border-b px-4 py-4 shadow-lg">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground"><Shield className="h-6 w-6" /></div>
+            <div><h1 className="text-base font-bold">GCM Araçoiaba da Serra</h1><p className="text-xs text-muted-foreground">Atendimento ao cidadão</p></div>
+          </header>
+          <main className="flex flex-1 items-center px-4 py-6">
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const value = preData[field.key].trim();
+              if (!value) return;
+              if (field.key === "cpf" && !validaCpf(value.replace(/\D/g, ""))) return;
+              if (field.key === "endereco_solicitante" && !validaEndereco(value)) return;
+              setPreData({ ...preData, [field.key]: field.key === "cpf" ? value.replace(/\D/g, "") : value });
+              if (preStep < 2) setPreStep((preStep + 1) as 0 | 1 | 2);
+              else iniciarServico();
+            }} className="w-full rounded-2xl border bg-card p-5 shadow-sm">
+              <p className="text-xs font-semibold uppercase text-primary">Identificação do solicitante • {preStep + 1}/3</p>
+              <h2 className="mt-2 text-lg font-bold">{field.label}</h2>
+              <p className="mt-2 text-sm text-muted-foreground">Informe seus dados para iniciar o atendimento.</p>
+              <input autoFocus value={preData[field.key]} onChange={(e) => setPreData({ ...preData, [field.key]: e.target.value })}
+                placeholder={field.placeholder} className="mt-5 w-full rounded-xl border bg-input px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring" />
+              <button className="mt-4 w-full rounded-full bg-primary py-3 font-semibold text-primary-foreground">
+                {preStep < 2 ? "Continuar" : "Continuar para o Termo de Ciência"}
+              </button>
+            </form>
+          </main>
+        </div>
+      );
+    }
+
+    return (
+      <div className="mx-auto flex min-h-screen max-w-lg flex-col bg-background">
+        <header className="bg-header flex items-center gap-3 border-b px-4 py-4 shadow-lg">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground"><Shield className="h-6 w-6" /></div>
+          <div><h1 className="text-base font-bold">GCM Araçoiaba da Serra</h1><p className="text-xs text-muted-foreground">Atendimento ao cidadão</p></div>
+        </header>
+        <main className="flex flex-1 items-center px-4 py-6">
+          <div className="w-full rounded-2xl border bg-card p-5 shadow-sm">
+            <h2 className="text-lg font-bold">Termo de Ciência — Comunicação falsa de crime ou de contravenção</h2>
+            <div className="mt-4 space-y-3 text-sm leading-relaxed">
+              <p>O art. 340 do Código Penal estabelece:</p>
+              <div className="rounded-xl bg-secondary p-4">
+                <p className="font-medium">“Provocar a ação de autoridade, comunicando-lhe a ocorrência de crime ou de contravenção que sabe não se ter verificado.”</p>
+                <p className="mt-2 font-semibold">Pena: detenção, de 1 (um) a 6 (seis) meses, ou multa.</p>
+              </div>
+              <p>Ao prosseguir, você declara ciência de que as informações fornecidas devem corresponder aos fatos que está comunicando.</p>
+              <p className="font-semibold">A aceitação deste termo é obrigatória para continuar utilizando o serviço.</p>
+            </div>
+            <div className="mt-5 grid gap-2">
+              <button onClick={aceitarTermo} className="w-full rounded-full bg-primary py-3 font-semibold text-primary-foreground">Li e estou ciente — Continuar</button>
+              <button onClick={() => setCiencia("recusada")} className="w-full rounded-full border border-destructive/60 py-3 font-semibold text-destructive">Recuso-me a tomar ciência</button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto flex h-screen max-w-lg flex-col">
