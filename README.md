@@ -1,6 +1,6 @@
 # Araçoiaba Cidadão Direto
 
-faça um projeto moderno  para um apk da gcm de araçoiaba da serra sp  onde os cidadaos solicitaram a gcm deve ser feito uma rigorosa triuagem dos contatos se for ocorrencia da policia militar ja orientar fazer isso tambem com o samu municipal ,fiscalizacao ,meio ambiente ,defesa civilç bombeiros denuncis de trafico pelo etc  esse apk trabalghara como se foce um bot
+faça um projeto moderno para um apk da gcm de araçoiaba da serra sp onde os cidadaos solicitaram a gcm deve ser feito uma rigorosa triuagem dos contatos se for ocorrencia da policia militar ja orientar fazer isso tambem com o samu municipal ,fiscalizacao ,meio ambiente ,defesa civilç bombeiros denuncis de trafico pelo etc esse apk trabalghara como se foce um bot
 
 This project was built with [Lovable](https://lovable.dev).
 

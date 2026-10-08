@@ -9,7 +9,11 @@ export const CONTACTS = {
   denuncia: { name: "Disque Denúncia", phone: "181", note: "Denúncia anônima (tráfico, crimes)" },
   civil: { name: "Polícia Civil", phone: "197", note: "Boletim de ocorrência, investigação" },
   ambiental: { name: "Polícia Militar Ambiental", phone: "190", note: "Crimes ambientais graves" },
-  prefeitura: { name: "Prefeitura – Fiscalização", phone: "156", note: "Obras, comércio, som, terrenos" },
+  prefeitura: {
+    name: "Prefeitura – Fiscalização",
+    phone: "156",
+    note: "Obras, comércio, som, terrenos",
+  },
 } satisfies Record<string, Contact>;
 
 export type Option = { label: string; next: string };
@@ -97,18 +101,74 @@ export const TREE: Record<string, Node> = {
       { label: "Não – é uma reclamação/irregularidade", next: "r_fisc" },
     ],
   },
-  r_pm: { kind: "route", urgent: true, text: "Esta é uma ocorrência da POLÍCIA MILITAR. Ligue AGORA para o 190. Se for seguro, permaneça em local protegido e não confronte ninguém.", contacts: [CONTACTS.pm] },
-  r_samu: { kind: "route", urgent: true, text: "Emergência médica: ligue para o SAMU 192. Não mova a vítima se houver suspeita de queda ou acidente.", contacts: [CONTACTS.samu, CONTACTS.bombeiros] },
-  r_samu_nu: { kind: "route", text: "Para urgência médica ligue 192 (SAMU). Para atendimentos sem urgência procure a UBS do seu bairro.", contacts: [CONTACTS.samu] },
-  r_bomb: { kind: "route", urgent: true, text: "Acione o CORPO DE BOMBEIROS pelo 193. Afaste-se do local de risco.", contacts: [CONTACTS.bombeiros] },
-  r_defesa: { kind: "route", urgent: true, text: "Situação de DEFESA CIVIL. Ligue 199. Se houver vítimas ou risco imediato, ligue 193.", contacts: [CONTACTS.defesa, CONTACTS.bombeiros] },
-  r_trafico: { kind: "route", text: "Denúncias de tráfico devem ser feitas de forma ANÔNIMA pelo Disque Denúncia 181. Nunca se exponha nem fotografe suspeitos. Em flagrante com risco, ligue 190.", contacts: [CONTACTS.denuncia, CONTACTS.pm] },
-  r_civil: { kind: "route", text: "Para registrar fatos já ocorridos, faça o Boletim de Ocorrência na Delegacia Eletrônica (SSP-SP) ou ligue 197.", contacts: [CONTACTS.civil] },
-  r_fisc: { kind: "route", text: "Este caso é de responsabilidade da FISCALIZAÇÃO MUNICIPAL / MEIO AMBIENTE da Prefeitura.", contacts: [CONTACTS.prefeitura] },
-  g_sossego: { kind: "gcm", category: "Perturbação do sossego", text: "Ok, a GCM pode atender. Preciso de alguns dados." },
-  g_suspeito: { kind: "gcm", category: "Atitude suspeita", text: "A GCM pode verificar. Preciso de alguns dados." },
+  r_pm: {
+    kind: "route",
+    urgent: true,
+    text: "Esta é uma ocorrência da POLÍCIA MILITAR. Ligue AGORA para o 190. Se for seguro, permaneça em local protegido e não confronte ninguém.",
+    contacts: [CONTACTS.pm],
+  },
+  r_samu: {
+    kind: "route",
+    urgent: true,
+    text: "Emergência médica: ligue para o SAMU 192. Não mova a vítima se houver suspeita de queda ou acidente.",
+    contacts: [CONTACTS.samu, CONTACTS.bombeiros],
+  },
+  r_samu_nu: {
+    kind: "route",
+    text: "Para urgência médica ligue 192 (SAMU). Para atendimentos sem urgência procure a UBS do seu bairro.",
+    contacts: [CONTACTS.samu],
+  },
+  r_bomb: {
+    kind: "route",
+    urgent: true,
+    text: "Acione o CORPO DE BOMBEIROS pelo 193. Afaste-se do local de risco.",
+    contacts: [CONTACTS.bombeiros],
+  },
+  r_defesa: {
+    kind: "route",
+    urgent: true,
+    text: "Situação de DEFESA CIVIL. Ligue 199. Se houver vítimas ou risco imediato, ligue 193.",
+    contacts: [CONTACTS.defesa, CONTACTS.bombeiros],
+  },
+  r_trafico: {
+    kind: "route",
+    text: "Denúncias de tráfico devem ser feitas de forma ANÔNIMA pelo Disque Denúncia 181. Nunca se exponha nem fotografe suspeitos. Em flagrante com risco, ligue 190.",
+    contacts: [CONTACTS.denuncia, CONTACTS.pm],
+  },
+  r_civil: {
+    kind: "route",
+    text: "Para registrar fatos já ocorridos, faça o Boletim de Ocorrência na Delegacia Eletrônica (SSP-SP) ou ligue 197.",
+    contacts: [CONTACTS.civil],
+  },
+  r_fisc: {
+    kind: "route",
+    text: "Este caso é de responsabilidade da FISCALIZAÇÃO MUNICIPAL / MEIO AMBIENTE da Prefeitura.",
+    contacts: [CONTACTS.prefeitura],
+  },
+  g_sossego: {
+    kind: "gcm",
+    category: "Perturbação do sossego",
+    text: "Ok, a GCM pode atender. Preciso de alguns dados.",
+  },
+  g_suspeito: {
+    kind: "gcm",
+    category: "Atitude suspeita",
+    text: "A GCM pode verificar. Preciso de alguns dados.",
+  },
   g_ronda: { kind: "gcm", category: "Ronda / apoio", text: "Vamos registrar seu pedido de ronda." },
-  g_patr: { kind: "gcm", category: "Patrimônio público", text: "Proteção do patrimônio é atribuição da GCM. Preciso de alguns dados." },
-  g_transito: { kind: "gcm", category: "Trânsito", text: "A GCM pode atender. Preciso de alguns dados." },
-  g_ambiental: { kind: "gcm", category: "Ambiental", text: "A GCM Ambiental pode verificar. Preciso de alguns dados." },
+  g_patr: {
+    kind: "gcm",
+    category: "Patrimônio público",
+    text: "Proteção do patrimônio é atribuição da GCM. Preciso de alguns dados.",
+  },
+  g_transito: {
+    kind: "gcm",
+    category: "Trânsito",
+    text: "A GCM pode atender. Preciso de alguns dados.",
+  },
+  g_ambiental: {
+    kind: "gcm",
+    category: "Ambiental",
+    text: "A GCM Ambiental pode verificar. Preciso de alguns dados.",
+  },
 };
