@@ -17,8 +17,5 @@ export default defineConfig({
       failOnError: true,
       routes: ["/"],
     },
-    server: {
-      entry: "server",
-    },
   },
 });
