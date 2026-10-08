@@ -1,7 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Phone, Shield, RotateCcw, Send, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { TREE, CONTACTS, type Contact } from "@/lib/triage";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -64,8 +65,10 @@ function Index() {
       setMsgs((m) => [...m, { from: "user", text: input.trim() }, { from: "bot", text: FIELDS[next]!.q }]);
     } else {
       const protocol = `GCM-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
-      const saved = JSON.parse(localStorage.getItem("gcm_pedidos") || "[]");
-      localStorage.setItem("gcm_pedidos", JSON.stringify([...saved, { protocol, category: form.category, ...data, at: new Date().toISOString() }]));
+      const prioridade = ["Atitude suspeita", "Perturbação do sossego"].includes(form.category) ? "alta" : "media";
+      supabase.from("ocorrencias").insert({ protocolo: protocol, categoria: form.category, prioridade, nome: data['nome']!, telefone: data['telefone']!, endereco: data['endereco']!, descricao: data['descricao']! }).then(({ error }) => {
+        if (error) setMsgs((m) => [...m, { from: "bot", text: "Falha ao enviar. Ligue 153.", urgent: true }]);
+      });
       setForm(null);
       setNode("__done");
       setMsgs((m) => [...m, { from: "user", text: input.trim() }, { from: "done", protocol, category: form.category }]);
@@ -86,6 +89,7 @@ function Index() {
             <span className="h-2 w-2 rounded-full bg-success" /> Assistente de atendimento online
           </p>
         </div>
+        <Link to="/operador" className="rounded-full px-2 py-1 text-[10px] font-semibold text-muted-foreground hover:bg-secondary">CAD</Link>
         <button onClick={reset} aria-label="Reiniciar" className="rounded-full p-2 text-muted-foreground hover:bg-secondary">
           <RotateCcw className="h-5 w-5" />
         </button>
