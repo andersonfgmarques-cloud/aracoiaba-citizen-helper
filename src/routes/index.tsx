@@ -39,7 +39,7 @@ function Index() {
   const say = (key: string) => {
     const n = TREE[key]!;
     setNode(key);
-    if (n.kind === "route") setMsgs((m) => [...m, { from: "bot", text: n.text, contacts: n.contacts, urgent: n.urgent }]);
+    if (n.kind === "route") setMsgs((m) => [...m, { from: "bot", text: n.text, contacts: n.contacts, urgent: !!n.urgent }]);
     else if (n.kind === "ask") setMsgs((m) => [...m, { from: "bot", text: n.text }]);
     else {
       setForm({ category: n.category, step: 0, data: {} });
