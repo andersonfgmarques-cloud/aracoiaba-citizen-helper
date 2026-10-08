@@ -149,7 +149,10 @@ function Index() {
               <div className="flex items-center gap-2 font-bold text-success"><CheckCircle2 className="h-5 w-5" /> Solicitação registrada</div>
               <p className="mt-2 text-sm text-muted-foreground">Categoria: {m.category}</p>
               <p className="mt-1 font-display text-xl font-bold text-primary">{m.protocol}</p>
-              <p className="mt-2 text-xs text-muted-foreground">Guarde o protocolo. Uma viatura será direcionada conforme a prioridade. Se a situação piorar, ligue 153.</p>
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                Sua solicitação foi registrada com sucesso. O atendimento será avaliado e encaminhado conforme o grau de prioridade da ocorrência, considerando a urgência dos fatos e a disponibilidade operacional das equipes. Em situações de emergência ou agravamento da ocorrência, entre imediatamente em contato pelo telefone{" "}
+                <a href="tel:153" className="font-semibold text-primary underline underline-offset-2">153</a>.
+              </p>
             </div>
           ) : (
             <div key={i} className={`bubble-in max-w-[88%] rounded-2xl rounded-bl-sm px-4 py-3 text-sm ${m.urgent ? "border border-destructive/60 bg-destructive/15" : "bg-card"}`}>
