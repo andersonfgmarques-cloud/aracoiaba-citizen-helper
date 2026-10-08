@@ -59,7 +59,17 @@ function Index() {
     e.preventDefault();
     if (!form || !input.trim()) return;
     const f = FIELDS[form.step]!;
-    const data = { ...form.data, [f.key]: input.trim() };
+    let value = input.trim();
+    if (f.key === "cpf") {
+      const d = value.replace(/\D/g, "");
+      if (!validaCpf(d)) {
+        setMsgs((m) => [...m, { from: "user", text: value }, { from: "bot", text: "CPF inválido. Digite os 11 números do seu CPF." }]);
+        setInput("");
+        return;
+      }
+      value = d;
+    }
+    const data = { ...form.data, [f.key]: value };
     setInput("");
     const next = form.step + 1;
     if (next < FIELDS.length) {
