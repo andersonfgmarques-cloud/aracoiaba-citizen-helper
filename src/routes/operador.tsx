@@ -76,7 +76,7 @@ function Login() {
         : await supabase.auth.signUp({
             email,
             password: senha,
-            options: { emailRedirectTo: `${window.location.origin}/operador` },
+            options: { emailRedirectTo: new URL("operador", window.location.href).toString() },
           });
     if (error) setMsg(error.message);
     else if (modo === "criar" && !data.session)
@@ -134,11 +134,7 @@ function Login() {
           type="button"
           onClick={async () => {
             setMsg("");
-            const basePath = import.meta.env.BASE_URL || "/";
-            const redirectTo = new URL(
-              `operador`,
-              `${window.location.origin}${basePath}`,
-            ).toString();
+            const redirectTo = new URL("operador", window.location.href).toString();
             const { error } = await supabase.auth.signInWithOAuth({
               provider: "google",
               options: {
