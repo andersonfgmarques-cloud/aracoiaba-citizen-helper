@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Phone, Shield, RotateCcw, Send, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { TREE, CONTACTS, type Contact } from "@/lib/triage";
@@ -89,6 +89,7 @@ function Index() {
             <span className="h-2 w-2 rounded-full bg-success" /> Assistente de atendimento online
           </p>
         </div>
+        <Link to="/operador" className="rounded-full px-2 py-1 text-[10px] font-semibold text-muted-foreground hover:bg-secondary">CAD</Link>
         <button onClick={reset} aria-label="Reiniciar" className="rounded-full p-2 text-muted-foreground hover:bg-secondary">
           <RotateCcw className="h-5 w-5" />
         </button>
