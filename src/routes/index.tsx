@@ -361,7 +361,7 @@ function Index() {
         <div className="mx-4 mt-3 rounded-xl border bg-card p-4 text-sm shadow-sm">
           <div className="mb-2 flex items-center justify-between gap-3">
             <h2 className="font-bold">
-              {{
+              {({
                 gcm: "Guarda Civil Municipal — GCM",
                 policia: "Polícia Militar",
                 samu: "SAMU",
@@ -369,7 +369,7 @@ function Index() {
                 defesa: "Defesa Civil",
                 denuncia: "Disque Denúncia",
                 depa: "DEPA — Delegacia Eletrônica de Proteção Animal",
-              }[contatoSelecionado]}
+              } as Record<string, string>)[contatoSelecionado]}
             </h2>
             <button type="button" onClick={() => setContatoSelecionado(null)} className="rounded-full px-2 py-1 text-muted-foreground hover:bg-secondary" aria-label="Fechar contatos">✕</button>
           </div>
