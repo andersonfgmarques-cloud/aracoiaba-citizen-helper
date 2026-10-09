@@ -345,8 +345,8 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
 }
 
 function Detalhe({ o, update }: { o: Oc; update: (id: string, p: Partial<Oc>) => void }) {
-  const termoAceite = o.descricao.match(/\\n\\n\\[REGISTRO_TERMO_ART340: ACEITO_EM=([^\\]]+)\\]/);
-  const descricaoLimpa = o.descricao.replace(/\\n\\n\\[REGISTRO_TERMO_ART340: ACEITO_EM=[^\\]]+\\]/, "");
+  const termoAceite = o.descricao.match(/\n\n\[REGISTRO_TERMO_ART340: ACEITO_EM=(.+)\]/);
+  const descricaoLimpa = o.descricao.replace(/\n\n\[REGISTRO_TERMO_ART340: ACEITO_EM=.+\]/, "");
   const [vtr, setVtr] = useState(o.viatura ?? "");
   const [obs, setObs] = useState(o.observacao ?? "");
   return (
