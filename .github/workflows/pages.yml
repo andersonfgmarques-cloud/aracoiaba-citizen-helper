@@ -39,6 +39,11 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
         run: bun run build
 
+      - name: Ensure GCM emblem is included in Pages output
+        run: |
+          test -f public/gcm-emblem.svg
+          cp public/gcm-emblem.svg dist/client/gcm-emblem.svg
+
       - name: Fix project-site asset paths
         run: |
           python - <<'PY'
