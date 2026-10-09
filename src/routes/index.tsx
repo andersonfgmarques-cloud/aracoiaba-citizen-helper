@@ -523,7 +523,7 @@ function Index() {
                           <span>(15) 98109-0984</span>
                         </a>
                       </div>
-                    ) : c.name === "Corpo de Bombeiros" ? (
+                    ) : c.name === "Corpo de Bombeiros" || c.phone === "193" ? (
                       <div key={c.name} className="space-y-2">
                         <a
                           href="tel:193"
