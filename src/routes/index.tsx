@@ -382,10 +382,29 @@ function Index() {
           )}
           {contatoSelecionado === "policia" && <a className="text-primary underline" href="tel:190">190 — Polícia Militar</a>}
           {contatoSelecionado === "samu" && (
-            <div className="flex flex-col gap-2">
-              <a className="text-primary underline" href="tel:08000135117">0800 013 5117</a>
-              <a className="text-primary underline" href="https://wa.me/5515997673839" target="_blank" rel="noreferrer">WhatsApp: (15) 99767-3839</a>
-              
+            <div className="space-y-2">
+              <div
+                className="flex items-center gap-2 rounded-xl bg-[#f2bd37] px-3 py-3 font-semibold text-slate-950"
+                aria-label="SAMU municipal"
+              >
+                <Phone className="h-4 w-4" /> SAMU
+              </div>
+              <a
+                href="tel:08000135117"
+                className="flex items-center justify-between rounded-xl border border-primary/40 bg-secondary px-3 py-2.5 font-semibold"
+              >
+                <span>Telefone adicional</span>
+                <span>0800 013 5117</span>
+              </a>
+              <a
+                href="https://wa.me/5515997673839"
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center justify-between rounded-xl border border-primary/40 bg-secondary px-3 py-2.5 font-semibold"
+              >
+                <span>WhatsApp</span>
+                <span>(15) 99767-3839</span>
+              </a>
             </div>
           )}
           {contatoSelecionado === "bombeiros" && <a className="text-primary underline" href="tel:193">193 — Corpo de Bombeiros</a>}
