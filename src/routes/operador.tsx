@@ -549,42 +549,53 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
             {!loadingOcs && !loadError && lista.length === 0 && (
               <p className="p-6 text-center text-sm text-muted-foreground">Nenhuma ocorrência registrada no banco de dados.</p>
             )}
-            {lista.map((o) => (
-              <button
-                key={o.id}
-                onClick={() => setSel(o.id)}
-                className={`w-full rounded-xl border p-3 text-left transition ${sel === o.id ? "border-primary bg-secondary" : "bg-card hover:bg-secondary"} ${o.status === "pendente" ? "border-l-4 border-l-destructive" : ""} ${["alta", "urgente"].includes(o.prioridade.toLowerCase()) ? "ring-1 ring-destructive/60" : ""}`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold">{o.categoria}</span>
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${STATUS[o.status]?.cls}`}
-                  >
-                    {STATUS[o.status]?.label}
-                  </span>
-                </div>
-                <p className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground">
-                  <MapPin className="h-3 w-3" /> {o.endereco}
-                </p>
-                <div className="mt-1 flex justify-between text-[11px] text-muted-foreground">
-                  <span>{o.protocolo}</span>
-                  <span className="text-right">
-                    {new Date(o.created_at).toLocaleTimeString("pt-BR", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                    {["alta", "urgente"].includes(o.prioridade.toLowerCase()) && <b className="ml-2 text-destructive">URGENTE</b>}
-                    {o.status === "pendente" && (
-                      <span className="mt-1 block font-semibold text-amber-300">
-                        {Math.floor(Math.max(0, Date.now() - new Date(o.created_at).getTime()) / 60000) < 60
-                          ? `${Math.floor(Math.max(0, Date.now() - new Date(o.created_at).getTime()) / 60000)} min aguardando`
-                          : `${Math.floor(Math.max(0, Date.now() - new Date(o.created_at).getTime()) / 3600000)} h aguardando`}
+            {lista.map((o) => {
+              const prioridadeUrgente = ["alta", "urgente"].includes(o.prioridade.toLowerCase());
+              const minutosAguardando = Math.floor(Math.max(0, Date.now() - new Date(o.created_at).getTime()) / 60000);
+              const pendenciaProlongada = o.status === "pendente" && minutosAguardando >= 10;
+              const pendenciaCritica = o.status === "pendente" && minutosAguardando >= 20;
+              const destaque = prioridadeUrgente || pendenciaCritica;
+              return (
+                <button
+                  key={o.id}
+                  onClick={() => setSel(o.id)}
+                  className={`w-full rounded-xl border p-3 text-left transition ${sel === o.id ? "border-primary bg-secondary" : "bg-card hover:bg-secondary"} ${o.status === "pendente" ? pendenciaCritica ? "border-l-4 border-l-destructive bg-destructive/10" : pendenciaProlongada ? "border-l-4 border-l-amber-400" : "border-l-4 border-l-primary" : ""} ${destaque ? "ring-1 ring-destructive/60" : ""}`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-bold">{o.categoria}</span>
+                    <div className="flex flex-wrap items-center justify-end gap-1">
+                      {prioridadeUrgente && <span className="rounded-full bg-destructive/15 px-2 py-0.5 text-[10px] font-bold text-destructive">URGENTE</span>}
+                      {pendenciaCritica && <span className="rounded-full bg-destructive px-2 py-0.5 text-[10px] font-bold text-destructive-foreground">AGUARDANDO 20+ MIN</span>}
+                      {!pendenciaCritica && pendenciaProlongada && <span className="rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-bold text-amber-300">AGUARDANDO 10+ MIN</span>}
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${STATUS[o.status]?.cls}`}
+                      >
+                        {STATUS[o.status]?.label}
                       </span>
-                    )}
-                  </span>
-                </div>
-              </button>
-            ))}
+                    </div>
+                  </div>
+                  <p className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground">
+                    <MapPin className="h-3 w-3" /> {o.endereco}
+                  </p>
+                  <div className="mt-1 flex justify-between text-[11px] text-muted-foreground">
+                    <span>{o.protocolo}</span>
+                    <span className="text-right">
+                      {new Date(o.created_at).toLocaleTimeString("pt-BR", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                      {o.status === "pendente" && (
+                        <span className={`mt-1 block font-semibold ${pendenciaCritica ? "text-destructive" : pendenciaProlongada ? "text-amber-300" : "text-muted-foreground"}`}>
+                          {minutosAguardando < 60
+                            ? `${minutosAguardando} min aguardando`
+                            : `${Math.floor(minutosAguardando / 60)} h ${minutosAguardando % 60} min aguardando`}
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </aside>
 
