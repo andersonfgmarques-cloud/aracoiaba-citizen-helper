@@ -78,15 +78,31 @@ function Login({ onLogin }: { onLogin: (session: Session) => void }) {
     e.preventDefault();
     setMsg("");
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.trim().toLowerCase(),
-      password: senha,
-    });
-    if (error || !data.session) {
-      setMsg("Não foi possível entrar. Verifique o e-mail, a senha e a confirmação da conta.");
-      return;
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password: senha,
+      });
+
+      if (error || !data.session) {
+        const authMessage = error?.message?.toLowerCase() ?? "";
+        if (authMessage.includes("email not confirmed")) {
+          setMsg("Esta conta ainda não foi confirmada. Verifique o e-mail de confirmação ou confirme a conta no painel de autenticação do Supabase.");
+        } else if (authMessage.includes("invalid login credentials")) {
+          setMsg("O Supabase não reconheceu esta combinação de e-mail e senha. Confirme se a conta foi criada no mesmo projeto Supabase usado pelo site e se a senha atual está correta.");
+        } else if (authMessage.includes("fetch") || authMessage.includes("network")) {
+          setMsg("Não foi possível conectar ao serviço de autenticação. Verifique a URL do Supabase e a conexão do projeto.");
+        } else {
+          setMsg(error?.message ? `Falha na autenticação: ${error.message}` : "A autenticação não retornou uma sessão válida. Verifique a configuração do Supabase.");
+        }
+        return;
+      }
+
+      onLogin(data.session);
+    } catch (err) {
+      console.error("Falha no login do CAD:", err);
+      setMsg("Não foi possível conectar ao serviço de autenticação. Verifique a configuração do Supabase e tente novamente.");
     }
-    onLogin(data.session);
   };
 
   return (
