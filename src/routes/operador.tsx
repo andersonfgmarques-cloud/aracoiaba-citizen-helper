@@ -440,7 +440,7 @@ function Detalhe({ o, update }: { o: Oc; update: (id: string, p: Partial<Oc>, ac
       .then(({ data, error }) => {
         if (!ativo) return;
         if (error) setHistoricoErro(error.message);
-        else setHistorico((data ?? []) as HistoricoOcorrencia[]);
+        else setHistorico(((data ?? []) as HistoricoOcorrencia[]).sort((a, b) => new Date(a.criado_em).getTime() - new Date(b.criado_em).getTime()));
       });
     return () => { ativo = false; };
   }, [o.id, o.updated_at]);
