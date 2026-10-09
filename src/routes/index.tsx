@@ -97,7 +97,7 @@ function Index() {
       setForm({ category: n.category, step: 0, data: {} });
       setMsgs((m) => [
         ...m,
-        { from: "bot", text: n.text },
+        { from: "bot", text: n.text, contacts: n.contacts },
         { from: "bot", text: FIELDS[0]!.q },
       ]);
     }
@@ -521,6 +521,44 @@ function Index() {
                         >
                           <span>WhatsApp</span>
                           <span>(15) 98109-0984</span>
+                        </a>
+                      </div>
+                    ) : c.name === "Prefeitura – Fiscalização" ? (
+                      <div key={c.name} className="space-y-2">
+                        <a
+                          href="tel:+551532812238"
+                          className="flex items-center justify-between rounded-xl border border-primary/40 bg-secondary px-3 py-2.5 font-semibold"
+                        >
+                          <span>Meio Ambiente</span>
+                          <span>(15) 3281-2238</span>
+                        </a>
+                        <a
+                          href="tel:+551532811625"
+                          className="flex items-center justify-between rounded-xl border border-primary/40 bg-secondary px-3 py-2.5 font-semibold"
+                        >
+                          <span>Meio Ambiente</span>
+                          <span>(15) 3281-1625</span>
+                        </a>
+                        <a
+                          href="tel:+551532817071"
+                          className="flex items-center justify-between rounded-xl border border-primary/40 bg-secondary px-3 py-2.5 font-semibold"
+                        >
+                          <span>Fiscalização de Posturas</span>
+                          <span>(15) 3281-7071</span>
+                        </a>
+                        <a
+                          href="tel:+551532817000"
+                          className="flex items-center justify-between rounded-xl border border-primary/40 bg-secondary px-3 py-2.5 font-semibold"
+                        >
+                          <span>Fiscalização de Posturas</span>
+                          <span>(15) 3281-7000</span>
+                        </a>
+                        <a
+                          href="tel:+551532382050"
+                          className="flex items-center justify-between rounded-xl border border-primary/40 bg-secondary px-3 py-2.5 font-semibold"
+                        >
+                          <span>Polícia Militar Ambiental</span>
+                          <span>(15) 3238-2050</span>
                         </a>
                       </div>
                     ) : c.name === "Corpo de Bombeiros" || c.phone === "193" ? (
