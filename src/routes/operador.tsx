@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   LogOut,
   MapPin,
@@ -12,6 +12,10 @@ import {
   RefreshCw,
   Printer,
   BellRing,
+  Wifi,
+  WifiOff,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
@@ -190,8 +194,56 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
   const [filtro, setFiltro] = useState("ativas");
   const [sel, setSel] = useState<string | null>(null);
   const [novasPendentesIds, setNovasPendentesIds] = useState<string[]>([]);
+  const [connectionStatus, setConnectionStatus] = useState<"connecting" | "connected" | "disconnected">("connecting");
+  const [soundEnabled, setSoundEnabled] = useState(false);
+  const [savingIds, setSavingIds] = useState<string[]>([]);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const soundEnabledRef = useRef(false);
   // Mantém o contador de novas ocorrências definido a partir dos IDs recebidos.
   const novasPendentes = novasPendentesIds.length;
+
+  const playAlert = () => {
+    if (!soundEnabledRef.current || !audioContextRef.current) return;
+    try {
+      const context = audioContextRef.current;
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(880, context.currentTime);
+      oscillator.frequency.setValueAtTime(660, context.currentTime + 0.16);
+      gain.gain.setValueAtTime(0.0001, context.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.18, context.currentTime + 0.025);
+      gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.42);
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.start();
+      oscillator.stop(context.currentTime + 0.44);
+    } catch (error) {
+      console.warn("Não foi possível reproduzir o alerta sonoro do CAD:", error);
+    }
+  };
+
+  const toggleSound = async () => {
+    try {
+      if (soundEnabledRef.current) {
+        soundEnabledRef.current = false;
+        setSoundEnabled(false);
+        return;
+      }
+      const AudioContextConstructor = window.AudioContext;
+      if (!AudioContextConstructor) {
+        window.alert("Este navegador não oferece suporte ao alerta sonoro do CAD.");
+        return;
+      }
+      if (!audioContextRef.current) audioContextRef.current = new AudioContextConstructor();
+      await audioContextRef.current.resume();
+      soundEnabledRef.current = true;
+      setSoundEnabled(true);
+      playAlert();
+    } catch {
+      window.alert("Não foi possível ativar o som. Verifique as permissões de áudio do navegador.");
+    }
+  };
 
   const load = async () => {
     setLoadingOcs(true);
@@ -211,101 +263,151 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
   };
 
   useEffect(() => {
-    if (!demoOperator && session) {
-      supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", session.user.id)
-        .then(({ data }) => {
-          const ok = !!data?.length;
-          setAutorizado(ok);
-          if (ok) load();
+    let active = true;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    const connect = async () => {
+      if (!demoOperator) {
+        if (!session) {
+          setAutorizado(false);
+          setConnectionStatus("disconnected");
+          return;
+        }
+        const { data, error } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", session.user.id);
+        if (!active) return;
+        const authorized = !error && !!data?.length;
+        setAutorizado(authorized);
+        if (!authorized) {
+          setConnectionStatus("disconnected");
+          return;
+        }
+      } else {
+        setAutorizado(true);
+      }
+
+      await load();
+      if (!active) return;
+
+      channel = supabase
+        .channel("ocorrencias-cad")
+        .on("postgres_changes", { event: "*", schema: "public", table: "ocorrencias" }, (payload) => {
+          if (payload.eventType === "INSERT") {
+            const novaOcorrencia = payload.new as Oc;
+            setOcs((current) => current.some((item) => item.id === novaOcorrencia.id)
+              ? current
+              : [novaOcorrencia, ...current]);
+            if (novaOcorrencia.status === "pendente") {
+              setNovasPendentesIds((ids) => ids.includes(novaOcorrencia.id)
+                ? ids
+                : [...ids, novaOcorrencia.id]);
+              playAlert();
+            }
+          } else if (payload.eventType === "UPDATE") {
+            const atualizada = payload.new as Oc;
+            setOcs((current) => current.map((item) => item.id === atualizada.id ? atualizada : item));
+            if (payload.old && "status" in payload.old && payload.old.status === "pendente" && atualizada.status !== "pendente") {
+              setNovasPendentesIds((ids) => ids.filter((pendingId) => pendingId !== atualizada.id));
+            }
+          } else if (payload.eventType === "DELETE") {
+            const removida = payload.old as Partial<Oc>;
+            if (removida.id) {
+              setOcs((current) => current.filter((item) => item.id !== removida.id));
+              setNovasPendentesIds((ids) => ids.filter((pendingId) => pendingId !== removida.id));
+            }
+          }
+        })
+        .subscribe((status) => {
+          if (!active) return;
+          if (status === "SUBSCRIBED") setConnectionStatus("connected");
+          else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+            setConnectionStatus("disconnected");
+          } else setConnectionStatus("connecting");
         });
-    } else {
-      load();
-    }
+    };
 
-    const ch = supabase
-      .channel("ocorrencias-cad")
-      .on("postgres_changes", { event: "*", schema: "public", table: "ocorrencias" }, (p) => {
-        if (p.eventType === "INSERT") {
-          const novaOcorrencia = p.new as Oc;
-          setOcs((o) => [novaOcorrencia, ...o]);
-          if (novaOcorrencia.status === "pendente") {
-            setNovasPendentesIds((ids) => ids.includes(novaOcorrencia.id) ? ids : [...ids, novaOcorrencia.id]);
-          }
-          try {
-            new Audio(
-              "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=",
-            ).play();
-          } catch {
-            /* Ignore autoplay errors. */
-          }
-        } else if (p.eventType === "UPDATE")
-          setOcs((o) => o.map((x) => (x.id === (p.new as Oc).id ? (p.new as Oc) : x)));
-      })
-      .subscribe();
-
+    void connect();
     return () => {
-      supabase.removeChannel(ch);
+      active = false;
+      if (channel) void supabase.removeChannel(channel);
     };
   }, [session?.user.id, demoOperator]);
 
-  const lista = useMemo(
-    () =>
-      ocs.filter((o) =>
-        filtro === "ativas"
-          ? !["encerrada", "cancelada"].includes(o.status)
-          : filtro === "todas"
-            ? true
-            : o.status === filtro,
-      ),
-    [ocs, filtro],
-  );
+  const lista = useMemo(() => {
+    const filtered = ocs.filter((o) =>
+      filtro === "ativas"
+        ? !["encerrada", "cancelada"].includes(o.status)
+        : filtro === "todas"
+          ? true
+          : o.status === filtro,
+    );
+    return filtered.sort((a, b) => {
+      const pendingDifference = Number(b.status === "pendente") - Number(a.status === "pendente");
+      if (pendingDifference !== 0) return pendingDifference;
+      const priorityScore = (o: Oc) => ["alta", "urgente"].includes(o.prioridade.toLowerCase()) ? 1 : 0;
+      const priorityDifference = priorityScore(b) - priorityScore(a);
+      if (priorityDifference !== 0) return priorityDifference;
+      if (a.status === "pendente" && b.status === "pendente") {
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      }
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+  }, [ocs, filtro]);
   const atual = ocs.find((o) => o.id === sel) ?? null;
   const cont = (s: string) => ocs.filter((o) => o.status === s).length;
 
   const update = async (id: string, patch: Partial<Oc>, acaoPersonalizada?: string): Promise<boolean> => {
-    const anterior = ocs.find((x) => x.id === id);
-    if (!anterior) return false;
-    const { data, error } = await supabase
-      .from("ocorrencias")
-      .update(patch)
-      .eq("id", id)
-      .select("*")
-      .single();
-    if (error || !data) {
-      window.alert(`Não foi possível salvar a alteração: ${error?.message ?? "ocorrência não encontrada"}`);
-      return false;
-    }
+    const anterior = ocs.find((item) => item.id === id);
+    if (!anterior || savingIds.includes(id)) return false;
+    setSavingIds((ids) => ids.includes(id) ? ids : [...ids, id]);
+    try {
+      // Compare-and-set: só altera se o status ainda for o que este operador visualizou.
+      // Isso impede dois operadores de despacharem a mesma ocorrência simultaneamente.
+      const { data, error } = await supabase
+        .from("ocorrencias")
+        .update(patch)
+        .eq("id", id)
+        .eq("status", anterior.status)
+        .select("*")
+        .maybeSingle();
+      if (error || !data) {
+        await load();
+        window.alert(error
+          ? `Não foi possível salvar a alteração: ${error.message}`
+          : "Esta ocorrência foi alterada por outro operador. A lista foi atualizada; confira o status antes de tentar novamente.");
+        return false;
+      }
 
-    setOcs((o) => o.map((x) => (x.id === id ? data : x)));
-    // Remove o alerta desta ocorrência assim que ela deixa de estar pendente.
-    if (anterior.status === "pendente" && data.status !== "pendente") {
-      setNovasPendentesIds((ids) => ids.filter((pendingId) => pendingId !== id));
+      setOcs((items) => items.map((item) => item.id === id ? data : item));
+      if (anterior.status === "pendente" && data.status !== "pendente") {
+        setNovasPendentesIds((ids) => ids.filter((pendingId) => pendingId !== id));
+      }
+      setObs("");
+      const acao = acaoPersonalizada ?? (patch.status === "despachada" ? "Despacho realizado"
+        : patch.status === "em_atendimento" ? "Início do atendimento"
+        : patch.status === "encerrada" ? "Ocorrência encerrada"
+        : patch.status === "cancelada" ? "Ocorrência cancelada"
+        : "Dados da ocorrência atualizados");
+      const { error: historicoError } = await supabase.from("ocorrencia_historico").insert({
+        ocorrencia_id: id,
+        operador_id: session!.user.id,
+        acao,
+        status_anterior: anterior.status,
+        status_novo: data.status,
+        viatura: data.viatura,
+        observacao: data.observacao,
+      });
+      if (historicoError) {
+        window.alert(`A ocorrência foi atualizada, mas o histórico não foi salvo: ${historicoError.message}`);
+      } else {
+        window.alert(`${acao} registrado com sucesso.`);
+      }
+      return true;
+    } finally {
+      setSavingIds((ids) => ids.filter((savingId) => savingId !== id));
     }
-    // Limpa o campo após cada ação operacional salva com sucesso.
-    setObs("");
-    const acao = acaoPersonalizada ?? (patch.status === "despachada" ? "Despacho realizado"
-      : patch.status === "em_atendimento" ? "Início do atendimento"
-      : patch.status === "encerrada" ? "Ocorrência encerrada"
-      : patch.status === "cancelada" ? "Ocorrência cancelada"
-      : "Dados da ocorrência atualizados");
-    const { error: historicoError } = await supabase.from("ocorrencia_historico").insert({
-      ocorrencia_id: id,
-      operador_id: session!.user.id,
-      acao,
-      status_anterior: anterior.status,
-      status_novo: data.status,
-      viatura: data.viatura,
-      observacao: data.observacao,
-    });
-    if (historicoError) {
-      window.alert(`A ocorrência foi atualizada, mas o histórico não foi salvo: ${historicoError.message}`);
-    } else {
-      window.alert(`${acao} registrado com sucesso.`);
-    }
-    return true;
   };
 
   const sair = async () => {
@@ -335,8 +437,9 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           className="h-8 w-8 rounded-full object-cover"
         />
         <h1 className="font-bold">CAD · Central de Despacho GCM</h1>
-        <span className="ml-2 flex items-center gap-1.5 text-xs text-success">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-success" /> Ao vivo
+        <span className={`ml-2 flex items-center gap-1.5 text-xs ${connectionStatus === "connected" ? "text-success" : connectionStatus === "connecting" ? "text-primary" : "text-destructive"}`} role="status" aria-live="polite">
+          {connectionStatus === "connected" ? <Wifi className="h-3.5 w-3.5" /> : <WifiOff className="h-3.5 w-3.5" />}
+          {connectionStatus === "connected" ? "Ao vivo" : connectionStatus === "connecting" ? "Conectando…" : "Sem conexão em tempo real"}
         </span>
         <div className="ml-auto flex items-center gap-3 text-xs text-muted-foreground">
           <button
@@ -348,7 +451,16 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
             <RefreshCw className={`h-4 w-4 ${loadingOcs ? "animate-spin" : ""}`} />
             Atualizar
           </button>
-          {session?.user.email ?? TEMP_OPERATOR_EMAIL}
+          <button
+            onClick={toggleSound}
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-2 font-semibold ${soundEnabled ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}
+            title={soundEnabled ? "Desativar alertas sonoros" : "Ativar alertas sonoros para novas ocorrências"}
+            aria-pressed={soundEnabled}
+          >
+            {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            {soundEnabled ? "Som ativado" : "Ativar som"}
+          </button>
+          <span title={`Operador autenticado: ${session?.user.id ?? "demonstração"}`}>{session?.user.email ?? TEMP_OPERATOR_EMAIL}</span>
           <button
             onClick={sair}
             aria-label="Sair"
@@ -423,7 +535,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
               <button
                 key={o.id}
                 onClick={() => setSel(o.id)}
-                className={`w-full rounded-xl border p-3 text-left transition ${sel === o.id ? "border-primary bg-secondary" : "bg-card hover:bg-secondary"} ${o.status === "pendente" ? "border-l-4 border-l-destructive" : ""}`}
+                className={`w-full rounded-xl border p-3 text-left transition ${sel === o.id ? "border-primary bg-secondary" : "bg-card hover:bg-secondary"} ${o.status === "pendente" ? "border-l-4 border-l-destructive" : ""} ${["alta", "urgente"].includes(o.prioridade.toLowerCase()) ? "ring-1 ring-destructive/60" : ""}`}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-bold">{o.categoria}</span>
@@ -438,12 +550,19 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
                 </p>
                 <div className="mt-1 flex justify-between text-[11px] text-muted-foreground">
                   <span>{o.protocolo}</span>
-                  <span>
+                  <span className="text-right">
                     {new Date(o.created_at).toLocaleTimeString("pt-BR", {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
-                    {o.prioridade === "alta" && <b className="ml-2 text-destructive">ALTA</b>}
+                    {["alta", "urgente"].includes(o.prioridade.toLowerCase()) && <b className="ml-2 text-destructive">URGENTE</b>}
+                    {o.status === "pendente" && (
+                      <span className="mt-1 block font-semibold text-amber-300">
+                        {Math.floor(Math.max(0, Date.now() - new Date(o.created_at).getTime()) / 60000) < 60
+                          ? `${Math.floor(Math.max(0, Date.now() - new Date(o.created_at).getTime()) / 60000)} min aguardando`
+                          : `${Math.floor(Math.max(0, Date.now() - new Date(o.created_at).getTime()) / 3600000)} h aguardando`}
+                      </span>
+                    )}
                   </span>
                 </div>
               </button>
@@ -457,7 +576,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
               Selecione uma ocorrência para despachar.
             </div>
           ) : (
-            <Detalhe key={atual.id} o={atual} update={update} />
+            <Detalhe key={atual.id} o={atual} update={update} saving={savingIds.includes(atual.id)} session={session} />
           )}
         </section>
       </div>
@@ -466,7 +585,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           <button onClick={() => setSel(null)} className="mb-3 text-sm text-primary">
             ← Voltar
           </button>
-          <Detalhe key={atual.id} o={atual} update={update} />
+          <Detalhe key={atual.id} o={atual} update={update} saving={savingIds.includes(atual.id)} session={session} />
         </div>
       )}
     </div>
@@ -481,9 +600,15 @@ type HistoricoOcorrencia = {
   viatura: string | null;
   observacao: string | null;
   criado_em: string;
+  operador_id: string;
 };
 
-function Detalhe({ o, update }: { o: Oc; update: (id: string, p: Partial<Oc>, acaoPersonalizada?: string) => Promise<boolean> }) {
+function Detalhe({ o, update, saving, session }: {
+  o: Oc;
+  update: (id: string, p: Partial<Oc>, acaoPersonalizada?: string) => Promise<boolean>;
+  saving: boolean;
+  session: Session | null;
+}) {
   const [historico, setHistorico] = useState<HistoricoOcorrencia[]>([]);
   const [historicoErro, setHistoricoErro] = useState<string | null>(null);
   useEffect(() => {
@@ -627,6 +752,7 @@ function Detalhe({ o, update }: { o: Oc; update: (id: string, p: Partial<Oc>, ac
           <div key={h.id} className="border-l-2 border-primary/50 pl-3 py-1">
             <p className="text-sm font-semibold">{h.acao}</p>
             <p className="text-xs text-muted-foreground">{new Date(h.criado_em).toLocaleString("pt-BR")} · {h.status_anterior ?? "novo"} → {h.status_novo ?? "—"}</p>
+            <p className="text-xs text-muted-foreground">Operador: {h.operador_id === session?.user.id ? (session.user.email ?? h.operador_id) : h.operador_id}</p>
             {h.viatura && <p className="text-xs text-muted-foreground">Viatura: {h.viatura}</p>}
             {h.observacao && <p className="mt-1 text-xs">{h.observacao}</p>}
           </div>
@@ -660,7 +786,7 @@ function Detalhe({ o, update }: { o: Oc; update: (id: string, p: Partial<Oc>, ac
         <div className="flex flex-wrap gap-2">
           {o.status !== "em_atendimento" && o.status !== "encerrada" && o.status !== "cancelada" && (
             <button
-              disabled={!vtr || !obs.trim()}
+              disabled={saving || !vtr || !obs.trim()}
               onClick={async () => {
                 await update(
                   o.id,
@@ -671,12 +797,12 @@ function Detalhe({ o, update }: { o: Oc; update: (id: string, p: Partial<Oc>, ac
               className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-40"
               title="Registra a equipe e inicia o atendimento"
             >
-              <Radio className="h-4 w-4" /> Despachar
+              <Radio className="h-4 w-4" /> {saving ? "Registrando…" : "Despachar"}
             </button>
           )}
           {o.status === "em_atendimento" && (
             <button
-              disabled={!obs.trim()}
+              disabled={saving || !obs.trim()}
               onClick={() => update(o.id, { status: "encerrada", observacao: obs.trim() }, "Atendimento encerrado — desfecho registrado")}
               className="flex items-center gap-2 rounded-xl bg-success px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-40"
               title="Salva o desfecho informado e encerra a ocorrência"
@@ -685,6 +811,7 @@ function Detalhe({ o, update }: { o: Oc; update: (id: string, p: Partial<Oc>, ac
             </button>
           )}
           <button
+            disabled={saving}
             onClick={() => update(o.id, { status: "cancelada", observacao: obs.trim() || o.observacao }, "Ocorrência cancelada")}
             className="flex items-center gap-2 rounded-xl bg-secondary px-4 py-2.5 text-sm"
           >
