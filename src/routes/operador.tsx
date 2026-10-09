@@ -393,7 +393,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           <button onClick={() => setSel(null)} className="mb-3 text-sm text-primary">
             ← Voltar
           </button>
-          <Detalhe key={atual.id} o={atual} update={update} operadorId={session!.user.id} />
+          <Detalhe key={atual.id} o={atual} update={update} />
         </div>
       )}
     </div>
