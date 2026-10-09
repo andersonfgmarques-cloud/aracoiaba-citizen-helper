@@ -189,6 +189,8 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
   const [filtro, setFiltro] = useState("ativas");
   const [sel, setSel] = useState<string | null>(null);
   const [novasPendentesIds, setNovasPendentesIds] = useState<string[]>([]);
+  // Mantém o contador de novas ocorrências definido a partir dos IDs recebidos.
+  const novasPendentes = novasPendentesIds.length;
 
   const load = async () => {
     setLoadingOcs(true);
@@ -385,7 +387,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
                   }}
                   className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${filtro === f ? "bg-primary text-primary-foreground" : "bg-secondary hover:bg-secondary/80"}`}
                 >
-                  {f === "pendente" && novasPendentesIds.length > 0 && (
+                  {f === "pendente" && novasPendentes > 0 && (
                     <BellRing className="h-3.5 w-3.5 animate-pulse text-amber-400" aria-label="Novas ocorrências pendentes" />
                   )}
                   {f === "ativas" ? "Ativas" : f === "todas" ? "Todas" : STATUS[f]!.label}
