@@ -436,7 +436,7 @@ function Detalhe({ o, update }: { o: Oc; update: (id: string, p: Partial<Oc>, ac
   const [historicoErro, setHistoricoErro] = useState<string | null>(null);
   useEffect(() => {
     let ativo = true;
-    supabase.from("ocorrencia_historico").select("*").eq("ocorrencia_id", o.id).order("criado_em", { ascending: false })
+    supabase.from("ocorrencia_historico").select("*").eq("ocorrencia_id", o.id).order("criado_em", { ascending: true })
       .then(({ data, error }) => {
         if (!ativo) return;
         if (error) setHistoricoErro(error.message);
