@@ -478,6 +478,11 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
             {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
             {soundEnabled ? "Som ativado" : "Ativar som"}
           </button>
+          {session?.user.email?.toLowerCase() === "andersonf.g.marques@gmail.com" && (
+            <Link to="/admin" className="rounded-lg bg-primary/15 px-3 py-2 font-semibold text-primary hover:bg-primary/25">
+              Administração
+            </Link>
+          )}
           <span title={`Operador autenticado: ${session?.user.id ?? "demonstração"}`}>{session?.user.email ?? TEMP_OPERATOR_EMAIL}</span>
           <button
             onClick={sair}
