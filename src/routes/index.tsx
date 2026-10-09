@@ -384,7 +384,7 @@ function Index() {
           {contatoSelecionado === "samu" && (
             <div className="space-y-2">
               <div
-                className="flex items-center gap-2 rounded-xl px-3 py-3 font-semibold text-white" style={{ backgroundColor: "#dc2626" }}
+                className="flex items-center gap-2 rounded-xl px-3 py-3 font-semibold text-white" style={{ backgroundColor: "#dc2626", color: "#ffffff" }}
                 aria-label="SAMU municipal"
               >
                 <Phone className="h-4 w-4" /> SAMU
@@ -472,7 +472,7 @@ function Index() {
                     c.name === "SAMU" ? (
                       <div key={c.name} className="space-y-2">
                         <div
-                          className="flex items-center gap-2 rounded-xl px-3 py-3 font-semibold text-white" style={{ backgroundColor: "#dc2626" }}
+                          className="flex items-center gap-2 rounded-xl px-3 py-3 font-semibold text-white" style={{ backgroundColor: "#dc2626", color: "#ffffff" }}
                           aria-label="SAMU municipal"
                         >
                           <Phone className="h-4 w-4" /> SAMU
