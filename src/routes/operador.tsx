@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
-  Shield,
   LogOut,
   MapPin,
   Phone,
@@ -113,9 +112,11 @@ function Login({ onLogin }: { onLogin: (session: Session) => void }) {
         className="w-full max-w-sm space-y-4 rounded-2xl border bg-card p-6 shadow-xl"
       >
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <Shield className="h-6 w-6" />
-          </div>
+          <img
+            src={`${import.meta.env.BASE_URL}gcm-emblem.svg`}
+            alt="Emblema da Guarda Civil Municipal"
+            className="h-11 w-11 rounded-full object-cover"
+          />
           <div>
             <h1 className="font-bold">CAD – GCM</h1>
             <p className="text-xs text-muted-foreground">Acesso restrito a operadores</p>
@@ -328,7 +329,11 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
   return (
     <div className="flex h-screen flex-col">
       <header className="bg-header flex items-center gap-3 border-b px-5 py-3">
-        <Shield className="h-6 w-6 text-primary" />
+        <img
+          src={`${import.meta.env.BASE_URL}gcm-emblem.svg`}
+          alt="Emblema da Guarda Civil Municipal"
+          className="h-8 w-8 rounded-full object-cover"
+        />
         <h1 className="font-bold">CAD · Central de Despacho GCM</h1>
         <span className="ml-2 flex items-center gap-1.5 text-xs text-success">
           <span className="h-2 w-2 animate-pulse rounded-full bg-success" /> Ao vivo
