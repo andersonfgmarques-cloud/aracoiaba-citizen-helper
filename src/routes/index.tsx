@@ -308,7 +308,7 @@ function Index() {
       return (
         <div className="mx-auto flex min-h-screen max-w-lg flex-col bg-background">
           <header className="bg-header flex items-center gap-3 border-b px-4 py-4 shadow-lg">
-            <img src={`/aracoiaba-citizen-helper/gcm-emblem.svg`} alt="Emblema da Guarda Civil Municipal" className="h-11 w-11 shrink-0 rounded-full object-contain" />
+            <img src={`/aracoiaba-citizen-helper/android-chrome-192x192.png`} alt="Emblema da Guarda Civil Municipal" className="h-11 w-11 shrink-0 rounded-full object-contain" />
             <div className="min-w-0 flex-1"><h1 className="text-base font-bold">GCM Araçoiaba da Serra</h1><p className="text-xs text-muted-foreground">Atendimento ao cidadão</p></div>
             <Link to="/operador" aria-label="Acessar painel CAD do operador" title="Acesso do operador CAD" className="flex shrink-0 items-center gap-1.5 rounded-full border border-primary/50 bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20">
               <LayoutDashboard className="h-4 w-4" /> CAD
@@ -334,7 +334,7 @@ function Index() {
       return (
         <div className="mx-auto flex min-h-screen max-w-lg flex-col bg-background">
           <header className="bg-header flex items-center gap-3 border-b px-4 py-4 shadow-lg">
-            <img src={`/aracoiaba-citizen-helper/gcm-emblem.svg`} alt="Emblema da Guarda Civil Municipal" className="h-11 w-11 shrink-0 rounded-full object-contain" />
+            <img src={`/aracoiaba-citizen-helper/android-chrome-192x192.png`} alt="Emblema da Guarda Civil Municipal" className="h-11 w-11 shrink-0 rounded-full object-contain" />
             <div className="min-w-0 flex-1"><h1 className="text-base font-bold">GCM Araçoiaba da Serra</h1><p className="text-xs text-muted-foreground">Atendimento ao cidadão</p></div>
             <Link to="/operador" aria-label="Acessar painel CAD do operador" title="Acesso do operador CAD" className="flex shrink-0 items-center gap-1.5 rounded-full border border-primary/50 bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20">
               <LayoutDashboard className="h-4 w-4" /> CAD
@@ -368,7 +368,7 @@ function Index() {
     return (
       <div className="mx-auto flex min-h-screen max-w-lg flex-col bg-background">
         <header className="bg-header flex items-center gap-3 border-b px-4 py-4 shadow-lg">
-          <img src={`/aracoiaba-citizen-helper/gcm-emblem.svg`} alt="Emblema da Guarda Civil Municipal" className="h-11 w-11 shrink-0 rounded-full object-contain" />
+          <img src={`/aracoiaba-citizen-helper/android-chrome-192x192.png`} alt="Emblema da Guarda Civil Municipal" className="h-11 w-11 shrink-0 rounded-full object-contain" />
           <div className="min-w-0 flex-1"><h1 className="text-base font-bold">GCM Araçoiaba da Serra</h1><p className="text-xs text-muted-foreground">Atendimento ao cidadão</p></div>
             <Link to="/operador" aria-label="Acessar painel CAD do operador" title="Acesso do operador CAD" className="flex shrink-0 items-center gap-1.5 rounded-full border border-primary/50 bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20">
               <LayoutDashboard className="h-4 w-4" /> CAD
@@ -400,7 +400,7 @@ function Index() {
     <div className="mx-auto flex h-screen max-w-lg flex-col">
       <header className="bg-header flex items-center gap-3 border-b px-4 py-4 shadow-lg">
         <img
-          src={`/aracoiaba-citizen-helper/gcm-emblem.svg`}
+          src={`/aracoiaba-citizen-helper/android-chrome-192x192.png`}
           alt="Emblema da Guarda Civil Municipal"
           className="h-11 w-11 shrink-0 rounded-full object-contain"
         />
