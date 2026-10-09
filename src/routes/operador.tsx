@@ -345,6 +345,8 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
 }
 
 function Detalhe({ o, update }: { o: Oc; update: (id: string, p: Partial<Oc>) => void }) {
+  const termoAceite = o.descricao.match(/\\n\\n\\[REGISTRO_TERMO_ART340: ACEITO_EM=([^\\]]+)\\]/);
+  const descricaoLimpa = o.descricao.replace(/\\n\\n\\[REGISTRO_TERMO_ART340: ACEITO_EM=[^\\]]+\\]/, "");
   const [vtr, setVtr] = useState(o.viatura ?? "");
   const [obs, setObs] = useState(o.observacao ?? "");
   return (
@@ -363,7 +365,13 @@ function Detalhe({ o, update }: { o: Oc; update: (id: string, p: Partial<Oc>) =>
         </span>
       </div>
       <div className="space-y-3 rounded-2xl bg-card p-5">
-        <p className="leading-relaxed">{o.descricao}</p>
+        <div className="rounded-xl border border-success/40 bg-success/10 p-3">
+          <div className="flex items-center gap-2 text-sm font-semibold text-success">
+            <CheckCircle2 className="h-4 w-4" /> Termo de ciência do art. 340: {termoAceite ? "ACEITO" : "SEM REGISTRO DE ACEITE"}
+          </div>
+          {termoAceite && <p className="mt-1 text-xs text-muted-foreground">Aceite registrado em {new Date(termoAceite[1]!).toLocaleString("pt-BR")}</p>}
+        </div>
+        <p className="leading-relaxed">{descricaoLimpa}</p>
         <a
           href={`https://www.google.com/maps/search/${encodeURIComponent(o.endereco + ", Araçoiaba da Serra - SP")}`}
           target="_blank"
