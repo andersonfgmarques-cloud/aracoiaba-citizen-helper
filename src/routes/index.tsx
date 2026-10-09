@@ -124,7 +124,7 @@ function Index() {
     setInput("");
   };
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form || !input.trim()) return;
     const f = FIELDS[form.step]!;
@@ -167,7 +167,7 @@ function Index() {
       const prioridade = ["Atitude suspeita", "Perturbação do sossego"].includes(form.category)
         ? "alta"
         : "media";
-      supabase
+      const { error: insertError } = await supabase
         .from("ocorrencias")
         .insert({
           protocolo: protocol,
@@ -179,14 +179,19 @@ function Index() {
           telefone: data["telefone"]!,
           endereco: data["endereco"]!,
           descricao: `${data["descricao"]!}\n\n[REGISTRO_TERMO_ART340: ACEITO_EM=${termoAceitoEm ?? new Date().toISOString()}]`,
-        })
-        .then(({ error }) => {
-          if (error)
-            setMsgs((m) => [
-              ...m,
-              { from: "bot", text: "Falha ao enviar. Ligue 153.", urgent: true },
-            ]);
         });
+      if (insertError) {
+        setMsgs((m) => [
+          ...m,
+          { from: "user", text: value },
+          {
+            from: "bot",
+            text: `Não foi possível registrar a solicitação no sistema: ${insertError.message}. Nenhuma confirmação de registro foi emitida. Em caso de urgência, ligue 153.`,
+            urgent: true,
+          },
+        ]);
+        return;
+      }
       setForm(null);
       setNode("__done");
       setMsgs((m) => [
