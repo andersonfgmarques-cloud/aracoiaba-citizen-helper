@@ -79,8 +79,16 @@ export const TREE: Record<string, Node> = {
     text: "Há feridos no local?",
     options: [
       { label: "Sim", next: "r_samu" },
-      { label: "Não – acidente sem vítima", next: "r_transito_sem_vitima" },
+      { label: "Não – acidente sem vítima", next: "trans_sem_vitima" },
       { label: "Veículo abandonado / estacionamento irregular", next: "g_transito" },
+    ],
+  },
+  trans_sem_vitima: {
+    kind: "ask",
+    text: "O acidente envolve veículo oficial da Prefeitura?",
+    options: [
+      { label: "Sim, envolve veículo oficial", next: "g_transito_veiculo_oficial" },
+      { label: "Não envolve veículo oficial", next: "r_transito_sem_vitima" },
     ],
   },
   amb: {
@@ -170,6 +178,11 @@ export const TREE: Record<string, Node> = {
     kind: "gcm",
     category: "Trânsito",
     text: "A GCM pode atender. Preciso de alguns dados.",
+  },
+  g_transito_veiculo_oficial: {
+    kind: "gcm",
+    category: "Acidente de trânsito envolvendo veículo oficial da Prefeitura",
+    text: "Como o acidente envolve veículo oficial da Prefeitura, vamos registrar os dados para encaminhamento e providências cabíveis. Preciso de algumas informações.",
   },
   g_ambiental: {
     kind: "gcm",
