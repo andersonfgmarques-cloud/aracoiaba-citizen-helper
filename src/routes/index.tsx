@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Phone, Shield, RotateCcw, Send, AlertTriangle, CheckCircle2, LayoutDashboard } from "lucide-react";
+import { Phone, Shield, RotateCcw, Send, AlertTriangle, CheckCircle2, LayoutDashboard, Mic, MicOff } from "lucide-react";
 import { TREE, CONTACTS, type Contact } from "@/lib/triage";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -28,6 +28,26 @@ type Msg =
   | { from: "bot"; text: string; contacts?: Contact[]; urgent?: boolean; digitalDelegacia?: boolean }
   | { from: "user"; text: string }
   | { from: "done"; protocol: string; category: string };
+
+type SpeechRecognitionResultLike = { transcript: string; isFinal: boolean };
+type SpeechRecognitionEventLike = {
+  resultIndex: number;
+  results: ArrayLike<ArrayLike<SpeechRecognitionResultLike>>;
+};
+type SpeechRecognitionLike = {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+};
+type SpeechWindow = Window & {
+  SpeechRecognition?: new () => SpeechRecognitionLike;
+  webkitSpeechRecognition?: new () => SpeechRecognitionLike;
+};
 
 const FIELDS = [
   { key: "nome", q: "Qual o seu nome completo?" },
@@ -65,6 +85,9 @@ function Index() {
     data: Record<string, string>;
   } | null>(null);
   const [input, setInput] = useState("");
+  const [isListening, setIsListening] = useState(false);
+  const [speechError, setSpeechError] = useState("");
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const [preData, setPreData] = useState({ nome: "", cpf: "", endereco_solicitante: "" });
   const [preStep, setPreStep] = useState<0 | 1 | 2>(0);
   const [ciencia, setCiencia] = useState<"termo" | "aceita" | "recusada">("termo");
@@ -74,6 +97,57 @@ function Index() {
 
   const iniciarServico = () => {
     setCiencia("termo");
+  };
+
+  const toggleVoiceInput = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+
+    const SpeechRecognitionConstructor =
+      (window as SpeechWindow).SpeechRecognition ||
+      (window as SpeechWindow).webkitSpeechRecognition;
+
+    if (!SpeechRecognitionConstructor) {
+      setSpeechError("Seu navegador não oferece ditado por voz. Tente usar o Chrome ou Edge atualizado.");
+      return;
+    }
+
+    setSpeechError("");
+    const recognition = new SpeechRecognitionConstructor();
+    recognition.lang = "pt-BR";
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.onresult = (event) => {
+      const transcript = Array.from(
+        { length: event.results.length - event.resultIndex },
+        (_, index) => event.results[event.resultIndex + index],
+      )
+        .filter((result) => result?.[0]?.isFinal)
+        .map((result) => result[0]!.transcript.trim())
+        .filter(Boolean)
+        .join(" ");
+
+      if (transcript) {
+        setInput((current) => current.trim() ? `${current.trimEnd()} ${transcript}` : transcript);
+      }
+    };
+    recognition.onerror = () => {
+      setIsListening(false);
+      setSpeechError("Não foi possível captar a voz. Verifique a permissão do microfone e tente novamente.");
+    };
+    recognition.onend = () => setIsListening(false);
+    recognitionRef.current = recognition;
+
+    try {
+      recognition.start();
+      setIsListening(true);
+    } catch {
+      setIsListening(false);
+      setSpeechError("Não foi possível iniciar o microfone. Tente novamente.");
+    }
   };
 
   const aceitarTermo = () => {
@@ -626,20 +700,41 @@ function Index() {
 
       <footer className="border-t bg-card/60 p-3 backdrop-blur">
         {form ? (
-          <form onSubmit={submit} className="flex gap-2">
-            <input
-              autoFocus
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Digite sua resposta..."
-              className="flex-1 rounded-full border bg-input px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-            />
-            <button
-              className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground"
-              aria-label="Enviar"
-            >
-              <Send className="h-5 w-5" />
-            </button>
+          <form onSubmit={submit} className="space-y-2">
+            {isListening && (
+              <p className="px-2 text-xs font-medium text-destructive" role="status">
+                Ouvindo... fale com clareza. Toque no microfone para encerrar.
+              </p>
+            )}
+            {speechError && (
+              <p className="px-2 text-xs text-muted-foreground" role="status">
+                {speechError}
+              </p>
+            )}
+            <div className="flex gap-2">
+              <input
+                autoFocus
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Digite ou dite sua resposta..."
+                className="min-w-0 flex-1 rounded-full border bg-input px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+              />
+              <button
+                type="button"
+                onClick={toggleVoiceInput}
+                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${isListening ? "bg-destructive text-destructive-foreground" : "border border-primary/40 bg-secondary text-foreground"}`}
+                aria-label={isListening ? "Parar ditado por voz" : "Ditado por voz"}
+                title={isListening ? "Parar ditado por voz" : "Ditar resposta pelo microfone"}
+              >
+                {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+              </button>
+              <button
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground"
+                aria-label="Enviar"
+              >
+                <Send className="h-5 w-5" />
+              </button>
+            </div>
           </form>
         ) : current?.kind === "ask" ? (
           <div className="flex flex-wrap gap-2">
