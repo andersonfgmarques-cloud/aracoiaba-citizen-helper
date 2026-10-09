@@ -39,7 +39,7 @@ type SpeechRecognitionLike = {
   continuous: boolean;
   interimResults: boolean;
   onresult: ((event: SpeechRecognitionEventLike) => void) | null;
-  onerror: (() => void) | null;
+  onerror: ((event: { error?: string }) => void) | null;
   onend: (() => void) | null;
   start: () => void;
   stop: () => void;
@@ -88,18 +88,14 @@ function Index() {
   const [isListening, setIsListening] = useState(false);
   const [speechError, setSpeechError] = useState("");
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const voiceBaseInputRef = useRef("");
+  const speechReceivedRef = useRef(false);
   const [preData, setPreData] = useState({ nome: "", cpf: "", endereco_solicitante: "" });
   const [preStep, setPreStep] = useState<0 | 1 | 2>(0);
   const [ciencia, setCiencia] = useState<"termo" | "aceita" | "recusada">("termo");
   const [termoAceitoEm, setTermoAceitoEm] = useState<string | null>(null);
   const [contatoSelecionado, setContatoSelecionado] = useState<string | null>(null);
-  const endRef = useRef<HTMLDivElement>(null);
-
-  const iniciarServico = () => {
-    setCiencia("termo");
-  };
-
-  const toggleVoiceInput = () => {
+  co  const toggleVoiceInput = () => {
     if (isListening) {
       recognitionRef.current?.stop();
       setIsListening(false);
@@ -116,29 +112,47 @@ function Index() {
     }
 
     setSpeechError("");
+    voiceBaseInputRef.current = input.trimEnd();
+    speechReceivedRef.current = false;
+
     const recognition = new SpeechRecognitionConstructor();
     recognition.lang = "pt-BR";
     recognition.continuous = true;
-    recognition.interimResults = false;
+    // Mostra o texto provisório enquanto a pessoa fala, sem duplicar palavras.
+    recognition.interimResults = true;
     recognition.onresult = (event) => {
       const transcript = Array.from(
-        { length: event.results.length - event.resultIndex },
-        (_, index) => event.results[event.resultIndex + index],
+        event.results,
+        (result) => result[0]?.transcript.trim() ?? "",
       )
-        .filter((result) => result?.[0]?.isFinal)
-        .map((result) => result[0]!.transcript.trim())
         .filter(Boolean)
         .join(" ");
 
       if (transcript) {
-        setInput((current) => current.trim() ? `${current.trimEnd()} ${transcript}` : transcript);
+        speechReceivedRef.current = true;
+        setSpeechError("");
+        setInput([voiceBaseInputRef.current, transcript].filter(Boolean).join(" "));
       }
     };
-    recognition.onerror = () => {
+    recognition.onerror = (event) => {
       setIsListening(false);
-      setSpeechError("Não foi possível captar a voz. Verifique a permissão do microfone e tente novamente.");
+      const messages: Record<string, string> = {
+        "not-allowed": "Acesso ao microfone bloqueado. Clique no cadeado ao lado do endereço do site e permita o uso do microfone.",
+        "service-not-allowed": "O navegador bloqueou o serviço de reconhecimento de voz. Verifique as permissões do Edge e tente novamente.",
+        "audio-capture": "Nenhum microfone foi detectado. Confira se o microfone do fone está selecionado como entrada no Windows.",
+        "no-speech": "Nenhuma fala foi detectada. Confira se o microfone do fone está selecionado no Windows e tente falar novamente.",
+        network: "O reconhecimento de voz não conseguiu se conectar ao serviço. Verifique a conexão com a internet.",
+        "language-not-supported": "O reconhecimento de voz em português não está disponível neste navegador.",
+        aborted: "Ditado interrompido.",
+      };
+      setSpeechError(messages[event.error ?? ""] ?? `Falha no reconhecimento de voz (${event.error ?? "erro desconhecido"}). Confira o microfone e tente novamente.`);
     };
-    recognition.onend = () => setIsListening(false);
+    recognition.onend = () => {
+      setIsListening(false);
+      if (!speechReceivedRef.current) {
+        setSpeechError("Não recebi nenhuma transcrição. No Windows, selecione o microfone do fone como entrada padrão e confira a permissão de microfone do Edge.");
+      }
+    };
     recognitionRef.current = recognition;
 
     try {
@@ -146,6 +160,9 @@ function Index() {
       setIsListening(true);
     } catch {
       setIsListening(false);
+      setSpeechError("Não foi possível iniciar o microfone. Verifique a permissão do site no navegador e tente novamente.");
+    }
+  };Listening(false);
       setSpeechError("Não foi possível iniciar o microfone. Tente novamente.");
     }
   };
