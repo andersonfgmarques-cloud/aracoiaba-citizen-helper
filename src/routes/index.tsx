@@ -90,6 +90,7 @@ function Index() {
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const voiceBaseInputRef = useRef("");
   const speechReceivedRef = useRef(false);
+  const speechFailedRef = useRef(false);
   const [preData, setPreData] = useState({ nome: "", cpf: "", endereco_solicitante: "" });
   const [preStep, setPreStep] = useState<0 | 1 | 2>(0);
   const [ciencia, setCiencia] = useState<"termo" | "aceita" | "recusada">("termo");
@@ -114,6 +115,7 @@ function Index() {
     setSpeechError("");
     voiceBaseInputRef.current = input.trimEnd();
     speechReceivedRef.current = false;
+    speechFailedRef.current = false;
 
     const recognition = new SpeechRecognitionConstructor();
     recognition.lang = "pt-BR";
@@ -136,6 +138,7 @@ function Index() {
     };
     recognition.onerror = (event) => {
       setIsListening(false);
+      speechFailedRef.current = true;
       const messages: Record<string, string> = {
         "not-allowed": "Acesso ao microfone bloqueado. Clique no cadeado ao lado do endereço do site e permita o uso do microfone.",
         "service-not-allowed": "O navegador bloqueou o serviço de reconhecimento de voz. Verifique as permissões do Edge e tente novamente.",
@@ -149,7 +152,7 @@ function Index() {
     };
     recognition.onend = () => {
       setIsListening(false);
-      if (!speechReceivedRef.current) {
+      if (!speechReceivedRef.current && !speechFailedRef.current) {
         setSpeechError("Não recebi nenhuma transcrição. No Windows, selecione o microfone do fone como entrada padrão e confira a permissão de microfone do Edge.");
       }
     };
