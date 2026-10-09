@@ -15,6 +15,7 @@ import {
   BellRing,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import type { Session } from "@supabase/supabase-js";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -142,6 +143,30 @@ function Login({ onLogin }: { onLogin: (session: Session) => void }) {
 
         <button className="w-full rounded-xl bg-primary py-3 font-semibold text-primary-foreground">
           Entrar
+        </button>
+
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <div className="h-px flex-1 bg-border" />
+          ou
+          <div className="h-px flex-1 bg-border" />
+        </div>
+
+        <button
+          type="button"
+          onClick={async () => {
+            setMsg("");
+            try {
+              const redirect_uri = new URL("operador", window.location.href).toString();
+              const result = await lovable.auth.signInWithOAuth("google", { redirect_uri });
+              if (result.error) setMsg(result.error.message || "Não foi possível entrar com Google.");
+            } catch (err) {
+              console.error("Falha no login Google do CAD:", err);
+              setMsg("Não foi possível iniciar o acesso com Google. Tente novamente.");
+            }
+          }}
+          className="w-full rounded-xl border bg-secondary py-3 text-sm font-semibold"
+        >
+          Entrar com Google
         </button>
 
         <p className="text-center text-[11px] text-muted-foreground">
