@@ -297,8 +297,18 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
             )}
           </div>
           <div className="flex-1 space-y-2 overflow-y-auto px-3 pb-3">
-            {lista.length === 0 && (
-              <p className="p-6 text-center text-sm text-muted-foreground">Nenhuma ocorrência.</p>
+            {loadError && (
+              <div className="m-2 rounded-xl border border-destructive/50 bg-destructive/10 p-3 text-xs">
+                <p className="font-bold text-destructive">Falha ao carregar ocorrências</p>
+                <p className="mt-1 break-words text-muted-foreground">{loadError}</p>
+                <button onClick={load} className="mt-2 rounded-lg bg-secondary px-3 py-1.5 font-semibold">Tentar novamente</button>
+              </div>
+            )}
+            {loadingOcs && !loadError && (
+              <p className="p-6 text-center text-sm text-muted-foreground">Carregando ocorrências...</p>
+            )}
+            {!loadingOcs && !loadError && lista.length === 0 && (
+              <p className="p-6 text-center text-sm text-muted-foreground">Nenhuma ocorrência registrada no banco de dados.</p>
             )}
             {lista.map((o) => (
               <button
