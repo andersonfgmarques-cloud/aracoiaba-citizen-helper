@@ -716,17 +716,18 @@ function Index() {
                 autoFocus
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Digite ou dite sua resposta..."
+                placeholder="Digite ou fale sua resposta..."
                 className="min-w-0 flex-1 rounded-full border bg-input px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
               />
               <button
                 type="button"
                 onClick={toggleVoiceInput}
-                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${isListening ? "bg-destructive text-destructive-foreground" : "border border-primary/40 bg-secondary text-foreground"}`}
+                className={`flex h-12 min-w-12 shrink-0 items-center justify-center gap-1 rounded-full px-3 text-xs font-semibold ${isListening ? "bg-destructive text-destructive-foreground" : "border border-primary/40 bg-secondary text-foreground"}`}
                 aria-label={isListening ? "Parar ditado por voz" : "Ditado por voz"}
                 title={isListening ? "Parar ditado por voz" : "Ditar resposta pelo microfone"}
               >
                 {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                <span>Voz</span>
               </button>
               <button
                 className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground"
