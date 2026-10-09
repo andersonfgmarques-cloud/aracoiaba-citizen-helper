@@ -452,14 +452,12 @@ function Index() {
                   {m.contacts.map((c) =>
                     c.name === "SAMU" ? (
                       <div key={c.name} className="space-y-2">
-                        <a
-                          href="tel:08000135117"
-                          className="flex items-center justify-between rounded-xl bg-primary px-3 py-2.5 font-semibold text-primary-foreground"
+                        <div
+                          className="flex items-center gap-2 rounded-xl bg-[#f2bd37] px-3 py-3 font-semibold text-slate-950"
+                          aria-label="SAMU municipal"
                         >
-                          <span className="flex items-center gap-2">
-                            <Phone className="h-4 w-4" /> SAMU
-                          </span>
-                        </a>
+                          <Phone className="h-4 w-4" /> SAMU
+                        </div>
                         <a
                           href="tel:08000135117"
                           className="flex items-center justify-between rounded-xl border border-primary/40 bg-secondary px-3 py-2.5 font-semibold"
