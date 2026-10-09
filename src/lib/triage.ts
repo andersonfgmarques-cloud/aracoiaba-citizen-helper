@@ -20,7 +20,7 @@ export type Option = { label: string; next: string };
 export type Node =
   | { kind: "ask"; text: string; options: Option[] }
   | { kind: "route"; text: string; contacts: Contact[]; urgent?: boolean }
-  | { kind: "gcm"; text: string; category: string };
+  | { kind: "gcm"; text: string; category: string; contacts?: Contact[] };
 
 export const TREE: Record<string, Node> = {
   start: {
@@ -129,8 +129,8 @@ export const TREE: Record<string, Node> = {
   r_bomb: {
     kind: "route",
     urgent: true,
-    text: "Acione o CORPO DE BOMBEIROS pelo 193. Afaste-se do local de risco.",
-    contacts: [CONTACTS.bombeiros],
+    text: "Acione o CORPO DE BOMBEIROS pelo 193. Afaste-se do local de risco. Para ocorrências ambientais, também estão disponíveis os contatos municipais abaixo.",
+    contacts: [CONTACTS.bombeiros, CONTACTS.prefeitura],
   },
   r_defesa: {
     kind: "route",
@@ -187,6 +187,7 @@ export const TREE: Record<string, Node> = {
   g_ambiental: {
     kind: "gcm",
     category: "Ambiental",
-    text: "A GCM Ambiental pode verificar. Preciso de alguns dados.",
+    text: "A GCM Ambiental pode verificar. Preciso de alguns dados. Se necessário, também contate os serviços ambientais e de fiscalização pelos canais abaixo.",
+    contacts: [CONTACTS.prefeitura],
   },
 };
