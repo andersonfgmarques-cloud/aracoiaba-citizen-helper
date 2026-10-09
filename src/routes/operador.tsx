@@ -113,7 +113,7 @@ function Login({ onLogin }: { onLogin: (session: Session) => void }) {
       >
         <div className="flex items-center gap-3">
           <img
-            src={`${import.meta.env.BASE_URL}gcm-emblem.svg`}
+            src={`/aracoiaba-citizen-helper/gcm-emblem.svg`}
             alt="Emblema da Guarda Civil Municipal"
             className="h-11 w-11 rounded-full object-cover"
           />
@@ -330,7 +330,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
     <div className="flex h-screen flex-col">
       <header className="bg-header flex items-center gap-3 border-b px-5 py-3">
         <img
-          src={`${import.meta.env.BASE_URL}gcm-emblem.svg`}
+          src={`/aracoiaba-citizen-helper/gcm-emblem.svg`}
           alt="Emblema da Guarda Civil Municipal"
           className="h-8 w-8 rounded-full object-cover"
         />
