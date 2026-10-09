@@ -26,22 +26,25 @@ const OperadorRoute = OperadorRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/operador': typeof OperadorRoute
+  '/admin': typeof AdminRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/operador': typeof OperadorRoute
+  '/admin': typeof AdminRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/operador': typeof OperadorRoute
+  '/admin': typeof AdminRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/operador'
+  fullPaths: '/' | '/operador' | '/admin'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/operador'
-  id: '__root__' | '/' | '/operador'
+  to: '/' | '/operador' | '/admin'
+  id: '__root__' | '/' | '/operador' | '/admin'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -63,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/operador'
       fullPath: '/operador'
       preLoaderRoute: typeof OperadorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
