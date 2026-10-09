@@ -96,7 +96,7 @@ function Index() {
   const [ciencia, setCiencia] = useState<"termo" | "aceita" | "recusada">("termo");
   const [termoAceitoEm, setTermoAceitoEm] = useState<string | null>(null);
   const [contatoSelecionado, setContatoSelecionado] = useState<string | null>(null);
-  co  const toggleVoiceInput = () => {
+  const toggleVoiceInput = () => {
     if (isListening) {
       recognitionRef.current?.stop();
       setIsListening(false);
