@@ -766,7 +766,7 @@ function Detalhe({ o, update, saving, session }: {
           <div key={h.id} className="border-l-2 border-primary/50 pl-3 py-1">
             <p className="text-sm font-semibold">{h.acao}</p>
             <p className="text-xs text-muted-foreground">{new Date(h.criado_em).toLocaleString("pt-BR")} · {h.status_anterior ?? "novo"} → {h.status_novo ?? "—"}</p>
-            <p className="text-xs text-muted-foreground">Operador: {h.operador_id === session?.user.id ? (session.user.email ?? h.operador_id) : h.operador_id}</p>
+            <p className="text-xs text-muted-foreground">Operador: {h.operador_id === session?.user.id ? (session?.user.email ?? h.operador_id) : h.operador_id}</p>
             {h.viatura && <p className="text-xs text-muted-foreground">Viatura: {h.viatura}</p>}
             {h.observacao && <p className="mt-1 text-xs">{h.observacao}</p>}
           </div>
