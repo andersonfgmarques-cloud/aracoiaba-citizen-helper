@@ -221,9 +221,9 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
   const atual = ocs.find((o) => o.id === sel) ?? null;
   const cont = (s: string) => ocs.filter((o) => o.status === s).length;
 
-  const update = async (id: string, patch: Partial<Oc>) => {
+  const update = async (id: string, patch: Partial<Oc>, acaoPersonalizada?: string): Promise<boolean> => {
     const anterior = ocs.find((x) => x.id === id);
-    if (!anterior) return;
+    if (!anterior) return false;
     const { data, error } = await supabase
       .from("ocorrencias")
       .update(patch)
@@ -232,15 +232,15 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
       .single();
     if (error || !data) {
       window.alert(`Não foi possível salvar a alteração: ${error?.message ?? "ocorrência não encontrada"}`);
-      return;
+      return false;
     }
 
     setOcs((o) => o.map((x) => (x.id === id ? data : x)));
-    const acao = patch.status === "despachada" ? "Despacho realizado"
+    const acao = acaoPersonalizada ?? (patch.status === "despachada" ? "Despacho realizado"
       : patch.status === "em_atendimento" ? "Início do atendimento"
       : patch.status === "encerrada" ? "Ocorrência encerrada"
       : patch.status === "cancelada" ? "Ocorrência cancelada"
-      : "Dados da ocorrência atualizados";
+      : "Dados da ocorrência atualizados");
     const { error: historicoError } = await supabase.from("ocorrencia_historico").insert({
       ocorrencia_id: id,
       operador_id: session!.user.id,
@@ -255,6 +255,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
     } else {
       window.alert(`${acao} registrado com sucesso.`);
     }
+    return true;
   };
 
   const sair = async () => {
@@ -590,33 +591,46 @@ function Detalhe({ o, update }: { o: Oc; update: (id: string, p: Partial<Oc>) =>
             </button>
           ))}
         </div>
-        <textarea
-          value={obs}
-          onChange={(e) => setObs(e.target.value)}
-          placeholder="Observações do operador"
-          rows={3}
-          className="w-full rounded-xl border bg-input p-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-        />
+        <label className="block space-y-1.5">
+          <span className="text-xs font-semibold text-muted-foreground">
+            {o.status === "em_atendimento" ? "Desfecho do atendimento / providências adotadas" : "Equipe responsável / informações do despacho"}
+          </span>
+          <textarea
+            value={obs}
+            onChange={(e) => setObs(e.target.value)}
+            placeholder={o.status === "em_atendimento" ? "Descreva o que a equipe constatou, as providências tomadas e o resultado..." : "Informe a equipe que será empenhada e as orientações para atendimento..."}
+            rows={3}
+            className="w-full rounded-xl border bg-input p-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+          />
+        </label>
         <div className="flex flex-wrap gap-2">
-          <button
-            disabled={!vtr}
-            onClick={() => update(o.id, { status: "despachada", viatura: vtr, observacao: obs })}
-            className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-40"
-          >
-            <Radio className="h-4 w-4" /> Despachar
-          </button>
-          <button
-            onClick={() => update(o.id, { status: "em_atendimento", observacao: obs })}
-            className="rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-accent-foreground"
-          >
-            Em atendimento
-          </button>
-          <button
-            onClick={() => update(o.id, { status: "encerrada", observacao: obs })}
-            className="flex items-center gap-2 rounded-xl bg-success px-4 py-2.5 text-sm font-semibold text-primary-foreground"
-          >
-            <CheckCircle2 className="h-4 w-4" /> Encerrar
-          </button>
+          {o.status !== "em_atendimento" && o.status !== "encerrada" && o.status !== "cancelada" && (
+            <button
+              disabled={!vtr || !obs.trim()}
+              onClick={async () => {
+                const salvo = await update(
+                  o.id,
+                  { status: "em_atendimento", viatura: vtr, observacao: obs.trim() },
+                  "Despacho realizado — equipe acionada e atendimento iniciado",
+                );
+                if (salvo) setObs("");
+              }}
+              className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-40"
+              title="Registra a equipe e inicia o atendimento"
+            >
+              <Radio className="h-4 w-4" /> Despachar
+            </button>
+          )}
+          {o.status === "em_atendimento" && (
+            <button
+              disabled={!obs.trim()}
+              onClick={() => update(o.id, { status: "encerrada", observacao: obs.trim() }, "Atendimento encerrado — desfecho registrado")}
+              className="flex items-center gap-2 rounded-xl bg-success px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-40"
+              title="Salva o desfecho informado e encerra a ocorrência"
+            >
+              <CheckCircle2 className="h-4 w-4" /> Registrar desfecho e encerrar
+            </button>
+          )}
           <button
             onClick={() => update(o.id, { status: "cancelada", observacao: obs })}
             className="flex items-center gap-2 rounded-xl bg-secondary px-4 py-2.5 text-sm"
