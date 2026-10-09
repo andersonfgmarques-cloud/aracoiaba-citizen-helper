@@ -3,7 +3,7 @@ export type Contact = { name: string; phone: string; note: string };
 export const CONTACTS = {
   gcm: { name: "GCM Araçoiaba da Serra", phone: "153", note: "Guarda Civil Municipal" },
   pm: { name: "Polícia Militar", phone: "190", note: "Crimes em andamento, violência, roubo" },
-  samu: { name: "SAMU", phone: "192", note: "Emergência médica" },
+  samu: { name: "SAMU", phone: "08000135117", note: "Contato municipal para atendimento de saúde" },
   bombeiros: { name: "Corpo de Bombeiros", phone: "193", note: "Incêndio, resgate, afogamento" },
   defesa: { name: "Defesa Civil", phone: "199", note: "Enchentes, deslizamentos, árvores caídas" },
   denuncia: { name: "Disque Denúncia", phone: "181", note: "Denúncia anônima (tráfico, crimes)" },
@@ -118,12 +118,12 @@ export const TREE: Record<string, Node> = {
   r_samu: {
     kind: "route",
     urgent: true,
-    text: "Emergência médica: ligue para o SAMU 192. Para contato adicional, ligue 0800 013 5117 ou envie WhatsApp para (15) 99767-3839. Não mova a vítima se houver suspeita de queda ou acidente.",
+    text: "Para contato com o serviço municipal de saúde, ligue 0800 013 5117 ou envie WhatsApp para (15) 99767-3839. Em caso de emergência médica, procure o serviço de emergência adequado. Não mova a vítima se houver suspeita de queda ou acidente.",
     contacts: [CONTACTS.samu, CONTACTS.bombeiros],
   },
   r_samu_nu: {
     kind: "route",
-    text: "Para urgência médica, ligue 192 (SAMU). Para contato com o serviço, ligue 0800 013 5117 ou envie WhatsApp para (15) 99767-3839. Para atendimentos sem urgência, você também pode procurar a UBS do seu bairro.",
+    text: "Para contato com o serviço municipal de saúde, ligue 0800 013 5117 ou envie WhatsApp para (15) 99767-3839. Para atendimentos sem urgência, você também pode procurar a UBS do seu bairro.",
     contacts: [CONTACTS.samu],
   },
   r_bomb: {
