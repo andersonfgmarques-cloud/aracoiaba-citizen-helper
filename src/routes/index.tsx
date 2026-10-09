@@ -449,18 +449,48 @@ function Index() {
               <p className="leading-relaxed">{m.text}</p>
               {m.contacts && (
                 <div className="mt-3 space-y-2">
-                  {m.contacts.map((c) => (
-                    <a
-                      key={c.name}
-                      href={`tel:${c.phone}`}
-                      className={`flex items-center justify-between rounded-xl px-3 py-2.5 font-semibold ${m.urgent ? "bg-destructive text-destructive-foreground" : "bg-primary text-primary-foreground"}`}
-                    >
-                      <span className="flex items-center gap-2">
-                        <Phone className="h-4 w-4" /> {c.name}
-                      </span>
-                      <span className="font-display text-lg">{c.phone}</span>
-                    </a>
-                  ))}
+                  {m.contacts.map((c) =>
+                    c.name === "SAMU" ? (
+                      <div key={c.name} className="space-y-2">
+                        <a
+                          href={`tel:${c.phone}`}
+                          className={`flex items-center justify-between rounded-xl px-3 py-2.5 font-semibold ${m.urgent ? "bg-destructive text-destructive-foreground" : "bg-primary text-primary-foreground"}`}
+                        >
+                          <span className="flex items-center gap-2">
+                            <Phone className="h-4 w-4" /> SAMU — Emergência
+                          </span>
+                          <span className="font-display text-lg">192</span>
+                        </a>
+                        <a
+                          href="tel:08000135117"
+                          className="flex items-center justify-between rounded-xl border border-primary/40 bg-secondary px-3 py-2.5 font-semibold"
+                        >
+                          <span>Telefone adicional</span>
+                          <span>0800 013 5117</span>
+                        </a>
+                        <a
+                          href="https://wa.me/5515997673839"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center justify-between rounded-xl border border-primary/40 bg-secondary px-3 py-2.5 font-semibold"
+                        >
+                          <span>WhatsApp</span>
+                          <span>(15) 99767-3839</span>
+                        </a>
+                      </div>
+                    ) : (
+                      <a
+                        key={c.name}
+                        href={`tel:${c.phone}`}
+                        className={`flex items-center justify-between rounded-xl px-3 py-2.5 font-semibold ${m.urgent ? "bg-destructive text-destructive-foreground" : "bg-primary text-primary-foreground"}`}
+                      >
+                        <span className="flex items-center gap-2">
+                          <Phone className="h-4 w-4" /> {c.name}
+                        </span>
+                        <span className="font-display text-lg">{c.phone}</span>
+                      </a>
+                    ),
+                  )}
                 </div>
               )}
             </div>
