@@ -127,6 +127,47 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_list_users: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          user_id: string
+          email: string | null
+          created_at: string
+          last_sign_in_at: string | null
+          role: string
+        }[]
+      }
+      admin_set_operator_access: {
+        Args: { _user_id: string; _enabled: boolean }
+        Returns: undefined
+      }
+      admin_list_occurrences: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          protocolo: string
+          categoria: string
+          status: string
+          created_at: string
+          viatura: string | null
+        }[]
+      }
+      admin_list_audit: {
+        Args: { _limit?: number }
+        Returns: {
+          id: string
+          actor_email: string
+          action: string
+          target_user_id: string | null
+          occurrence_id: string | null
+          details: Json
+          created_at: string
+        }[]
+      }
+      admin_delete_occurrence: {
+        Args: { _occurrence_id: string; _reason: string }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
