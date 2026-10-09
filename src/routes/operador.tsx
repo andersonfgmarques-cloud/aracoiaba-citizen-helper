@@ -674,6 +674,8 @@ function Detalhe({ o, update, saving, session }: {
 
   const despachoRegistrado = historico.find((item) => item.status_novo === "em_atendimento" || item.acao.toLowerCase().includes("despacho"));
   const encerramentoRegistrado = [...historico].reverse().find((item) => item.status_novo === "encerrada");
+  const identificacaoOperador = (operadorId: string) =>
+    operadorId === session?.user.id ? (session?.user.email ?? operadorId) : operadorId;
   const termoAceite = o.descricao.match(/\n\n\[REGISTRO_TERMO_ART340: ACEITO_EM=(.+)\]/);
   const descricaoLimpa = o.descricao.replace(/\n\n\[REGISTRO_TERMO_ART340: ACEITO_EM=.+\]/, "");
   const [vtr, setVtr] = useState(o.viatura ?? "");
@@ -692,6 +694,7 @@ function Detalhe({ o, update, saving, session }: {
           <article class="movimento">
             <strong>${escapeHtml(h.acao)}</strong>
             <div>${escapeHtml(dataHora(h.criado_em))} · ${escapeHtml(h.status_anterior ?? "novo")} → ${escapeHtml(h.status_novo ?? "—")}</div>
+            <div>Operador: ${escapeHtml(identificacaoOperador(h.operador_id))}</div>
             ${h.viatura ? `<div>Viatura: ${escapeHtml(h.viatura)}</div>` : ""}
             ${h.observacao ? `<p>${escapeHtml(h.observacao)}</p>` : ""}
           </article>`).join("")
@@ -766,12 +769,12 @@ function Detalhe({ o, update, saving, session }: {
         <div className="rounded-xl border border-primary/30 bg-card p-3">
           <p className="text-xs text-muted-foreground">Despacho / início do atendimento</p>
           <p className="mt-1 text-sm font-semibold">{despachoRegistrado ? new Date(despachoRegistrado.criado_em).toLocaleString("pt-BR") : "Ainda não registrado"}</p>
-          {despachoRegistrado && <p className="mt-1 break-all text-xs text-muted-foreground">Operador ID: {despachoRegistrado.operador_id}</p>}
+          {despachoRegistrado && <p className="mt-1 break-all text-xs text-muted-foreground">Operador: {identificacaoOperador(despachoRegistrado.operador_id)}</p>}
         </div>
         <div className="rounded-xl border border-success/30 bg-card p-3">
           <p className="text-xs text-muted-foreground">Encerramento</p>
           <p className="mt-1 text-sm font-semibold">{encerramentoRegistrado ? new Date(encerramentoRegistrado.criado_em).toLocaleString("pt-BR") : "Ainda não encerrada"}</p>
-          {encerramentoRegistrado && <p className="mt-1 break-all text-xs text-muted-foreground">Operador ID: {encerramentoRegistrado.operador_id}</p>}
+          {encerramentoRegistrado && <p className="mt-1 break-all text-xs text-muted-foreground">Operador: {identificacaoOperador(encerramentoRegistrado.operador_id)}</p>}
         </div>
       </div>
       <button
@@ -830,7 +833,7 @@ function Detalhe({ o, update, saving, session }: {
           <div key={h.id} className="border-l-2 border-primary/50 pl-3 py-1">
             <p className="text-sm font-semibold">{h.acao}</p>
             <p className="text-xs text-muted-foreground">{new Date(h.criado_em).toLocaleString("pt-BR")} · {h.status_anterior ?? "novo"} → {h.status_novo ?? "—"}</p>
-            <p className="text-xs text-muted-foreground">Operador: {h.operador_id === session?.user.id ? (session?.user.email ?? h.operador_id) : h.operador_id}</p>
+            <p className="text-xs text-muted-foreground">Operador: {identificacaoOperador(h.operador_id)}</p>
             {h.viatura && <p className="text-xs text-muted-foreground">Viatura: {h.viatura}</p>}
             {h.observacao && <p className="mt-1 text-xs">{h.observacao}</p>}
           </div>
