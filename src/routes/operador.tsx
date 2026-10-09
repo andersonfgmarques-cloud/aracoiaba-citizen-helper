@@ -389,7 +389,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
                     <BellRing className="h-3.5 w-3.5 animate-pulse text-amber-400" aria-label="Novas ocorrências pendentes" />
                   )}
                   {f === "ativas" ? "Ativas" : f === "todas" ? "Todas" : STATUS[f]!.label}
-                  {f === "pendente" && novasPendentes > 0 && (
+                  {f === "pendente" && novasPendentesIds.length > 0 && (
                     <span className="ml-0.5 rounded-full bg-destructive px-1.5 py-0.5 text-[10px] leading-none text-destructive-foreground">
                       {novasPendentesIds.length > 99 ? "99+" : novasPendentesIds.length}
                     </span>
