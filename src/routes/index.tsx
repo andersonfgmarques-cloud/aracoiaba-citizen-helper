@@ -165,12 +165,7 @@ function Index() {
       setIsListening(false);
       setSpeechError("Não foi possível iniciar o microfone. Verifique a permissão do site no navegador e tente novamente.");
     }
-  };Listening(false);
-      setSpeechError("Não foi possível iniciar o microfone. Tente novamente.");
-    }
-  };
-
-  const aceitarTermo = () => {
+  };  const aceitarTermo = () => {
     setTermoAceitoEm(new Date().toISOString());
     setCiencia("aceita");
     setMsgs([]);
