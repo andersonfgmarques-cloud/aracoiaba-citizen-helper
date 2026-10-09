@@ -1,9 +1,9 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
-const isGitHubPages = process.env.GITHUB_PAGES === "true";
+const isGitHubPages = process.env["GITHUB_PAGES"] === "true";
 const basePath = isGitHubPages ? "/aracoiaba-citizen-helper/" : "/";
 
-export default defineConfig({
+const config = {
   base: basePath,
   nitro: isGitHubPages ? false : undefined,
   tanstackStart: {
@@ -34,4 +34,6 @@ export default defineConfig({
           },
         }),
   },
-});
+};
+
+export default defineConfig(config as unknown as Parameters<typeof defineConfig>[0]);

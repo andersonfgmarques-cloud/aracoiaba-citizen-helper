@@ -129,7 +129,7 @@ function Index() {
     if (!form || !input.trim()) return;
     const f = FIELDS[form.step]!;
     let value = input.trim();
-    if (f.key === "cpf") {
+    if ((f.key as string) === "cpf") {
       const d = value.replace(/\D/g, "");
       if (!validaCpf(d)) {
         setMsgs((m) => [
