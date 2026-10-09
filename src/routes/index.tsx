@@ -90,19 +90,11 @@ function Index() {
       ]);
     else if (n.kind === "ask") setMsgs((m) => [...m, { from: "bot", text: n.text }]);
     else {
-      setForm(null);
+      setForm({ category: n.category, step: 0, data: { ...preData } });
       setMsgs((m) => [
         ...m,
         { from: "bot", text: n.text },
-        {
-          from: "bot",
-          text:
-            "TERMO DE CIÊNCIA — COMUNICAÇÃO FALSA DE CRIME OU DE CONTRAVENÇÃO\n\n" +
-            "Antes de prosseguir, você declara ciência de que, nos termos do art. 340 do Código Penal, provocar a ação de autoridade comunicando a ocorrência de crime ou de contravenção que sabe não ter ocorrido constitui crime de comunicação falsa de crime ou de contravenção.\n\n" +
-            "Art. 340 — Provocar a ação de autoridade, comunicando-lhe a ocorrência de crime ou de contravenção que sabe não se ter verificado.\n\n" +
-            "Pena: detenção, de 1 (um) a 6 (seis) meses, ou multa.\n\n" +
-            "Ao prosseguir, você confirma que as informações prestadas correspondem aos fatos que está comunicando e que compreendeu esta orientação. A ciência deste termo não implica confissão de crime nem substitui o registro ou procedimento legal cabível."
-        },
+        { from: "bot", text: FIELDS[0]!.q },
       ]);
     }
   };
