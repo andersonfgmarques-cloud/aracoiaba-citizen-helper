@@ -69,6 +69,7 @@ function Index() {
   const [preStep, setPreStep] = useState<0 | 1 | 2>(0);
   const [ciencia, setCiencia] = useState<"termo" | "aceita" | "recusada">("termo");
   const [termoAceitoEm, setTermoAceitoEm] = useState<string | null>(null);
+  const [contatoSelecionado, setContatoSelecionado] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
   const iniciarServico = () => {
@@ -337,22 +338,73 @@ function Index() {
 
       <div className="flex gap-2 overflow-x-auto border-b px-4 py-2">
         {[
-          CONTACTS.gcm,
-          CONTACTS.pm,
-          CONTACTS.samu,
-          CONTACTS.bombeiros,
-          CONTACTS.defesa,
-          CONTACTS.denuncia,
+          { id: "gcm", label: "GCM", number: "153" },
+          { id: "policia", label: "Polícia", number: "190" },
+          { id: "samu", label: "SAMU", number: "192" },
+          { id: "bombeiros", label: "Corpo", number: "193" },
+          { id: "defesa", label: "Defesa", number: "199" },
+          { id: "denuncia", label: "Disque", number: "181" },
+          { id: "depa", label: "DEPA", number: "Animal" },
         ].map((c) => (
-          <a
-            key={c.name}
-            href={`tel:${c.phone}`}
-            className="shrink-0 rounded-full bg-secondary px-3 py-1 text-xs font-semibold"
+          <button
+            key={c.id}
+            type="button"
+            onClick={() => setContatoSelecionado((atual) => atual === c.id ? null : c.id)}
+            aria-expanded={contatoSelecionado === c.id}
+            className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${contatoSelecionado === c.id ? "bg-primary text-primary-foreground" : "bg-secondary"}`}
           >
-            {c.name.split(" ")[0]} <span className="text-primary">{c.phone}</span>
-          </a>
+            {c.label} <span className={contatoSelecionado === c.id ? "text-primary-foreground" : "text-primary"}>{c.number}</span>
+          </button>
         ))}
       </div>
+      {contatoSelecionado && (
+        <div className="mx-4 mt-3 rounded-xl border bg-card p-4 text-sm shadow-sm">
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <h2 className="font-bold">
+              {{
+                gcm: "Guarda Civil Municipal — GCM",
+                policia: "Polícia Militar",
+                samu: "SAMU",
+                bombeiros: "Corpo de Bombeiros",
+                defesa: "Defesa Civil",
+                denuncia: "Disque Denúncia",
+                depa: "DEPA — Delegacia Eletrônica de Proteção Animal",
+              }[contatoSelecionado]}
+            </h2>
+            <button type="button" onClick={() => setContatoSelecionado(null)} className="rounded-full px-2 py-1 text-muted-foreground hover:bg-secondary" aria-label="Fechar contatos">✕</button>
+          </div>
+          {contatoSelecionado === "gcm" && (
+            <div className="flex flex-col gap-2">
+              <a className="text-primary underline" href="tel:+551532811012">(15) 3281-1012</a>
+              <a className="text-primary underline" href="tel:+5515996565054">(15) 99656-5054</a>
+              <a className="text-primary underline" href="tel:153">153</a>
+            </div>
+          )}
+          {contatoSelecionado === "policia" && <a className="text-primary underline" href="tel:190">190 — Polícia Militar</a>}
+          {contatoSelecionado === "samu" && (
+            <div className="flex flex-col gap-2">
+              <a className="text-primary underline" href="tel:08000135117">0800 013 5117</a>
+              <a className="text-primary underline" href="https://wa.me/5515997673839" target="_blank" rel="noreferrer">WhatsApp: (15) 99767-3839</a>
+              <a className="text-primary underline" href="tel:192">192 — Emergência</a>
+            </div>
+          )}
+          {contatoSelecionado === "bombeiros" && <a className="text-primary underline" href="tel:193">193 — Corpo de Bombeiros</a>}
+          {contatoSelecionado === "defesa" && (
+            <div className="flex flex-col gap-2">
+              <a className="text-primary underline" href="tel:+551532814041">(15) 3281-4041</a>
+              <a className="text-primary underline" href="https://wa.me/5515981090984" target="_blank" rel="noreferrer">WhatsApp: (15) 98109-0984</a>
+              <a className="text-primary underline" href="tel:199">199 — Defesa Civil</a>
+            </div>
+          )}
+          {contatoSelecionado === "denuncia" && <a className="text-primary underline" href="tel:181">181 — Disque Denúncia</a>}
+          {contatoSelecionado === "depa" && (
+            <div className="flex flex-col gap-2">
+              <p className="text-muted-foreground">Registre denúncia de maus-tratos e outros crimes contra animais pela Delegacia Eletrônica de Proteção Animal de São Paulo.</p>
+              <a className="font-semibold text-primary underline" href="https://www.webdenuncia.sp.gov.br/depa/captcha" target="_blank" rel="noreferrer">Abrir DEPA — SSP/SP</a>
+            </div>
+          )}
+        </div>
+      )}
 
       <main className="flex-1 space-y-3 overflow-y-auto px-4 py-5">
         {msgs.map((m, i) =>
