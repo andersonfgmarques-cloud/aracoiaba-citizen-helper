@@ -611,16 +611,55 @@ function Detalhe({ o, update, saving, session }: {
 }) {
   const [historico, setHistorico] = useState<HistoricoOcorrencia[]>([]);
   const [historicoErro, setHistoricoErro] = useState<string | null>(null);
+  const [historicoCarregando, setHistoricoCarregando] = useState(true);
+  const [historicoRevision, setHistoricoRevision] = useState(0);
+
   useEffect(() => {
     let ativo = true;
-    supabase.from("ocorrencia_historico").select("*").eq("ocorrencia_id", o.id).order("criado_em", { ascending: true })
-      .then(({ data, error }) => {
-        if (!ativo) return;
-        if (error) setHistoricoErro(error.message);
-        else setHistorico(((data ?? []) as HistoricoOcorrencia[]).sort((a, b) => new Date(a.criado_em).getTime() - new Date(b.criado_em).getTime()));
-      });
+    setHistoricoCarregando(true);
+    setHistoricoErro(null);
+
+    const carregarHistorico = async () => {
+      const { data, error } = await supabase
+        .from("ocorrencia_historico")
+        .select("*")
+        .eq("ocorrencia_id", o.id)
+        .order("criado_em", { ascending: true });
+
+      if (!ativo) return;
+      if (error) {
+        setHistoricoErro(error.message);
+      } else {
+        setHistorico(
+          ((data ?? []) as HistoricoOcorrencia[]).sort(
+            (a, b) => new Date(a.criado_em).getTime() - new Date(b.criado_em).getTime(),
+          ),
+        );
+      }
+      setHistoricoCarregando(false);
+    };
+
+    void carregarHistorico();
     return () => { ativo = false; };
-  }, [o.id, o.updated_at]);
+  }, [o.id, o.updated_at, historicoRevision]);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel(`historico-ocorrencia-${o.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "ocorrencia_historico",
+          filter: `ocorrencia_id=eq.${o.id}`,
+        },
+        () => setHistoricoRevision((revision) => revision + 1),
+      )
+      .subscribe();
+
+    return () => { void supabase.removeChannel(channel); };
+  }, [o.id]);
   const despachoRegistrado = historico.find((item) => item.status_novo === "em_atendimento" || item.acao.toLowerCase().includes("despacho"));
   const encerramentoRegistrado = [...historico].reverse().find((item) => item.status_novo === "encerrada");
   const termoAceite = o.descricao.match(/\n\n\[REGISTRO_TERMO_ART340: ACEITO_EM=(.+)\]/);
@@ -758,10 +797,21 @@ function Detalhe({ o, update, saving, session }: {
       <div className="space-y-3 rounded-2xl bg-card p-5">
         <div className="flex items-center justify-between gap-2">
           <p className="text-sm font-semibold">Histórico operacional</p>
-          <span className="text-xs text-muted-foreground">{historico.length} registro(s)</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">{historico.length} registro(s)</span>
+            <button
+              type="button"
+              onClick={() => setHistoricoRevision((revision) => revision + 1)}
+              className="rounded-lg bg-secondary px-2 py-1 text-xs font-semibold text-foreground"
+              title="Recarregar histórico operacional"
+            >
+              <RefreshCw className="mr-1 inline h-3 w-3" /> Atualizar
+            </button>
+          </div>
         </div>
+        {historicoCarregando && <p className="text-xs text-muted-foreground">Carregando movimentações…</p>}
         {historicoErro && <p className="text-xs text-destructive">Não foi possível carregar o histórico: {historicoErro}</p>}
-        {!historicoErro && historico.length === 0 && <p className="text-xs text-muted-foreground">Ainda não há movimentações registradas para esta ocorrência.</p>}
+        {!historicoCarregando && !historicoErro && historico.length === 0 && <p className="text-xs text-muted-foreground">Nenhuma movimentação encontrada no banco para esta ocorrência. Atualize para consultar novamente.</p>}
         {historico.map((h) => (
           <div key={h.id} className="border-l-2 border-primary/50 pl-3 py-1">
             <p className="text-sm font-semibold">{h.acao}</p>
@@ -807,6 +857,7 @@ function Detalhe({ o, update, saving, session }: {
                   { status: "em_atendimento", viatura: vtr, observacao: obs.trim() },
                   "Despacho realizado — equipe acionada e atendimento iniciado",
                 );
+                setHistoricoRevision((revision) => revision + 1);
               }}
               className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-40"
               title="Registra a equipe e inicia o atendimento"
@@ -817,7 +868,10 @@ function Detalhe({ o, update, saving, session }: {
           {o.status === "em_atendimento" && (
             <button
               disabled={saving || !obs.trim()}
-              onClick={() => update(o.id, { status: "encerrada", observacao: obs.trim() }, "Atendimento encerrado — desfecho registrado")}
+              onClick={async () => {
+                await update(o.id, { status: "encerrada", observacao: obs.trim() }, "Atendimento encerrado — desfecho registrado");
+                setHistoricoRevision((revision) => revision + 1);
+              }}
               className="flex items-center gap-2 rounded-xl bg-success px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-40"
               title="Salva o desfecho informado e encerra a ocorrência"
             >
@@ -826,7 +880,10 @@ function Detalhe({ o, update, saving, session }: {
           )}
           <button
             disabled={saving}
-            onClick={() => update(o.id, { status: "cancelada", observacao: obs.trim() || o.observacao }, "Ocorrência cancelada")}
+            onClick={async () => {
+              await update(o.id, { status: "cancelada", observacao: obs.trim() || o.observacao }, "Ocorrência cancelada");
+              setHistoricoRevision((revision) => revision + 1);
+            }}
             className="flex items-center gap-2 rounded-xl bg-secondary px-4 py-2.5 text-sm"
           >
             <XCircle className="h-4 w-4" /> Cancelar
