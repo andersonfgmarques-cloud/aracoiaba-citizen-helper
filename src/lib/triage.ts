@@ -85,7 +85,7 @@ export const TREE: Record<string, Node> = {
   },
   trans_sem_vitima: {
     kind: "ask",
-    text: "O acidente envolve veículo oficial da Prefeitura?",
+    text: "O acidente envolve veículo oficial da Prefeitura (carro, moto ou outro veículo a serviço do município)?",
     options: [
       { label: "Sim, envolve veículo oficial", next: "g_transito_veiculo_oficial" },
       { label: "Não envolve veículo oficial", next: "r_transito_sem_vitima" },
