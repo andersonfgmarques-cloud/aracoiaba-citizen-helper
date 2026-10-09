@@ -523,7 +523,7 @@ function Index() {
                           <span>(15) 98109-0984</span>
                         </a>
                       </div>
-                    ) : c.name === "Prefeitura – Fiscalização" ? (
+                    ) : (c.name.includes("Fiscalização") || c.phone === "156") ? (
                       <div key={c.name} className="space-y-2">
                         <a
                           href="tel:+551532812238"
