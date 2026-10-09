@@ -118,12 +118,12 @@ export const TREE: Record<string, Node> = {
   r_samu: {
     kind: "route",
     urgent: true,
-    text: "Emergência médica: ligue para o SAMU 192. Não mova a vítima se houver suspeita de queda ou acidente.",
+    text: "Emergência médica: ligue para o SAMU 192. Para contato adicional, ligue 0800 013 5117 ou envie WhatsApp para (15) 99767-3839. Não mova a vítima se houver suspeita de queda ou acidente.",
     contacts: [CONTACTS.samu, CONTACTS.bombeiros],
   },
   r_samu_nu: {
     kind: "route",
-    text: "Para urgência médica ligue 192 (SAMU). Para atendimentos sem urgência, ligue 0800 013 5117 ou envie WhatsApp para (15) 99767-3839. Você também pode procurar a UBS do seu bairro.",
+    text: "Para urgência médica, ligue 192 (SAMU). Para contato com o serviço, ligue 0800 013 5117 ou envie WhatsApp para (15) 99767-3839. Para atendimentos sem urgência, você também pode procurar a UBS do seu bairro.",
     contacts: [CONTACTS.samu],
   },
   r_bomb: {
