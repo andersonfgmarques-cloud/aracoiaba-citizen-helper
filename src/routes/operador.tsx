@@ -643,23 +643,6 @@ function Detalhe({ o, update, saving, session }: {
     return () => { ativo = false; };
   }, [o.id, o.updated_at, historicoRevision]);
 
-  useEffect(() => {
-    const channel = supabase
-      .channel(`historico-ocorrencia-${o.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "ocorrencia_historico",
-          filter: `ocorrencia_id=eq.${o.id}`,
-        },
-        () => setHistoricoRevision((revision) => revision + 1),
-      )
-      .subscribe();
-
-    return () => { void supabase.removeChannel(channel); };
-  }, [o.id]);
   const despachoRegistrado = historico.find((item) => item.status_novo === "em_atendimento" || item.acao.toLowerCase().includes("despacho"));
   const encerramentoRegistrado = [...historico].reverse().find((item) => item.status_novo === "encerrada");
   const termoAceite = o.descricao.match(/\n\n\[REGISTRO_TERMO_ART340: ACEITO_EM=(.+)\]/);
