@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   XCircle,
   Siren,
+  RefreshCw,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
@@ -250,6 +251,15 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           <span className="h-2 w-2 animate-pulse rounded-full bg-success" /> Ao vivo
         </span>
         <div className="ml-auto flex items-center gap-3 text-xs text-muted-foreground">
+          <button
+            onClick={load}
+            disabled={loadingOcs}
+            className="flex items-center gap-1.5 rounded-lg bg-secondary px-3 py-2 font-semibold text-foreground disabled:opacity-50"
+            title="Atualizar ocorrências"
+          >
+            <RefreshCw className={`h-4 w-4 ${loadingOcs ? "animate-spin" : ""}`} />
+            Atualizar
+          </button>
           {session?.user.email ?? TEMP_OPERATOR_EMAIL}
           <button
             onClick={sair}
