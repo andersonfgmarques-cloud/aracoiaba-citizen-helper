@@ -65,6 +65,7 @@ function Index() {
   const [preData, setPreData] = useState({ nome: "", cpf: "", endereco_solicitante: "" });
   const [preStep, setPreStep] = useState<0 | 1 | 2>(0);
   const [ciencia, setCiencia] = useState<"dados" | "termo" | "aceita" | "recusada">("dados");
+  const [termoAceitoEm, setTermoAceitoEm] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
   const iniciarServico = () => {
@@ -72,6 +73,7 @@ function Index() {
   };
 
   const aceitarTermo = () => {
+    setTermoAceitoEm(new Date().toISOString());
     setCiencia("aceita");
     setMsgs([]);
     setForm(null);
@@ -176,7 +178,7 @@ function Index() {
           endereco_solicitante: data["endereco_solicitante"]!,
           telefone: data["telefone"]!,
           endereco: data["endereco"]!,
-          descricao: data["descricao"]!,
+          descricao: `${data["descricao"]!}\n\n[REGISTRO_TERMO_ART340: ACEITO_EM=${termoAceitoEm ?? new Date().toISOString()}]`,
         })
         .then(({ error }) => {
           if (error)
