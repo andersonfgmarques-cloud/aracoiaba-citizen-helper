@@ -143,17 +143,27 @@ function Login({ onTemporaryLogin }: { onTemporaryLogin: () => void }) {
 
 function Painel({ session, demoOperator = false }: { session: Session | null; demoOperator?: boolean }) {
   const [ocs, setOcs] = useState<Oc[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadingOcs, setLoadingOcs] = useState(true);
   const [autorizado, setAutorizado] = useState<boolean | null>(demoOperator ? true : null);
   const [filtro, setFiltro] = useState("ativas");
   const [sel, setSel] = useState<string | null>(null);
 
   const load = async () => {
-    const { data } = await supabase
+    setLoadingOcs(true);
+    setLoadError(null);
+    const { data, error } = await supabase
       .from("ocorrencias")
       .select("*")
       .order("created_at", { ascending: false })
       .limit(300);
-    setOcs(data ?? []);
+    if (error) {
+      setLoadError(error.message);
+      setOcs([]);
+    } else {
+      setOcs(data ?? []);
+    }
+    setLoadingOcs(false);
   };
 
   useEffect(() => {
