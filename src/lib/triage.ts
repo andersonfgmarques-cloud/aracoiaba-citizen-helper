@@ -123,7 +123,7 @@ export const TREE: Record<string, Node> = {
   },
   r_samu_nu: {
     kind: "route",
-    text: "Para contato com o serviço municipal de saúde, ligue 0800 013 5117 ou envie WhatsApp para (15) 99767-3839. Para atendimentos sem urgência, você também pode procurar a UBS do seu bairro.",
+    text: "Para entrar em contato com o SAMU municipal, ligue 0800 013 5117 ou envie WhatsApp para (15) 99767-3839. Para atendimentos sem urgência, você também pode procurar a UBS do seu bairro.",
     contacts: [CONTACTS.samu],
   },
   r_bomb: {
