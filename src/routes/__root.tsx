@@ -96,7 +96,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/aracoiaba-citizen-helper/gcm-emblem.svg", type: "image/svg+xml" },
+      { rel: "icon", href: "/aracoiaba-citizen-helper/android-chrome-192x192.png", type: "image/png" },
     ],
   }),
   shellComponent: RootShell,
