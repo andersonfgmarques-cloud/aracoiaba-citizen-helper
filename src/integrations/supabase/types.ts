@@ -103,7 +103,7 @@ export type Database = {
           viatura?: string | null
         }
         Relationships: []
-      }
+      },
       user_roles: {
         Row: {
           id: string
