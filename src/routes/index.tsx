@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Phone, Shield, RotateCcw, Send, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Phone, Shield, RotateCcw, Send, AlertTriangle, CheckCircle2, LayoutDashboard } from "lucide-react";
 import { TREE, CONTACTS, type Contact } from "@/lib/triage";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -212,7 +212,10 @@ function Index() {
         <div className="mx-auto flex min-h-screen max-w-lg flex-col bg-background">
           <header className="bg-header flex items-center gap-3 border-b px-4 py-4 shadow-lg">
             <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground"><Shield className="h-6 w-6" /></div>
-            <div><h1 className="text-base font-bold">GCM Araçoiaba da Serra</h1><p className="text-xs text-muted-foreground">Atendimento ao cidadão</p></div>
+            <div className="min-w-0 flex-1"><h1 className="text-base font-bold">GCM Araçoiaba da Serra</h1><p className="text-xs text-muted-foreground">Atendimento ao cidadão</p></div>
+            <Link to="/operador" aria-label="Acessar painel CAD do operador" title="Acesso do operador CAD" className="flex shrink-0 items-center gap-1.5 rounded-full border border-primary/50 bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20">
+              <LayoutDashboard className="h-4 w-4" /> CAD
+            </Link>
           </header>
           <main className="flex flex-1 items-center px-4 py-6">
             <div className="w-full rounded-2xl border bg-card p-5 shadow-sm">
@@ -235,7 +238,10 @@ function Index() {
         <div className="mx-auto flex min-h-screen max-w-lg flex-col bg-background">
           <header className="bg-header flex items-center gap-3 border-b px-4 py-4 shadow-lg">
             <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground"><Shield className="h-6 w-6" /></div>
-            <div><h1 className="text-base font-bold">GCM Araçoiaba da Serra</h1><p className="text-xs text-muted-foreground">Atendimento ao cidadão</p></div>
+            <div className="min-w-0 flex-1"><h1 className="text-base font-bold">GCM Araçoiaba da Serra</h1><p className="text-xs text-muted-foreground">Atendimento ao cidadão</p></div>
+            <Link to="/operador" aria-label="Acessar painel CAD do operador" title="Acesso do operador CAD" className="flex shrink-0 items-center gap-1.5 rounded-full border border-primary/50 bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20">
+              <LayoutDashboard className="h-4 w-4" /> CAD
+            </Link>
           </header>
           <main className="flex flex-1 items-center px-4 py-6">
             <form onSubmit={(e) => {
@@ -266,7 +272,10 @@ function Index() {
       <div className="mx-auto flex min-h-screen max-w-lg flex-col bg-background">
         <header className="bg-header flex items-center gap-3 border-b px-4 py-4 shadow-lg">
           <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground"><Shield className="h-6 w-6" /></div>
-          <div><h1 className="text-base font-bold">GCM Araçoiaba da Serra</h1><p className="text-xs text-muted-foreground">Atendimento ao cidadão</p></div>
+          <div className="min-w-0 flex-1"><h1 className="text-base font-bold">GCM Araçoiaba da Serra</h1><p className="text-xs text-muted-foreground">Atendimento ao cidadão</p></div>
+            <Link to="/operador" aria-label="Acessar painel CAD do operador" title="Acesso do operador CAD" className="flex shrink-0 items-center gap-1.5 rounded-full border border-primary/50 bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20">
+              <LayoutDashboard className="h-4 w-4" /> CAD
+            </Link>
         </header>
         <main className="flex flex-1 items-center px-4 py-6">
           <div className="w-full rounded-2xl border bg-card p-5 shadow-sm">
@@ -304,8 +313,11 @@ function Index() {
         </div>
         <Link
           to="/operador"
-          className="rounded-full px-2 py-1 text-[10px] font-semibold text-muted-foreground hover:bg-secondary"
+          aria-label="Acessar painel CAD do operador"
+          title="Acesso do operador CAD"
+          className="flex shrink-0 items-center gap-1.5 rounded-full border border-primary/50 bg-primary/10 px-3 py-2 text-xs font-bold text-primary transition-colors hover:bg-primary/20"
         >
+          <LayoutDashboard className="h-4 w-4" />
           CAD
         </Link>
         <button
