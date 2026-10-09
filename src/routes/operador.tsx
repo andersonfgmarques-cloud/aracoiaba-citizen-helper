@@ -647,7 +647,9 @@ function Detalhe({ o, update, saving, session }: {
   const termoAceite = o.descricao.match(/\n\n\[REGISTRO_TERMO_ART340: ACEITO_EM=(.+)\]/);
   const descricaoLimpa = o.descricao.replace(/\n\n\[REGISTRO_TERMO_ART340: ACEITO_EM=.+\]/, "");
   const [vtr, setVtr] = useState(o.viatura ?? "");
-  const [obs, setObs] = useState(o.observacao ?? "");
+  // O campo é para a próxima ação, não para reapresentar a observação já gravada na ocorrência.
+  // Assim, ao reabrir ou selecionar novamente uma ocorrência, não repete o texto do despacho anterior.
+  const [obs, setObs] = useState("");
 
   const imprimirRelatorio = () => {
     const escapeHtml = (value: unknown) =>
