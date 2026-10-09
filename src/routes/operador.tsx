@@ -632,7 +632,7 @@ function Detalhe({ o, update }: { o: Oc; update: (id: string, p: Partial<Oc>) =>
             </button>
           )}
           <button
-            onClick={() => update(o.id, { status: "cancelada", observacao: obs })}
+            onClick={() => update(o.id, { status: "cancelada", observacao: obs.trim() || o.observacao }, "Ocorrência cancelada")}
             className="flex items-center gap-2 rounded-xl bg-secondary px-4 py-2.5 text-sm"
           >
             <XCircle className="h-4 w-4" /> Cancelar
