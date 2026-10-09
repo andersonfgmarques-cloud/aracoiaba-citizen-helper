@@ -145,7 +145,7 @@ export const TREE: Record<string, Node> = {
   },
   r_civil: {
     kind: "route",
-    text: "Para registrar fatos já ocorridos, faça o Boletim de Ocorrência na Delegacia Eletrônica (SSP-SP) ou ligue 197.",
+    text: "Para registrar fatos já ocorridos, você pode ligar 197 ou registrar o Boletim de Ocorrência online, por conta própria, pela Delegacia Digital da Polícia Civil do Estado de São Paulo.",
     contacts: [CONTACTS.civil],
   },
   r_fisc: {
@@ -155,7 +155,7 @@ export const TREE: Record<string, Node> = {
   },
   r_transito_sem_vitima: {
     kind: "route",
-    text: "Tratando-se de sinistro de trânsito sem vítima, não é necessário aguardar viatura no local. Retirem os veículos da via (se possível e seguro), troquem os dados, façam registros fotográficos e registrem o fato na Delegacia Eletrônica da Polícia Civil ou na sede/unidade da Polícia Militar. O boletim é importante para o seguro.",
+    text: "Tratando-se de sinistro de trânsito sem vítima, não é necessário aguardar viatura no local. Retirem os veículos da via (se possível e seguro), troquem os dados e façam registros fotográficos. O solicitante pode registrar o Boletim de Ocorrência online pela Delegacia Digital da Polícia Civil de São Paulo; o boletim é importante para o seguro.",
     contacts: [],
   },
   g_sossego: {
