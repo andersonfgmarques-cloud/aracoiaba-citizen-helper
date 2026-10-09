@@ -118,7 +118,7 @@ export const TREE: Record<string, Node> = {
   r_samu: {
     kind: "route",
     urgent: true,
-    text: "Para contato com o serviço municipal de saúde, ligue 0800 013 5117 ou envie WhatsApp para (15) 99767-3839. Em caso de emergência médica, procure o serviço de emergência adequado. Não mova a vítima se houver suspeita de queda ou acidente.",
+    text: "Em caso de emergência médica, entre em contato com o SAMU municipal pelos canais abaixo: telefone 0800 013 5117 ou WhatsApp (15) 99767-3839. Se houver suspeita de queda ou acidente, não mova a vítima, salvo se houver perigo imediato no local.",
     contacts: [CONTACTS.samu, CONTACTS.bombeiros],
   },
   r_samu_nu: {
