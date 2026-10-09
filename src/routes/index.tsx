@@ -472,7 +472,8 @@ function Index() {
                     c.name === "SAMU" ? (
                       <div key={c.name} className="space-y-2">
                         <div
-                          className="flex items-center gap-2 rounded-xl px-3 py-3 font-semibold text-white" style={{ backgroundColor: "#dc2626", color: "#ffffff" }}
+                          className="flex items-center gap-2 rounded-xl px-3 py-3 font-semibold text-white"
+                          style={{ backgroundColor: "#dc2626", color: "#ffffff" }}
                           aria-label="SAMU municipal"
                         >
                           <Phone className="h-4 w-4" /> SAMU
@@ -492,6 +493,34 @@ function Index() {
                         >
                           <span>WhatsApp</span>
                           <span>(15) 99767-3839</span>
+                        </a>
+                      </div>
+                    ) : c.name === "Defesa Civil" ? (
+                      <div key={c.name} className="space-y-2">
+                        <a
+                          href="tel:199"
+                          className={`flex items-center justify-between rounded-xl px-3 py-3 font-semibold ${m.urgent ? "bg-destructive text-destructive-foreground" : "bg-primary text-primary-foreground"}`}
+                        >
+                          <span className="flex items-center gap-2">
+                            <Phone className="h-4 w-4" /> Defesa Civil
+                          </span>
+                          <span className="font-display text-lg">199</span>
+                        </a>
+                        <a
+                          href="tel:+551532814041"
+                          className="flex items-center justify-between rounded-xl border border-primary/40 bg-secondary px-3 py-2.5 font-semibold"
+                        >
+                          <span>Telefone municipal</span>
+                          <span>(15) 3281-4041</span>
+                        </a>
+                        <a
+                          href="https://wa.me/5515981090984"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center justify-between rounded-xl border border-primary/40 bg-secondary px-3 py-2.5 font-semibold"
+                        >
+                          <span>WhatsApp</span>
+                          <span>(15) 98109-0984</span>
                         </a>
                       </div>
                     ) : (
