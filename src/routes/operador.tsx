@@ -308,7 +308,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           } else if (payload.eventType === "UPDATE") {
             const atualizada = payload.new as Oc;
             setOcs((current) => current.map((item) => item.id === atualizada.id ? atualizada : item));
-            if (payload.old && "status" in payload.old && payload.old.status === "pendente" && atualizada.status !== "pendente") {
+            if (atualizada.status !== "pendente") {
               setNovasPendentesIds((ids) => ids.filter((pendingId) => pendingId !== atualizada.id));
             }
           } else if (payload.eventType === "DELETE") {
@@ -621,6 +621,8 @@ function Detalhe({ o, update, saving, session }: {
       });
     return () => { ativo = false; };
   }, [o.id, o.updated_at]);
+  const despachoRegistrado = historico.find((item) => item.status_novo === "em_atendimento" || item.acao.toLowerCase().includes("despacho"));
+  const encerramentoRegistrado = [...historico].reverse().find((item) => item.status_novo === "encerrada");
   const termoAceite = o.descricao.match(/\n\n\[REGISTRO_TERMO_ART340: ACEITO_EM=(.+)\]/);
   const descricaoLimpa = o.descricao.replace(/\n\n\[REGISTRO_TERMO_ART340: ACEITO_EM=.+\]/, "");
   const [vtr, setVtr] = useState(o.viatura ?? "");
@@ -706,6 +708,18 @@ function Detalhe({ o, update, saving, session }: {
         >
           {STATUS[o.status]?.label}
         </span>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-xl border border-primary/30 bg-card p-3">
+          <p className="text-xs text-muted-foreground">Despacho / início do atendimento</p>
+          <p className="mt-1 text-sm font-semibold">{despachoRegistrado ? new Date(despachoRegistrado.criado_em).toLocaleString("pt-BR") : "Ainda não registrado"}</p>
+          {despachoRegistrado && <p className="mt-1 break-all text-xs text-muted-foreground">Operador ID: {despachoRegistrado.operador_id}</p>}
+        </div>
+        <div className="rounded-xl border border-success/30 bg-card p-3">
+          <p className="text-xs text-muted-foreground">Encerramento</p>
+          <p className="mt-1 text-sm font-semibold">{encerramentoRegistrado ? new Date(encerramentoRegistrado.criado_em).toLocaleString("pt-BR") : "Ainda não encerrada"}</p>
+          {encerramentoRegistrado && <p className="mt-1 break-all text-xs text-muted-foreground">Operador ID: {encerramentoRegistrado.operador_id}</p>}
+        </div>
       </div>
       <button
         onClick={imprimirRelatorio}
