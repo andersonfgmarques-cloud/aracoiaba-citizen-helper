@@ -215,8 +215,39 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
   const cont = (s: string) => ocs.filter((o) => o.status === s).length;
 
   const update = async (id: string, patch: Partial<Oc>) => {
-    setOcs((o) => o.map((x) => (x.id === id ? { ...x, ...patch } : x)));
-    await supabase.from("ocorrencias").update(patch).eq("id", id);
+    const anterior = ocs.find((x) => x.id === id);
+    if (!anterior) return;
+    const { data, error } = await supabase
+      .from("ocorrencias")
+      .update(patch)
+      .eq("id", id)
+      .select("*")
+      .single();
+    if (error || !data) {
+      window.alert(`Não foi possível salvar a alteração: ${error?.message ?? "ocorrência não encontrada"}`);
+      return;
+    }
+
+    setOcs((o) => o.map((x) => (x.id === id ? data : x)));
+    const acao = patch.status === "despachada" ? "Despacho realizado"
+      : patch.status === "em_atendimento" ? "Início do atendimento"
+      : patch.status === "encerrada" ? "Ocorrência encerrada"
+      : patch.status === "cancelada" ? "Ocorrência cancelada"
+      : "Dados da ocorrência atualizados";
+    const { error: historicoError } = await supabase.from("ocorrencia_historico").insert({
+      ocorrencia_id: id,
+      operador_id: session!.user.id,
+      acao,
+      status_anterior: anterior.status,
+      status_novo: data.status,
+      viatura: data.viatura,
+      observacao: data.observacao,
+    });
+    if (historicoError) {
+      window.alert(`A ocorrência foi atualizada, mas o histórico não foi salvo: ${historicoError.message}`);
+    } else {
+      window.alert(`${acao} registrado com sucesso.`);
+    }
   };
 
   const sair = async () => {
@@ -353,7 +384,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
               Selecione uma ocorrência para despachar.
             </div>
           ) : (
-            <Detalhe key={atual.id} o={atual} update={update} />
+            <Detalhe key={atual.id} o={atual} update={update} operadorId={session!.user.id} />
           )}
         </section>
       </div>
@@ -362,14 +393,36 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           <button onClick={() => setSel(null)} className="mb-3 text-sm text-primary">
             ← Voltar
           </button>
-          <Detalhe key={atual.id} o={atual} update={update} />
+          <Detalhe key={atual.id} o={atual} update={update} operadorId={session!.user.id} />
         </div>
       )}
     </div>
   );
 }
 
-function Detalhe({ o, update }: { o: Oc; update: (id: string, p: Partial<Oc>) => void }) {
+type HistoricoOcorrencia = {
+  id: string;
+  acao: string;
+  status_anterior: string | null;
+  status_novo: string | null;
+  viatura: string | null;
+  observacao: string | null;
+  criado_em: string;
+};
+
+function Detalhe({ o, update, operadorId }: { o: Oc; update: (id: string, p: Partial<Oc>) => Promise<void>; operadorId: string }) {
+  const [historico, setHistorico] = useState<HistoricoOcorrencia[]>([]);
+  const [historicoErro, setHistoricoErro] = useState<string | null>(null);
+  useEffect(() => {
+    let ativo = true;
+    supabase.from("ocorrencia_historico").select("*").eq("ocorrencia_id", o.id).order("criado_em", { ascending: false })
+      .then(({ data, error }) => {
+        if (!ativo) return;
+        if (error) setHistoricoErro(error.message);
+        else setHistorico((data ?? []) as HistoricoOcorrencia[]);
+      });
+    return () => { ativo = false; };
+  }, [o.id]);
   const termoAceite = o.descricao.match(/\n\n\[REGISTRO_TERMO_ART340: ACEITO_EM=(.+)\]/);
   const descricaoLimpa = o.descricao.replace(/\n\n\[REGISTRO_TERMO_ART340: ACEITO_EM=.+\]/, "");
   const [vtr, setVtr] = useState(o.viatura ?? "");
@@ -414,6 +467,22 @@ function Detalhe({ o, update }: { o: Oc; update: (id: string, p: Partial<Oc>) =>
         <p className="text-sm text-muted-foreground">
           Residência do solicitante: {o.endereco_solicitante ?? "—"}
         </p>
+      </div>
+      <div className="space-y-3 rounded-2xl bg-card p-5">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm font-semibold">Histórico operacional</p>
+          <span className="text-xs text-muted-foreground">{historico.length} registro(s)</span>
+        </div>
+        {historicoErro && <p className="text-xs text-destructive">Não foi possível carregar o histórico: {historicoErro}</p>}
+        {!historicoErro && historico.length === 0 && <p className="text-xs text-muted-foreground">Ainda não há movimentações registradas para esta ocorrência.</p>}
+        {historico.map((h) => (
+          <div key={h.id} className="border-l-2 border-primary/50 pl-3 py-1">
+            <p className="text-sm font-semibold">{h.acao}</p>
+            <p className="text-xs text-muted-foreground">{new Date(h.criado_em).toLocaleString("pt-BR")} · {h.status_anterior ?? "novo"} → {h.status_novo ?? "—"}</p>
+            {h.viatura && <p className="text-xs text-muted-foreground">Viatura: {h.viatura}</p>}
+            {h.observacao && <p className="mt-1 text-xs">{h.observacao}</p>}
+          </div>
+        ))}
       </div>
       <div className="space-y-3 rounded-2xl bg-card p-5">
         <p className="text-sm font-semibold">Viatura</p>
