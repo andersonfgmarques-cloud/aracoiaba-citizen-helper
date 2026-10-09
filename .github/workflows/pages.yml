@@ -41,8 +41,8 @@ jobs:
 
       - name: Ensure GCM emblem is included in Pages output
         run: |
-          test -f public/gcm-emblem.svg
-          cp public/gcm-emblem.svg dist/client/gcm-emblem.svg
+          test -f public/android-chrome-192x192.png
+          cp public/android-chrome-192x192.png dist/client/android-chrome-192x192.png
 
       - name: Fix project-site asset paths
         run: |
