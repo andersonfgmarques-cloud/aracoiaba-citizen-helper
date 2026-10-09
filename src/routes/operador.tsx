@@ -236,6 +236,8 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
     }
 
     setOcs((o) => o.map((x) => (x.id === id ? data : x)));
+    // Limpa o campo após cada ação operacional salva com sucesso.
+    setObs("");
     const acao = acaoPersonalizada ?? (patch.status === "despachada" ? "Despacho realizado"
       : patch.status === "em_atendimento" ? "Início do atendimento"
       : patch.status === "encerrada" ? "Ocorrência encerrada"
@@ -429,7 +431,7 @@ type HistoricoOcorrencia = {
   criado_em: string;
 };
 
-function Detalhe({ o, update }: { o: Oc; update: (id: string, p: Partial<Oc>) => Promise<void> }) {
+function Detalhe({ o, update }: { o: Oc; update: (id: string, p: Partial<Oc>, acaoPersonalizada?: string) => Promise<boolean> }) {
   const [historico, setHistorico] = useState<HistoricoOcorrencia[]>([]);
   const [historicoErro, setHistoricoErro] = useState<string | null>(null);
   useEffect(() => {
@@ -608,12 +610,11 @@ function Detalhe({ o, update }: { o: Oc; update: (id: string, p: Partial<Oc>) =>
             <button
               disabled={!vtr || !obs.trim()}
               onClick={async () => {
-                const salvo = await update(
+                await update(
                   o.id,
                   { status: "em_atendimento", viatura: vtr, observacao: obs.trim() },
                   "Despacho realizado — equipe acionada e atendimento iniciado",
                 );
-                if (salvo) setObs("");
               }}
               className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-40"
               title="Registra a equipe e inicia o atendimento"
