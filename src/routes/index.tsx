@@ -30,6 +30,9 @@ type Msg =
   | { from: "done"; protocol: string; category: string };
 
 const FIELDS = [
+  { key: "nome", q: "Qual o seu nome completo?" },
+  { key: "cpf", q: "Informe o seu CPF (somente números)." },
+  { key: "endereco_solicitante", q: "Qual o endereço da sua residência? (rua, número e bairro)" },
   { key: "telefone", q: "Telefone para contato?" },
   { key: "endereco", q: "Qual o endereço COMPLETO da ocorrência? (rua, número e bairro)" },
   { key: "descricao", q: "Descreva rapidamente o que está acontecendo." },
@@ -64,7 +67,7 @@ function Index() {
   const [input, setInput] = useState("");
   const [preData, setPreData] = useState({ nome: "", cpf: "", endereco_solicitante: "" });
   const [preStep, setPreStep] = useState<0 | 1 | 2>(0);
-  const [ciencia, setCiencia] = useState<"dados" | "termo" | "aceita" | "recusada">("dados");
+  const [ciencia, setCiencia] = useState<"termo" | "aceita" | "recusada">("termo");
   const [termoAceitoEm, setTermoAceitoEm] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -90,7 +93,7 @@ function Index() {
       ]);
     else if (n.kind === "ask") setMsgs((m) => [...m, { from: "bot", text: n.text }]);
     else {
-      setForm({ category: n.category, step: 0, data: { ...preData } });
+      setForm({ category: n.category, step: 0, data: {} });
       setMsgs((m) => [
         ...m,
         { from: "bot", text: n.text },
@@ -111,7 +114,7 @@ function Index() {
     setForm(null);
     setPreData({ nome: "", cpf: "", endereco_solicitante: "" });
     setPreStep(0);
-    setCiencia("dados");
+    setCiencia("termo");
     setNode("start");
     setInput("");
   };
@@ -134,7 +137,7 @@ function Index() {
       }
       value = d;
     }
-    if (f.key === "endereco") {
+    if (f.key === "endereco" || f.key === "endereco_solicitante") {
       if (!validaEndereco(value)) {
         setMsgs((m) => [
           ...m,
@@ -226,7 +229,7 @@ function Index() {
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                 Você recusou a tomada de ciência do termo. O atendimento foi encerrado.
               </p>
-              <button onClick={() => { setPreData({ nome: "", cpf: "", endereco_solicitante: "" }); setPreStep(0); setCiencia("dados"); }}
+              <button onClick={() => { setPreData({ nome: "", cpf: "", endereco_solicitante: "" }); setPreStep(0); setCiencia("termo"); }}
                 className="mt-5 w-full rounded-full bg-primary py-3 font-semibold text-primary-foreground">
                 Iniciar novamente
               </button>
@@ -236,7 +239,7 @@ function Index() {
       );
     }
 
-    if (ciencia === "dados") {
+    if (false as boolean) {
       return (
         <div className="mx-auto flex min-h-screen max-w-lg flex-col bg-background">
           <header className="bg-header flex items-center gap-3 border-b px-4 py-4 shadow-lg">
@@ -459,7 +462,7 @@ function Index() {
                     { from: "user", text: "Li e estou ciente. Prosseguir." },
                     { from: "bot", text: FIELDS[0]!.q },
                   ]);
-                  setForm({ category: current.category, step: 0, data: { ...preData } });
+                  setForm({ category: current.category, step: 0, data: {} });
                 }}
                 className="rounded-full bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground"
               >
