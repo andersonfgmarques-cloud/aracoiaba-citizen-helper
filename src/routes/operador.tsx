@@ -498,25 +498,26 @@ function Detalhe({ o, update }: { o: Oc; update: (id: string, p: Partial<Oc>) =>
   return (
     <div className="mx-auto max-w-2xl space-y-5">
       <div className="flex items-start justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <p className="text-xs text-muted-foreground">
             {o.protocolo} · {new Date(o.created_at).toLocaleString("pt-BR")}
           </p>
           <h2 className="text-2xl font-bold">{o.categoria}</h2>
         </div>
         <span
-          className={`rounded-full px-3 py-1 text-xs font-bold uppercase ${STATUS[o.status]?.cls}`}
+          className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold uppercase ${STATUS[o.status]?.cls}`}
         >
           {STATUS[o.status]?.label}
         </span>
-        <button
-          onClick={imprimirRelatorio}
-          className="flex shrink-0 items-center gap-2 rounded-xl bg-secondary px-3 py-2 text-xs font-semibold"
-          title="Imprimir ou salvar relatório em PDF"
-        >
-          <Printer className="h-4 w-4" /> Imprimir / PDF
-        </button>
       </div>
+      <button
+        onClick={imprimirRelatorio}
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm"
+        title="Imprimir ou salvar relatório em PDF"
+        type="button"
+      >
+        <Printer className="h-4 w-4" /> Imprimir ocorrência / Salvar em PDF
+      </button>
       <div className="space-y-3 rounded-2xl bg-card p-5">
         <div className="rounded-xl border border-success/40 bg-success/10 p-3">
           <div className="flex items-center gap-2 text-sm font-semibold text-success">
