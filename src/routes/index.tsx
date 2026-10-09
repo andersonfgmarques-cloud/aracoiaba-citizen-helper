@@ -167,19 +167,25 @@ function Index() {
       const prioridade = ["Atitude suspeita", "Perturbação do sossego"].includes(form.category)
         ? "alta"
         : "media";
-      const { error: insertError } = await supabase
-        .from("ocorrencias")
-        .insert({
-          protocolo: protocol,
-          categoria: form.category,
-          prioridade,
-          nome: data["nome"]!,
-          cpf: data["cpf"]!,
-          endereco_solicitante: data["endereco_solicitante"]!,
-          telefone: data["telefone"]!,
-          endereco: data["endereco"]!,
-          descricao: `${data["descricao"]!}\n\n[REGISTRO_TERMO_ART340: ACEITO_EM=${termoAceitoEm ?? new Date().toISOString()}]`,
-        });
+      const payload = {
+        protocolo: protocol,
+        categoria: form.category,
+        prioridade,
+        nome: data["nome"]!,
+        cpf: data["cpf"]!,
+        endereco_solicitante: data["endereco_solicitante"]!,
+        telefone: data["telefone"]!,
+        endereco: data["endereco"]!,
+        descricao: `${data["descricao"]!}\n\n[REGISTRO_TERMO_ART340: ACEITO_EM=${termoAceitoEm ?? new Date().toISOString()}]`,
+      };
+      // Envio obrigatório ao CAD: até 3 tentativas antes de informar falha
+      let insertError: { message: string } | null = null;
+      for (let tentativa = 0; tentativa < 3; tentativa++) {
+        const { error } = await supabase.from("ocorrencias").insert(payload);
+        insertError = error;
+        if (!error) break;
+        await new Promise((r) => setTimeout(r, 1000 * (tentativa + 1)));
+      }
       if (insertError) {
         setMsgs((m) => [
           ...m,
