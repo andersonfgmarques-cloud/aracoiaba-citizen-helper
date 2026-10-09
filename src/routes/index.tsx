@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Phone, Shield, RotateCcw, Send, AlertTriangle, CheckCircle2, LayoutDashboard, Mic, MicOff } from "lucide-react";
+import { Phone, RotateCcw, Send, AlertTriangle, CheckCircle2, LayoutDashboard, Mic, MicOff } from "lucide-react";
 import { TREE, CONTACTS, type Contact } from "@/lib/triage";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -308,7 +308,7 @@ function Index() {
       return (
         <div className="mx-auto flex min-h-screen max-w-lg flex-col bg-background">
           <header className="bg-header flex items-center gap-3 border-b px-4 py-4 shadow-lg">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground"><Shield className="h-6 w-6" /></div>
+            <img src={`${import.meta.env.BASE_URL}gcm-emblem.svg`} alt="Emblema da Guarda Civil Municipal" className="h-11 w-11 shrink-0 rounded-full object-contain" />
             <div className="min-w-0 flex-1"><h1 className="text-base font-bold">GCM Araçoiaba da Serra</h1><p className="text-xs text-muted-foreground">Atendimento ao cidadão</p></div>
             <Link to="/operador" aria-label="Acessar painel CAD do operador" title="Acesso do operador CAD" className="flex shrink-0 items-center gap-1.5 rounded-full border border-primary/50 bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20">
               <LayoutDashboard className="h-4 w-4" /> CAD
@@ -334,7 +334,7 @@ function Index() {
       return (
         <div className="mx-auto flex min-h-screen max-w-lg flex-col bg-background">
           <header className="bg-header flex items-center gap-3 border-b px-4 py-4 shadow-lg">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground"><Shield className="h-6 w-6" /></div>
+            <img src={`${import.meta.env.BASE_URL}gcm-emblem.svg`} alt="Emblema da Guarda Civil Municipal" className="h-11 w-11 shrink-0 rounded-full object-contain" />
             <div className="min-w-0 flex-1"><h1 className="text-base font-bold">GCM Araçoiaba da Serra</h1><p className="text-xs text-muted-foreground">Atendimento ao cidadão</p></div>
             <Link to="/operador" aria-label="Acessar painel CAD do operador" title="Acesso do operador CAD" className="flex shrink-0 items-center gap-1.5 rounded-full border border-primary/50 bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20">
               <LayoutDashboard className="h-4 w-4" /> CAD
@@ -368,7 +368,7 @@ function Index() {
     return (
       <div className="mx-auto flex min-h-screen max-w-lg flex-col bg-background">
         <header className="bg-header flex items-center gap-3 border-b px-4 py-4 shadow-lg">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground"><Shield className="h-6 w-6" /></div>
+          <img src={`${import.meta.env.BASE_URL}gcm-emblem.svg`} alt="Emblema da Guarda Civil Municipal" className="h-11 w-11 shrink-0 rounded-full object-contain" />
           <div className="min-w-0 flex-1"><h1 className="text-base font-bold">GCM Araçoiaba da Serra</h1><p className="text-xs text-muted-foreground">Atendimento ao cidadão</p></div>
             <Link to="/operador" aria-label="Acessar painel CAD do operador" title="Acesso do operador CAD" className="flex shrink-0 items-center gap-1.5 rounded-full border border-primary/50 bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20">
               <LayoutDashboard className="h-4 w-4" /> CAD
@@ -399,9 +399,11 @@ function Index() {
   return (
     <div className="mx-auto flex h-screen max-w-lg flex-col">
       <header className="bg-header flex items-center gap-3 border-b px-4 py-4 shadow-lg">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground">
-          <Shield className="h-6 w-6" />
-        </div>
+        <img
+          src={`${import.meta.env.BASE_URL}gcm-emblem.svg`}
+          alt="Emblema da Guarda Civil Municipal"
+          className="h-11 w-11 shrink-0 rounded-full object-contain"
+        />
         <div className="flex-1">
           <h1 className="text-base font-bold leading-tight">GCM Araçoiaba da Serra</h1>
           <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
