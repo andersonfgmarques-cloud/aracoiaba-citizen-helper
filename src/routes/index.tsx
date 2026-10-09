@@ -340,7 +340,7 @@ function Index() {
         {[
           { id: "gcm", label: "GCM", number: "153" },
           { id: "policia", label: "Polícia", number: "190" },
-          { id: "samu", label: "SAMU", number: "192" },
+          { id: "samu", label: "SAMU", number: "" },
           { id: "bombeiros", label: "Corpo", number: "193" },
           { id: "defesa", label: "Defesa", number: "199" },
           { id: "denuncia", label: "Disque", number: "181" },
@@ -353,7 +353,7 @@ function Index() {
             aria-expanded={contatoSelecionado === c.id}
             className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${contatoSelecionado === c.id ? "bg-primary text-primary-foreground" : "bg-secondary"}`}
           >
-            {c.label} <span className={contatoSelecionado === c.id ? "text-primary-foreground" : "text-primary"}>{c.number}</span>
+            {c.label} {c.number && <span className={contatoSelecionado === c.id ? "text-primary-foreground" : "text-primary"}>{c.number}</span>}
           </button>
         ))}
       </div>
@@ -385,7 +385,7 @@ function Index() {
             <div className="flex flex-col gap-2">
               <a className="text-primary underline" href="tel:08000135117">0800 013 5117</a>
               <a className="text-primary underline" href="https://wa.me/5515997673839" target="_blank" rel="noreferrer">WhatsApp: (15) 99767-3839</a>
-              <a className="text-primary underline" href="tel:192">192 — Emergência</a>
+              
             </div>
           )}
           {contatoSelecionado === "bombeiros" && <a className="text-primary underline" href="tel:193">193 — Corpo de Bombeiros</a>}
