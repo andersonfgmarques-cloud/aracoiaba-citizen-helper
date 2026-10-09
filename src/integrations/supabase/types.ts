@@ -68,6 +68,42 @@ export type Database = {
         }
         Relationships: []
       }
+      ocorrencia_historico: {
+        Row: {
+          acao: string
+          criado_em: string
+          id: string
+          observacao: string | null
+          ocorrencia_id: string
+          operador_id: string
+          status_anterior: string | null
+          status_novo: string | null
+          viatura: string | null
+        }
+        Insert: {
+          acao: string
+          criado_em?: string
+          id?: string
+          observacao?: string | null
+          ocorrencia_id: string
+          operador_id: string
+          status_anterior?: string | null
+          status_novo?: string | null
+          viatura?: string | null
+        }
+        Update: {
+          acao?: string
+          criado_em?: string
+          id?: string
+          observacao?: string | null
+          ocorrencia_id?: string
+          operador_id?: string
+          status_anterior?: string | null
+          status_novo?: string | null
+          viatura?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
