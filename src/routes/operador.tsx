@@ -19,7 +19,6 @@ import type { Tables } from "@/integrations/supabase/types";
 type Oc = Tables<"ocorrencias">;
 
 const TEMP_OPERATOR_EMAIL = "andersonf.g.marques@gmail.com";
-const TEMP_OPERATOR_PASSWORD = String.fromCharCode(49, 50, 51, 52, 53, 54);
 
 export const Route = createFileRoute("/operador")({
   head: () => ({
@@ -53,13 +52,9 @@ const VIATURAS = ["VTR-01", "VTR-02", "VTR-03", "MOTO-01", "MOTO-02", "Ambiental
 
 function Operador() {
   const [session, setSession] = useState<Session | null>(null);
-  const [demoOperator, setDemoOperator] = useState(false);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const localAccess = localStorage.getItem("cad-temp-operator") === "1";
-    setDemoOperator(localAccess);
-
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
@@ -69,11 +64,10 @@ function Operador() {
   }, []);
 
   if (!ready) return null;
-  if (demoOperator) return <Painel session={null} demoOperator />;
-  return session ? <Painel session={session} /> : <Login onTemporaryLogin={() => setDemoOperator(true)} />;
+  return session ? <Painel session={session} /> : <Login onLogin={setSession} />;
 }
 
-function Login({ onTemporaryLogin }: { onTemporaryLogin: () => void }) {
+function Login({ onLogin }: { onLogin: (session: Session) => void }) {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [msg, setMsg] = useState("");
@@ -82,13 +76,15 @@ function Login({ onTemporaryLogin }: { onTemporaryLogin: () => void }) {
     e.preventDefault();
     setMsg("");
 
-    if (email.trim().toLowerCase() === TEMP_OPERATOR_EMAIL && senha === TEMP_OPERATOR_PASSWORD) {
-      localStorage.setItem("cad-temp-operator", "1");
-      onTemporaryLogin();
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password: senha,
+    });
+    if (error || !data.session) {
+      setMsg("Não foi possível entrar. Verifique o e-mail, a senha e a confirmação da conta.");
       return;
     }
-
-    setMsg("E-mail ou senha inválidos.");
+    onLogin(data.session);
   };
 
   return (
@@ -131,7 +127,7 @@ function Login({ onTemporaryLogin }: { onTemporaryLogin: () => void }) {
         </button>
 
         <p className="text-center text-[11px] text-muted-foreground">
-          Acesso temporário do CAD
+          Acesso restrito a operadores autorizados
         </p>
 
         <Link to="/" className="block text-center text-xs text-muted-foreground">
@@ -224,7 +220,6 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
   };
 
   const sair = async () => {
-    localStorage.removeItem("cad-temp-operator");
     if (session) await supabase.auth.signOut();
     window.location.reload();
   };
