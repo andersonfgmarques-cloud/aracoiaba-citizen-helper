@@ -384,7 +384,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
               Selecione uma ocorrência para despachar.
             </div>
           ) : (
-            <Detalhe key={atual.id} o={atual} update={update} operadorId={session!.user.id} />
+            <Detalhe key={atual.id} o={atual} update={update} />
           )}
         </section>
       </div>
@@ -410,7 +410,7 @@ type HistoricoOcorrencia = {
   criado_em: string;
 };
 
-function Detalhe({ o, update, operadorId }: { o: Oc; update: (id: string, p: Partial<Oc>) => Promise<void>; operadorId: string }) {
+function Detalhe({ o, update }: { o: Oc; update: (id: string, p: Partial<Oc>) => Promise<void> }) {
   const [historico, setHistorico] = useState<HistoricoOcorrencia[]>([]);
   const [historicoErro, setHistoricoErro] = useState<string | null>(null);
   useEffect(() => {
@@ -422,7 +422,7 @@ function Detalhe({ o, update, operadorId }: { o: Oc; update: (id: string, p: Par
         else setHistorico((data ?? []) as HistoricoOcorrencia[]);
       });
     return () => { ativo = false; };
-  }, [o.id]);
+  }, [o.id, o.updated_at]);
   const termoAceite = o.descricao.match(/\n\n\[REGISTRO_TERMO_ART340: ACEITO_EM=(.+)\]/);
   const descricaoLimpa = o.descricao.replace(/\n\n\[REGISTRO_TERMO_ART340: ACEITO_EM=.+\]/, "");
   const [vtr, setVtr] = useState(o.viatura ?? "");
