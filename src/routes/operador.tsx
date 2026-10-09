@@ -12,6 +12,7 @@ import {
   Siren,
   RefreshCw,
   Printer,
+  BellRing,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
@@ -146,6 +147,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
   const [autorizado, setAutorizado] = useState<boolean | null>(demoOperator ? true : null);
   const [filtro, setFiltro] = useState("ativas");
   const [sel, setSel] = useState<string | null>(null);
+  const [novasPendentes, setNovasPendentes] = useState(0);
 
   const load = async () => {
     setLoadingOcs(true);
@@ -183,7 +185,11 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
       .channel("ocorrencias-cad")
       .on("postgres_changes", { event: "*", schema: "public", table: "ocorrencias" }, (p) => {
         if (p.eventType === "INSERT") {
-          setOcs((o) => [p.new as Oc, ...o]);
+          const novaOcorrencia = p.new as Oc;
+          setOcs((o) => [novaOcorrencia, ...o]);
+          if (novaOcorrencia.status === "pendente") {
+            setNovasPendentes((n) => n + 1);
+          }
           try {
             new Audio(
               "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=",
@@ -320,15 +326,26 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
 
       <div className="flex min-h-0 flex-1">
         <aside className="flex w-full flex-col border-r md:w-[420px]">
-          <div className="flex gap-1 overflow-x-auto p-3">
+          <div className="flex flex-wrap items-center gap-2 border-b px-3 py-2.5">
             {["ativas", "pendente", "despachada", "em_atendimento", "encerrada", "cancelada", "todas"].map(
               (f) => (
                 <button
                   key={f}
-                  onClick={() => setFiltro(f)}
-                  className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${filtro === f ? "bg-primary text-primary-foreground" : "bg-secondary"}`}
+                  onClick={() => {
+                    setFiltro(f);
+                    if (f === "pendente") setNovasPendentes(0);
+                  }}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${filtro === f ? "bg-primary text-primary-foreground" : "bg-secondary hover:bg-secondary/80"}`}
                 >
+                  {f === "pendente" && novasPendentes > 0 && (
+                    <BellRing className="h-3.5 w-3.5 animate-pulse text-amber-400" aria-label="Novas ocorrências pendentes" />
+                  )}
                   {f === "ativas" ? "Ativas" : f === "todas" ? "Todas" : STATUS[f]!.label}
+                  {f === "pendente" && novasPendentes > 0 && (
+                    <span className="ml-0.5 rounded-full bg-destructive px-1.5 py-0.5 text-[10px] leading-none text-destructive-foreground">
+                      {novasPendentes > 99 ? "99+" : novasPendentes}
+                    </span>
+                  )}
                 </button>
               ),
             )}
