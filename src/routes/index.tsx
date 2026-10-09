@@ -523,6 +523,34 @@ function Index() {
                           <span>(15) 98109-0984</span>
                         </a>
                       </div>
+                    ) : c.name === "Corpo de Bombeiros" ? (
+                      <div key={c.name} className="space-y-2">
+                        <a
+                          href="tel:193"
+                          className={`flex items-center justify-between rounded-xl px-3 py-3 font-semibold ${m.urgent ? "bg-destructive text-destructive-foreground" : "bg-primary text-primary-foreground"}`}
+                        >
+                          <span className="flex items-center gap-2">
+                            <Phone className="h-4 w-4" /> Corpo de Bombeiros
+                          </span>
+                          <span className="font-display text-lg">193</span>
+                        </a>
+                        <a
+                          href="tel:+551532814041"
+                          className="flex items-center justify-between rounded-xl border border-primary/40 bg-secondary px-3 py-2.5 font-semibold"
+                        >
+                          <span>Defesa Civil municipal</span>
+                          <span>(15) 3281-4041</span>
+                        </a>
+                        <a
+                          href="https://wa.me/5515981090984"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center justify-between rounded-xl border border-primary/40 bg-secondary px-3 py-2.5 font-semibold"
+                        >
+                          <span>WhatsApp da Defesa Civil</span>
+                          <span>(15) 98109-0984</span>
+                        </a>
+                      </div>
                     ) : (
                       <a
                         key={c.name}
