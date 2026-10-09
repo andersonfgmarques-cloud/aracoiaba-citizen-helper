@@ -384,7 +384,6 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
       if (anterior.status === "pendente" && data.status !== "pendente") {
         setNovasPendentesIds((ids) => ids.filter((pendingId) => pendingId !== id));
       }
-      setObs("");
       const acao = acaoPersonalizada ?? (patch.status === "despachada" ? "Despacho realizado"
         : patch.status === "em_atendimento" ? "Início do atendimento"
         : patch.status === "encerrada" ? "Ocorrência encerrada"
@@ -835,12 +834,15 @@ function Detalhe({ o, update, saving, session }: {
             <button
               disabled={saving || !vtr || !obs.trim()}
               onClick={async () => {
-                await update(
+                const sucesso = await update(
                   o.id,
                   { status: "em_atendimento", viatura: vtr, observacao: obs.trim() },
                   "Despacho realizado — equipe acionada e atendimento iniciado",
                 );
-                setHistoricoRevision((revision) => revision + 1);
+                if (sucesso) {
+                  setObs("");
+                  setHistoricoRevision((revision) => revision + 1);
+                }
               }}
               className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-40"
               title="Registra a equipe e inicia o atendimento"
@@ -852,8 +854,11 @@ function Detalhe({ o, update, saving, session }: {
             <button
               disabled={saving || !obs.trim()}
               onClick={async () => {
-                await update(o.id, { status: "encerrada", observacao: obs.trim() }, "Atendimento encerrado — desfecho registrado");
-                setHistoricoRevision((revision) => revision + 1);
+                const sucesso = await update(o.id, { status: "encerrada", observacao: obs.trim() }, "Atendimento encerrado — desfecho registrado");
+                if (sucesso) {
+                  setObs("");
+                  setHistoricoRevision((revision) => revision + 1);
+                }
               }}
               className="flex items-center gap-2 rounded-xl bg-success px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-40"
               title="Salva o desfecho informado e encerra a ocorrência"
@@ -864,8 +869,11 @@ function Detalhe({ o, update, saving, session }: {
           <button
             disabled={saving}
             onClick={async () => {
-              await update(o.id, { status: "cancelada", observacao: obs.trim() || o.observacao }, "Ocorrência cancelada");
-              setHistoricoRevision((revision) => revision + 1);
+              const sucesso = await update(o.id, { status: "cancelada", observacao: obs.trim() || o.observacao }, "Ocorrência cancelada");
+              if (sucesso) {
+                setObs("");
+                setHistoricoRevision((revision) => revision + 1);
+              }
             }}
             className="flex items-center gap-2 rounded-xl bg-secondary px-4 py-2.5 text-sm"
           >
