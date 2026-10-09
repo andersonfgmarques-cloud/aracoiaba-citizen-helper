@@ -195,6 +195,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
   const [sel, setSel] = useState<string | null>(null);
   const [novasPendentesIds, setNovasPendentesIds] = useState<string[]>([]);
   const [connectionStatus, setConnectionStatus] = useState<"connecting" | "connected" | "disconnected">("connecting");
+  const [connectionAttempt, setConnectionAttempt] = useState(0);
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [savingIds, setSavingIds] = useState<string[]>([]);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -321,10 +322,15 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
         })
         .subscribe((status) => {
           if (!active) return;
-          if (status === "SUBSCRIBED") setConnectionStatus("connected");
-          else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          if (status === "SUBSCRIBED") {
+            setConnectionStatus("connected");
+            // Reconcilia a lista após conectar ou reconectar para recuperar eventos perdidos.
+            void load();
+          } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
             setConnectionStatus("disconnected");
-          } else setConnectionStatus("connecting");
+          } else {
+            setConnectionStatus("connecting");
+          }
         });
     };
 
@@ -333,7 +339,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
       active = false;
       if (channel) void supabase.removeChannel(channel);
     };
-  }, [session?.user.id, demoOperator]);
+  }, [session?.user.id, demoOperator, connectionAttempt]);
 
   const lista = useMemo(() => {
     const filtered = ocs.filter((o) =>
@@ -440,6 +446,19 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           {connectionStatus === "connected" ? <Wifi className="h-3.5 w-3.5" /> : <WifiOff className="h-3.5 w-3.5" />}
           {connectionStatus === "connected" ? "Ao vivo" : connectionStatus === "connecting" ? "Conectando…" : "Sem conexão em tempo real"}
         </span>
+        {connectionStatus === "disconnected" && (
+          <button
+            type="button"
+            onClick={() => {
+              setConnectionStatus("connecting");
+              setConnectionAttempt((attempt) => attempt + 1);
+            }}
+            className="rounded-lg border border-destructive/40 px-2.5 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/10"
+            title="Reconectar ao canal em tempo real e sincronizar ocorrências"
+          >
+            Reconectar
+          </button>
+        )}
         <div className="ml-auto flex items-center gap-3 text-xs text-muted-foreground">
           <button
             onClick={load}
