@@ -452,6 +452,7 @@ function Detalhe({ o, update }: { o: Oc; update: (id: string, p: Partial<Oc>) =>
       window.alert("O navegador bloqueou a janela de impressão. Permita pop-ups para este site e tente novamente.");
       return;
     }
+    relatorio.onload = () => relatorio.print();
     relatorio.document.write(`<!doctype html>
       <html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório ${escapeHtml(o.protocolo)}</title>
       <style>
@@ -492,7 +493,6 @@ function Detalhe({ o, update }: { o: Oc; update: (id: string, p: Partial<Oc>) =>
       </body></html>`);
     relatorio.document.close();
     relatorio.focus();
-    relatorio.onload = () => relatorio.print();
   };
 
   return (
