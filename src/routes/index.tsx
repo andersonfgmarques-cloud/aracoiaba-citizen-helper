@@ -25,7 +25,7 @@ export const Route = createFileRoute("/")({
 });
 
 type Msg =
-  | { from: "bot"; text: string; contacts?: Contact[]; urgent?: boolean }
+  | { from: "bot"; text: string; contacts?: Contact[]; urgent?: boolean; digitalDelegacia?: boolean }
   | { from: "user"; text: string }
   | { from: "done"; protocol: string; category: string };
 
@@ -90,7 +90,7 @@ function Index() {
     if (n.kind === "route")
       setMsgs((m) => [
         ...m,
-        { from: "bot", text: n.text, contacts: n.contacts, urgent: !!n.urgent },
+        { from: "bot", text: n.text, contacts: n.contacts, urgent: !!n.urgent, digitalDelegacia: key === "r_civil" || key === "r_transito_sem_vitima" },
       ]);
     else if (n.kind === "ask") setMsgs((m) => [...m, { from: "bot", text: n.text }]);
     else {
@@ -466,6 +466,20 @@ function Index() {
                 </div>
               )}
               <p className="leading-relaxed">{m.text}</p>
+              {m.digitalDelegacia && (
+                <div className="mt-3 rounded-xl border border-primary/40 bg-secondary p-3">
+                  <p className="mb-2 font-semibold">Delegacia Digital — Polícia Civil do Estado de São Paulo</p>
+                  <p className="mb-2 text-sm">Você também pode registrar o boletim de ocorrência online, por conta própria, pelo portal oficial:</p>
+                  <a
+                    href="https://delegaciadigital.policia-civil.sp.gov.br/pagina-inicial"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-semibold text-primary underline underline-offset-2"
+                  >
+                    Abrir Delegacia Digital — SSP/SP
+                  </a>
+                </div>
+              )}
               {m.contacts && (
                 <div className="mt-3 space-y-2">
                   {m.contacts.map((c) =>
