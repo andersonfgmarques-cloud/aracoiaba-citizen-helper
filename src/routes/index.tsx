@@ -91,6 +91,7 @@ function Index() {
   const voiceBaseInputRef = useRef("");
   const speechReceivedRef = useRef(false);
   const speechFailedRef = useRef(false);
+  const endRef = useRef<HTMLDivElement | null>(null);
   const [preData, setPreData] = useState({ nome: "", cpf: "", endereco_solicitante: "" });
   const [preStep, setPreStep] = useState<0 | 1 | 2>(0);
   const [ciencia, setCiencia] = useState<"termo" | "aceita" | "recusada">("termo");
