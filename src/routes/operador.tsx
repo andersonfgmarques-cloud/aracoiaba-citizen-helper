@@ -147,7 +147,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
   const [autorizado, setAutorizado] = useState<boolean | null>(demoOperator ? true : null);
   const [filtro, setFiltro] = useState("ativas");
   const [sel, setSel] = useState<string | null>(null);
-  const [novasPendentes, setNovasPendentes] = useState(0);
+  const [novasPendentesIds, setNovasPendentesIds] = useState<string[]>([]);
 
   const load = async () => {
     setLoadingOcs(true);
@@ -188,7 +188,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           const novaOcorrencia = p.new as Oc;
           setOcs((o) => [novaOcorrencia, ...o]);
           if (novaOcorrencia.status === "pendente") {
-            setNovasPendentes((n) => n + 1);
+            setNovasPendentesIds((ids) => ids.includes(novaOcorrencia.id) ? ids : [...ids, novaOcorrencia.id]);
           }
           try {
             new Audio(
@@ -236,6 +236,10 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
     }
 
     setOcs((o) => o.map((x) => (x.id === id ? data : x)));
+    // Remove o alerta desta ocorrência assim que ela deixa de estar pendente.
+    if (anterior.status === "pendente" && data.status !== "pendente") {
+      setNovasPendentesIds((ids) => ids.filter((pendingId) => pendingId !== id));
+    }
     // Limpa o campo após cada ação operacional salva com sucesso.
     setObs("");
     const acao = acaoPersonalizada ?? (patch.status === "despachada" ? "Despacho realizado"
@@ -336,17 +340,17 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
                   key={f}
                   onClick={() => {
                     setFiltro(f);
-                    if (f === "pendente") setNovasPendentes(0);
+                    if (f === "pendente") setNovasPendentesIds([]);
                   }}
                   className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${filtro === f ? "bg-primary text-primary-foreground" : "bg-secondary hover:bg-secondary/80"}`}
                 >
-                  {f === "pendente" && novasPendentes > 0 && (
+                  {f === "pendente" && novasPendentesIds.length > 0 && (
                     <BellRing className="h-3.5 w-3.5 animate-pulse text-amber-400" aria-label="Novas ocorrências pendentes" />
                   )}
                   {f === "ativas" ? "Ativas" : f === "todas" ? "Todas" : STATUS[f]!.label}
                   {f === "pendente" && novasPendentes > 0 && (
                     <span className="ml-0.5 rounded-full bg-destructive px-1.5 py-0.5 text-[10px] leading-none text-destructive-foreground">
-                      {novasPendentes > 99 ? "99+" : novasPendentes}
+                      {novasPendentesIds.length > 99 ? "99+" : novasPendentesIds.length}
                     </span>
                   )}
                 </button>
