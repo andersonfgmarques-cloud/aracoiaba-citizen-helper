@@ -454,6 +454,14 @@ function Index() {
                       <div key={c.name} className="space-y-2">
                         <a
                           href="tel:08000135117"
+                          className="flex items-center justify-between rounded-xl bg-primary px-3 py-2.5 font-semibold text-primary-foreground"
+                        >
+                          <span className="flex items-center gap-2">
+                            <Phone className="h-4 w-4" /> SAMU
+                          </span>
+                        </a>
+                        <a
+                          href="tel:08000135117"
                           className="flex items-center justify-between rounded-xl border border-primary/40 bg-secondary px-3 py-2.5 font-semibold"
                         >
                           <span>Telefone adicional</span>
