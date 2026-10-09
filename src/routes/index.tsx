@@ -453,15 +453,6 @@ function Index() {
                     c.name === "SAMU" ? (
                       <div key={c.name} className="space-y-2">
                         <a
-                          href={`tel:${c.phone}`}
-                          className={`flex items-center justify-between rounded-xl px-3 py-2.5 font-semibold ${m.urgent ? "bg-destructive text-destructive-foreground" : "bg-primary text-primary-foreground"}`}
-                        >
-                          <span className="flex items-center gap-2">
-                            <Phone className="h-4 w-4" /> SAMU — Emergência
-                          </span>
-                          <span className="font-display text-lg">192</span>
-                        </a>
-                        <a
                           href="tel:08000135117"
                           className="flex items-center justify-between rounded-xl border border-primary/40 bg-secondary px-3 py-2.5 font-semibold"
                         >
