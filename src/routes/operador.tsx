@@ -78,6 +78,10 @@ function Login({ onLogin }: { onLogin: (session: Session) => void }) {
   const [senha, setSenha] = useState("");
   const [msg, setMsg] = useState("");
   const [cadastro, setCadastro] = useState(false);
+  const [nomeCompleto, setNomeCompleto] = useState("");
+  const [matricula, setMatricula] = useState("");
+  const [cargo, setCargo] = useState("");
+  const [lotacao, setLotacao] = useState("");
   const [processando, setProcessando] = useState(false);
 
   const go = async (e: React.FormEvent) => {
@@ -92,7 +96,15 @@ function Login({ onLogin }: { onLogin: (session: Session) => void }) {
         const { data, error } = await supabase.auth.signUp({
           email: normalizedEmail,
           password: senha,
-          options: { emailRedirectTo: new URL("operador", window.location.href).toString() },
+          options: {
+            emailRedirectTo: new URL("operador", window.location.href).toString(),
+            data: {
+              nome_completo: nomeCompleto.trim(),
+              matricula: matricula.trim(),
+              cargo: cargo.trim(),
+              lotacao: lotacao.trim(),
+            },
+          },
         });
         if (error) {
           setMsg(error.message.toLowerCase().includes("already registered")
@@ -151,6 +163,12 @@ function Login({ onLogin }: { onLogin: (session: Session) => void }) {
           </div>
         </div>
 
+        {cadastro && <>
+          <input type="text" required minLength={3} maxLength={160} autoComplete="name" placeholder="Nome completo" value={nomeCompleto} onChange={(e) => setNomeCompleto(e.target.value)} className="w-full rounded-xl border bg-input px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring" />
+          <input type="text" required minLength={2} maxLength={30} placeholder="Matrícula funcional" value={matricula} onChange={(e) => setMatricula(e.target.value)} className="w-full rounded-xl border bg-input px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring" />
+          <input type="text" required minLength={2} maxLength={80} placeholder="Cargo / graduação" value={cargo} onChange={(e) => setCargo(e.target.value)} className="w-full rounded-xl border bg-input px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring" />
+          <input type="text" required minLength={2} maxLength={120} placeholder="Lotação / equipe" value={lotacao} onChange={(e) => setLotacao(e.target.value)} className="w-full rounded-xl border bg-input px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring" />
+        </>}
         <input
           type="email"
           required
