@@ -5,7 +5,7 @@ import {
   LogOut, CheckCircle2, Ban, Trash2, AlertTriangle, LockKeyhole,
 } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase } from "@/integrations/supabase/adminClient";
 import type { Json } from "@/integrations/supabase/types";
 
 const ADMIN_EMAIL = "andersonf.g.marques@gmail.com";
@@ -69,11 +69,11 @@ function AdminPage() {
   const [deleteReason, setDeleteReason] = useState("");
 
   useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    const { data } = adminSupabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
       setSessionReady(true);
     });
-    void supabase.auth.getSession().then(({ data: authData }) => {
+    void adminSupabase.auth.getSession().then(({ data: authData }) => {
       setSession(authData.session);
       setSessionReady(true);
     });
@@ -88,7 +88,7 @@ function AdminPage() {
     setMessage("");
     setAllowed(false);
 
-    const { data: userData, error: userError } = await supabase.rpc("admin_list_users");
+    const { data: userData, error: userError } = await adminSupabase.rpc("admin_list_users");
     if (userError) {
       setError(
         userError.message.includes("does not exist") || userError.message.includes("schema cache")
@@ -103,8 +103,8 @@ function AdminPage() {
     setUsers((userData ?? []) as AdminUser[]);
     setAllowed(true);
     const [occurrenceResult, auditResult] = await Promise.all([
-      supabase.rpc("admin_list_occurrences"),
-      supabase.rpc("admin_list_audit", { _limit: 100 }),
+      adminSupabase.rpc("admin_list_occurrences"),
+      adminSupabase.rpc("admin_list_audit", { _limit: 100 }),
     ]);
     if (occurrenceResult.error) setError("Usuários carregados, mas não foi possível consultar ocorrências: " + occurrenceResult.error.message);
     else setOccurrences((occurrenceResult.data ?? []) as AdminOccurrence[]);
@@ -127,7 +127,7 @@ function AdminPage() {
   const login = async (event: React.FormEvent) => {
     event.preventDefault();
     setAuthError("");
-    const { data, error: loginError } = await supabase.auth.signInWithPassword({
+    const { data, error: loginError } = await adminSupabase.auth.signInWithPassword({
       email: email.trim().toLowerCase(),
       password,
     });
@@ -136,13 +136,13 @@ function AdminPage() {
       return;
     }
     if (data.session.user.email?.toLowerCase() !== ADMIN_EMAIL) {
-      await supabase.auth.signOut();
+      await adminSupabase.auth.signOut();
       setAuthError("Esta área é exclusiva da conta administrativa autorizada.");
     }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    await adminSupabase.auth.signOut();
     setSession(null);
     setAllowed(false);
   };
@@ -153,7 +153,7 @@ function AdminPage() {
     setBusyId(user.user_id);
     setError("");
     setMessage("");
-    const { error: operationError } = await supabase.rpc("admin_set_operator_access", {
+    const { error: operationError } = await adminSupabase.rpc("admin_set_operator_access", {
       _user_id: user.user_id,
       _enabled: enabled,
     });
@@ -176,7 +176,7 @@ function AdminPage() {
     setBusyId(occurrence.id);
     setError("");
     setMessage("");
-    const { error: deleteError } = await supabase.rpc("admin_delete_occurrence", {
+    const { error: deleteError } = await adminSupabase.rpc("admin_delete_occurrence", {
       _occurrence_id: occurrence.id,
       _reason: deleteReason.trim(),
     });
