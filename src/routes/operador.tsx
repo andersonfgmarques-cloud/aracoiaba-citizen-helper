@@ -77,17 +77,40 @@ function Login({ onLogin }: { onLogin: (session: Session) => void }) {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [msg, setMsg] = useState("");
+  const [cadastro, setCadastro] = useState(false);
+  const [processando, setProcessando] = useState(false);
 
   const go = async (e: React.FormEvent) => {
     e.preventDefault();
     setMsg("");
+    setProcessando(true);
 
     try {
+      const normalizedEmail = email.trim().toLowerCase();
+
+      if (cadastro) {
+        const { data, error } = await supabase.auth.signUp({
+          email: normalizedEmail,
+          password: senha,
+          options: { emailRedirectTo: new URL("operador", window.location.href).toString() },
+        });
+        if (error) {
+          setMsg(error.message.toLowerCase().includes("already registered")
+            ? "Este e-mail já possui cadastro. Use a opção Entrar."
+            : `Não foi possível realizar o cadastro: ${error.message}`);
+          return;
+        }
+        if (data.session) await supabase.auth.signOut();
+        setCadastro(false);
+        setSenha("");
+        setMsg("Cadastro recebido. Confirme seu e-mail, se solicitado, e aguarde a liberação do administrador. O cadastro não libera acesso ao CAD.");
+        return;
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
+        email: normalizedEmail,
         password: senha,
       });
-
       if (error || !data.session) {
         const authMessage = error?.message?.toLowerCase() ?? "";
         if (authMessage.includes("email not confirmed")) {
@@ -101,11 +124,12 @@ function Login({ onLogin }: { onLogin: (session: Session) => void }) {
         }
         return;
       }
-
       onLogin(data.session);
     } catch (err) {
-      console.error("Falha no login do CAD:", err);
+      console.error(cadastro ? "Falha no cadastro do CAD:" : "Falha no login do CAD:", err);
       setMsg("Não foi possível conectar ao serviço de autenticação. Verifique a configuração do Supabase e tente novamente.");
+    } finally {
+      setProcessando(false);
     }
   };
 
@@ -123,7 +147,7 @@ function Login({ onLogin }: { onLogin: (session: Session) => void }) {
           />
           <div>
             <h1 className="font-bold">CAD – GCM</h1>
-            <p className="text-xs text-muted-foreground">Acesso restrito a operadores</p>
+            <p className="text-xs text-muted-foreground">{cadastro ? "Solicitação de acesso operacional" : "Acesso restrito a operadores autorizados"}</p>
           </div>
         </div>
 
@@ -138,7 +162,8 @@ function Login({ onLogin }: { onLogin: (session: Session) => void }) {
         <input
           type="password"
           required
-          placeholder="Senha"
+          minLength={8}
+          placeholder={cadastro ? "Crie uma senha (mínimo de 8 caracteres)" : "Senha"}
           value={senha}
           onChange={(e) => setSenha(e.target.value)}
           className="w-full rounded-xl border bg-input px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
@@ -146,17 +171,25 @@ function Login({ onLogin }: { onLogin: (session: Session) => void }) {
 
         {msg && <p className="text-sm text-destructive">{msg}</p>}
 
-        <button className="w-full rounded-xl bg-primary py-3 font-semibold text-primary-foreground">
-          Entrar
+        <button disabled={processando} className="w-full rounded-xl bg-primary py-3 font-semibold text-primary-foreground disabled:opacity-50">
+          {processando ? "Aguarde..." : cadastro ? "Solicitar cadastro" : "Entrar"}
         </button>
 
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+        <button
+          type="button"
+          onClick={() => { setCadastro((value) => !value); setMsg(""); }}
+          className="w-full rounded-xl border bg-secondary py-3 text-sm font-semibold"
+        >
+          {cadastro ? "Já tenho cadastro — entrar" : "Solicitar cadastro de operador"}
+        </button>
+
+        {!cadastro && <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <div className="h-px flex-1 bg-border" />
           ou
           <div className="h-px flex-1 bg-border" />
-        </div>
+        </div>}
 
-        <button
+        {!cadastro && <button
           type="button"
           onClick={async () => {
             setMsg("");
@@ -172,10 +205,12 @@ function Login({ onLogin }: { onLogin: (session: Session) => void }) {
           className="w-full rounded-xl border bg-secondary py-3 text-sm font-semibold"
         >
           Entrar com Google
-        </button>
+        </button>}
 
         <p className="text-center text-[11px] text-muted-foreground">
-          Acesso restrito a operadores autorizados
+          {cadastro
+            ? "O cadastro não libera o acesso automaticamente. Aguarde a aprovação do administrador."
+            : "Apenas operadores autorizados podem acessar as funções do CAD."}
         </p>
 
         <Link to="/" className="block text-center text-xs text-muted-foreground">
