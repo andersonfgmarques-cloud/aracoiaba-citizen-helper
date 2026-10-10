@@ -104,6 +104,12 @@ export type Database = {
         }
         Relationships: []
       },
+      operator_profiles: {
+        Row: { user_id: string; nome_completo: string; matricula: string; cargo: string; lotacao: string; created_at: string; updated_at: string }
+        Insert: { user_id: string; nome_completo: string; matricula: string; cargo: string; lotacao: string; created_at?: string; updated_at?: string }
+        Update: { user_id?: string; nome_completo?: string; matricula?: string; cargo?: string; lotacao?: string; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -136,6 +142,10 @@ export type Database = {
           last_sign_in_at: string | null
           role: string
         }[]
+      }
+      admin_list_operator_profiles: {
+        Args: Record<PropertyKey, never>
+        Returns: { user_id: string; nome_completo: string; matricula: string; cargo: string; lotacao: string; email: string | null; updated_at: string }[]
       }
       admin_set_operator_access: {
         Args: { _user_id: string; _enabled: boolean }
