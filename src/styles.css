@@ -765,3 +765,60 @@ body:has(.gcm-term-shell)::after {
     max-width: 31.5rem;
   }
 }
+
+
+/* Fundo institucional padrão do aplicativo: brasão oficial em todas as telas. */
+body {
+  background-color: #041225 !important;
+  background-image:
+    linear-gradient(180deg, rgba(2, 10, 22, .68), rgba(2, 10, 22, .82)),
+    url('/aracoiaba-citizen-helper/BrasaoOfc.png') !important;
+  background-position: center, center;
+  background-repeat: no-repeat;
+  background-size: cover, cover;
+  background-attachment: fixed, fixed;
+}
+body::before {
+  background-image:
+    linear-gradient(180deg, rgba(2, 10, 22, .18), rgba(2, 10, 22, .44)),
+    url('/aracoiaba-citizen-helper/BrasaoOfc.png') !important;
+  background-repeat: no-repeat, no-repeat;
+  background-position: center, center;
+  background-size: cover, cover;
+  opacity: .48;
+}
+body::after {
+  background: linear-gradient(180deg, rgba(2, 8, 18, .14), rgba(2, 8, 18, .48));
+}
+body .min-h-screen.bg-background {
+  background-color: transparent !important;
+}
+body .mx-auto.flex.h-screen.max-w-lg.flex-col {
+  background-color: rgba(3, 14, 29, .55);
+}
+.gcm-term-main::before {
+  background-image:
+    linear-gradient(180deg, rgba(2, 10, 22, .34) 0%, rgba(2, 10, 22, .52) 38%, rgba(2, 10, 22, .76) 70%, #041225 100%),
+    url('/aracoiaba-citizen-helper/BrasaoOfc.png') !important;
+  background-repeat: no-repeat, no-repeat;
+  background-position: center, center;
+  background-size: cover, cover;
+  filter: saturate(.86) contrast(1.04);
+}
+.gcm-term-main::after {
+  opacity: .32 !important;
+}
+@media (max-width: 600px) {
+  body {
+    background-attachment: scroll, scroll;
+  }
+  body::before {
+    background-position: center, center;
+    background-size: cover, contain;
+    opacity: .38;
+  }
+  .gcm-term-main::before {
+    background-position: center, center;
+    background-size: cover, contain;
+  }
+}
