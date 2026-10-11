@@ -310,7 +310,7 @@ function Index() {
           <header className="bg-header flex items-center gap-3 border-b px-4 py-4 shadow-lg">
             <img src={`/aracoiaba-citizen-helper/android-chrome-192x192.png`} alt="Emblema da Guarda Civil Municipal" className="h-11 w-11 shrink-0 rounded-full object-contain" />
             <div className="min-w-0 flex-1"><h1 className="text-base font-bold">GCM Araçoiaba da Serra</h1><p className="text-xs text-muted-foreground">Atendimento ao cidadão</p></div>
-            <Link to="/operador" aria-label="Acessar painel CAD do operador" title="Acesso do operador CAD" className="flex shrink-0 items-center gap-1.5 rounded-full border border-primary/50 bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20">
+            <Link to="/operador" aria-label="Acessar painel CAD do operador" title="Acesso do operador CAD" className="gcm-cad-link flex shrink-0 items-center gap-1.5 rounded-full border border-primary/50 bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20">
               <LayoutDashboard className="h-4 w-4" /> CAD
             </Link>
           </header>
@@ -366,29 +366,30 @@ function Index() {
     }
 
     return (
-      <div className="mx-auto flex min-h-screen max-w-lg flex-col bg-background">
-        <header className="bg-header flex items-center gap-3 border-b px-4 py-4 shadow-lg">
+      <div className="gcm-term-shell mx-auto flex min-h-screen w-full flex-col">
+        <header className="gcm-term-header bg-header flex items-center gap-3 border-b px-4 py-4 shadow-lg">
+
           <img src={`/aracoiaba-citizen-helper/android-chrome-192x192.png`} alt="Emblema da Guarda Civil Municipal" className="h-11 w-11 shrink-0 rounded-full object-contain" />
           <div className="min-w-0 flex-1"><h1 className="text-base font-bold">GCM Araçoiaba da Serra</h1><p className="text-xs text-muted-foreground">Atendimento ao cidadão</p></div>
             <Link to="/operador" aria-label="Acessar painel CAD do operador" title="Acesso do operador CAD" className="flex shrink-0 items-center gap-1.5 rounded-full border border-primary/50 bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20">
               <LayoutDashboard className="h-4 w-4" /> CAD
             </Link>
         </header>
-        <main className="flex flex-1 items-center px-4 py-6">
-          <div className="w-full rounded-2xl border bg-card p-5 shadow-sm">
+        <main className="gcm-term-main flex flex-1 items-center">
+          <div className="gcm-term-card w-full rounded-2xl border bg-card p-5 shadow-sm">
             <h2 className="text-lg font-bold">Termo de Ciência — Comunicação falsa de crime ou de contravenção</h2>
             <div className="mt-4 space-y-3 text-sm leading-relaxed">
               <p>O art. 340 do Código Penal estabelece:</p>
-              <div className="rounded-xl bg-secondary p-4">
+              <div className="gcm-law-panel rounded-xl bg-secondary p-4">
                 <p className="font-medium">“Provocar a ação de autoridade, comunicando-lhe a ocorrência de crime ou de contravenção que sabe não se ter verificado.”</p>
                 <p className="mt-2 font-semibold">Pena: detenção, de 1 (um) a 6 (seis) meses, ou multa.</p>
               </div>
               <p>Ao prosseguir, você declara ciência de que as informações fornecidas devem corresponder aos fatos que está comunicando.</p>
-              <p className="font-semibold">A aceitação deste termo é obrigatória para continuar utilizando o serviço.</p>
+              <p className="gcm-term-note font-semibold">A aceitação deste termo é obrigatória para continuar utilizando o serviço.</p>
             </div>
             <div className="mt-5 grid gap-2">
-              <button onClick={aceitarTermo} className="w-full rounded-full bg-primary py-3 font-semibold text-primary-foreground">Li e estou ciente — Continuar</button>
-              <button onClick={() => setCiencia("recusada")} className="w-full rounded-full border border-destructive/60 py-3 font-semibold text-destructive">Recuso-me a tomar ciência</button>
+              <button onClick={aceitarTermo} className="gcm-accept-button w-full rounded-full bg-primary py-3 font-semibold text-primary-foreground">Li e estou ciente — Continuar</button>
+              <button onClick={() => setCiencia("recusada")} className="gcm-refuse-button w-full rounded-full border border-destructive/60 py-3 font-semibold text-destructive">Recuso-me a tomar ciência</button>
             </div>
           </div>
         </main>
