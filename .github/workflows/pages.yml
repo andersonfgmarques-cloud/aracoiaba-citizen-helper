@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - feature/pwa-responsiva
   workflow_dispatch:
 
 permissions:
@@ -84,6 +85,7 @@ jobs:
 
   deploy:
     name: Deploy
+    if: github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
 
