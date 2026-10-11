@@ -39,6 +39,9 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
         run: bun run build
 
+      - name: Install Pillow for PWA icon generation
+        run: python -m pip install --user Pillow
+
       - name: Prepare PWA icons
         run: |
           python - <<'PY'
