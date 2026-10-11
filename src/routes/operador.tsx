@@ -277,6 +277,26 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
     }
   };
 
+  const notifyNewOccurrence = (occurrence: Oc) => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    if (Notification.permission !== "granted") return;
+
+    try {
+      const notification = new Notification("Nova ocorrência pendente — CAD GCM", {
+        body: `Protocolo: ${occurrence.protocolo || "não informado"}. Abra o CAD para consultar os detalhes.`,
+        icon: "/aracoiaba-citizen-helper/android-chrome-192x192.png",
+        tag: `cad-occurrence-${occurrence.id}`,
+        renotify: false,
+      });
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+      };
+    } catch (error) {
+      console.warn("Não foi possível exibir a notificação do CAD:", error);
+    }
+  };
+
   const toggleSound = async () => {
     try {
       if (soundEnabledRef.current) {
@@ -294,6 +314,13 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
       soundEnabledRef.current = true;
       setSoundEnabled(true);
       playAlert();
+
+      // A notificação é opcional; o alerta sonoro funciona mesmo sem essa permissão.
+      if ("Notification" in window && Notification.permission === "default") {
+        void Notification.requestPermission().catch((error) => {
+          console.warn("Não foi possível solicitar permissão de notificações:", error);
+        });
+      }
     } catch {
       window.alert("Não foi possível ativar o som. Verifique as permissões de áudio do navegador.");
     }
@@ -358,6 +385,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
                 ? ids
                 : [...ids, novaOcorrencia.id]);
               playAlert();
+              notifyNewOccurrence(novaOcorrencia);
             }
           } else if (payload.eventType === "UPDATE") {
             const atualizada = payload.new as Oc;
