@@ -961,3 +961,71 @@ body {
     background-size: 100% 100%, 100% 100% !important;
   }
 }
+
+
+/* Responsividade global para PWA: preserva o tema existente e evita overflow lateral. */
+html,
+body {
+  width: 100%;
+  min-width: 320px;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+body,
+#root {
+  min-height: 100%;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+}
+
+input,
+select,
+textarea {
+  max-width: 100%;
+}
+
+@media (max-width: 640px) {
+  /* Respeita a área segura dos dispositivos com recorte/notch. */
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  button,
+  [role="button"] {
+    touch-action: manipulation;
+  }
+
+  .gcm-term-main {
+    width: 100%;
+    padding-left: max(.75rem, env(safe-area-inset-left)) !important;
+    padding-right: max(.75rem, env(safe-area-inset-right)) !important;
+  }
+
+  .gcm-term-card {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}

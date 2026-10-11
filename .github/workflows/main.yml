@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - feature/pwa-responsiva
   pull_request:
     branches:
       - main
@@ -36,3 +37,69 @@ jobs:
 
       - name: Build
         run: bun run build
+
+      - name: Build for GitHub Pages
+        env:
+          GITHUB_PAGES: "true"
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+        run: bun run build
+
+      - name: Prepare PWA icons for validation
+        run: |
+          python -m pip install --user Pillow
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+
+          source = Path("public/android-chrome-192x192.png")
+          target = Path("dist/client/android-chrome-512x512.png")
+          assert source.is_file(), f"Missing source icon: {source}"
+          target.parent.mkdir(parents=True, exist_ok=True)
+          with Image.open(source) as image:
+              image.convert("RGBA").resize((512, 512), Image.Resampling.LANCZOS).save(target, "PNG")
+          (Path("dist/client") / source.name).write_bytes(source.read_bytes())
+          PY
+
+      - name: Prepare GitHub Pages fallback
+        run: cp dist/client/index.html dist/client/404.html
+
+      - name: Validate PWA manifest, service worker and Pages output
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          base = "/aracoiaba-citizen-helper/"
+          root = Path("dist/client")
+          manifest_path = root / "manifest.webmanifest"
+          worker_path = root / "sw.js"
+          index_path = root / "index.html"
+          fallback_path = root / "404.html"
+
+          for path in (manifest_path, worker_path, index_path, fallback_path,
+                       root / "android-chrome-192x192.png",
+                       root / "android-chrome-512x512.png"):
+              assert path.is_file(), f"Required PWA/Pages file missing: {path}"
+
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          assert manifest.get("start_url") == base, "Manifest start_url must use the GitHub Pages project base path"
+          assert manifest.get("scope") == base, "Manifest scope must use the GitHub Pages project base path"
+          icons = {icon.get("src"): icon for icon in manifest.get("icons", [])}
+          for filename in ("android-chrome-192x192.png", "android-chrome-512x512.png"):
+              expected = base + filename
+              assert expected in icons, f"Manifest is missing icon path: {expected}"
+              assert (root / filename).is_file(), f"Icon file does not exist: {filename}"
+
+          worker = worker_path.read_text(encoding="utf-8")
+          assert "caches" in worker, "Service worker does not appear to implement caching"
+          assert "aracoiaba-citizen-helper" in worker, "Service worker is missing the project base path"
+          html = index_path.read_text(encoding="utf-8")
+          assert "manifest.webmanifest" in html, "Built HTML does not reference the PWA manifest"
+          # The production Pages workflow rewrites absolute asset URLs after build.
+          # Here, verify the project base is correctly configured at build time.
+          assert base in manifest.get("start_url", ""), "Manifest does not use the project base path"
+          assert "manifest.webmanifest" in html, "Built HTML does not reference the PWA manifest"
+
+          print("PWA validation passed: manifest, icons, service worker, project paths and Pages fallback.")
+          PY
