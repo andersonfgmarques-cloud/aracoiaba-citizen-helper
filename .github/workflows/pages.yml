@@ -76,6 +76,8 @@ jobs:
                   text = path.read_text(encoding="utf-8")
                   # Rewrite every occurrence, including dynamic-import chunk URLs emitted by the bundler.
                   text = re.sub(r"(?<![A-Za-z0-9_-])/assets/", "/aracoiaba-citizen-helper/assets/", text)
+                  # Some generated route manifests encode slashes as escaped JSON sequences.
+                  text = text.replace(r"\\/assets\\/", r"\\/aracoiaba-citizen-helper/assets\\/")
                   text = text.replace('="/favicon.ico"', '="/aracoiaba-citizen-helper/favicon.ico"')
                   # PWA links must also stay under the repository subpath.
                   for filename in ("manifest.webmanifest", "sw.js", "android-chrome-192x192.png", "android-chrome-512x512.png"):
@@ -89,6 +91,7 @@ jobs:
               for path in root.rglob(pattern):
                   text = path.read_text(encoding="utf-8")
                   assert not re.search(r"(?<!aracoiaba-citizen-helper)/assets/", text), f"Root-relative asset path remains in {path}"
+                  assert r"\\/assets\\/" not in text, f"Escaped root-relative asset path remains in {path}"
                   for filename in ("manifest.webmanifest", "sw.js", "android-chrome-192x192.png", "android-chrome-512x512.png"):
                       assert f'="/{filename}"' not in text and f'"/{filename}"' not in text, f"Root-relative PWA path remains in {path}: {filename}"
           PY
