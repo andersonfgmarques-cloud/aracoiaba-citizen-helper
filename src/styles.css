@@ -1029,3 +1029,56 @@ textarea {
     transition-duration: .01ms !important;
   }
 }
+
+
+/* Responsividade do fundo institucional em smartphones:
+   preserva a proporção da arte original e evita deformação/corte por estiramento. */
+@media (max-width: 600px) {
+  body {
+    background-attachment: scroll, scroll !important;
+    background-position: center top, center top !important;
+    background-size: 100% 100%, auto 100svh !important;
+  }
+
+  .gcm-term-shell {
+    min-height: 100svh;
+    height: auto;
+    overflow-x: clip;
+    overflow-y: visible;
+  }
+
+  .gcm-term-main {
+    min-height: calc(100svh - 5.1rem);
+    padding-top: clamp(11rem, 25svh, 15rem) !important;
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom)) !important;
+  }
+
+  .gcm-term-main::before {
+    position: fixed;
+    inset: 5.1rem 0 0;
+    width: 100%;
+    height: auto;
+    background-position: center top, center top !important;
+    background-size: 100% 100%, auto calc(100svh - 5.1rem) !important;
+    background-repeat: no-repeat, no-repeat !important;
+  }
+
+  .gcm-term-main::after {
+    top: .75rem;
+    right: -1rem;
+    width: min(70vw, 19rem);
+    opacity: .48 !important;
+  }
+
+  .gcm-term-card {
+    width: 100%;
+    max-width: 35rem;
+    padding: 1.1rem !important;
+    margin-inline: auto !important;
+  }
+
+  .gcm-term-card h2 {
+    font-size: clamp(1.15rem, 5vw, 1.35rem);
+    line-height: 1.35;
+  }
+}
