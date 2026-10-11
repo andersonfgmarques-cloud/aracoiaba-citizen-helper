@@ -65,11 +65,21 @@ jobs:
           from pathlib import Path
 
           root = Path("dist/client")
-          for path in root.rglob("*.html"):
-              text = path.read_text(encoding="utf-8")
-              text = text.replace('="/assets/', '="/aracoiaba-citizen-helper/assets/')
-              text = text.replace('="/favicon.ico"', '="/aracoiaba-citizen-helper/favicon.ico"')
-              path.write_text(text, encoding="utf-8")
+          # GitHub Pages project sites live under /<repository>/, not the domain root.
+          # Rewrite HTML and bundled JS/CSS too, because dynamic imports can contain
+          # root-relative /assets/ URLs even when the HTML entry points are corrected.
+          for pattern in ("*.html", "*.js", "*.css"):
+              for path in root.rglob(pattern):
+                  text = path.read_text(encoding="utf-8")
+                  text = text.replace("/assets/", "/aracoiaba-citizen-helper/assets/")
+                  text = text.replace('="/favicon.ico"', '="/aracoiaba-citizen-helper/favicon.ico"')
+                  path.write_text(text, encoding="utf-8")
+
+          # Fail the build if bundled assets still point to the domain root.
+          for pattern in ("*.html", "*.js", "*.css"):
+              for path in root.rglob(pattern):
+                  text = path.read_text(encoding="utf-8")
+                  assert '="/assets/' not in text and "\\"/assets/" not in text, f"Root-relative asset path remains in {path}"
           PY
 
       - name: Ensure GitHub Pages fallback
