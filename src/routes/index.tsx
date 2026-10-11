@@ -429,7 +429,7 @@ function Index() {
         </button>
       </header>
 
-      <div className="flex gap-2 overflow-x-auto border-b px-4 py-2">
+      <div className="flex flex-wrap gap-2 border-b border-white/10 bg-slate-950/35 px-3 py-2.5">
         {[
           { id: "gcm", label: "GCM", number: "153" },
           { id: "policia", label: "Polícia", number: "190" },
@@ -444,7 +444,7 @@ function Index() {
             type="button"
             onClick={() => setContatoSelecionado((atual) => atual === c.id ? null : c.id)}
             aria-expanded={contatoSelecionado === c.id}
-            className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${contatoSelecionado === c.id ? "bg-primary text-primary-foreground" : "bg-secondary"}`}
+            className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${contatoSelecionado === c.id ? "border-primary bg-primary text-primary-foreground shadow-[0_0_14px_rgba(245,194,59,0.18)]" : "border-white/10 bg-slate-800/85 text-slate-100 hover:border-primary/50"}`}
           >
             {c.label} {c.number && <span className={contatoSelecionado === c.id ? "text-primary-foreground" : "text-primary"}>{c.number}</span>}
           </button>
