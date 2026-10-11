@@ -905,3 +905,41 @@ body::after {
   background-image: none !important;
   opacity: 0 !important;
 }
+
+
+/* Fundo padrão do aplicativo: imagem oficial public/FundoGCM.png. */
+body {
+  background-color: #041225 !important;
+  background-image: linear-gradient(180deg, rgba(2, 10, 22, .38), rgba(2, 10, 22, .62)), url('/aracoiaba-citizen-helper/FundoGCM.png') !important;
+  background-position: center center, center center !important;
+  background-repeat: no-repeat, no-repeat !important;
+  background-size: cover, cover !important;
+  background-attachment: fixed, fixed !important;
+}
+body::before,
+body::after {
+  display: none !important;
+  content: none !important;
+  background-image: none !important;
+}
+.gcm-term-shell {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+.gcm-term-main {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+.gcm-term-main::before {
+  background-image: linear-gradient(180deg, rgba(2, 10, 22, .32), rgba(2, 10, 22, .55)), url('/aracoiaba-citizen-helper/FundoGCM.png') !important;
+  background-position: center center, center center !important;
+  background-repeat: no-repeat, no-repeat !important;
+  background-size: cover, cover !important;
+  filter: none !important;
+  opacity: 1 !important;
+}
+@media (max-width: 600px) {
+  body {
+    background-attachment: scroll, scroll !important;
+  }
+}
