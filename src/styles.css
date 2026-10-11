@@ -287,3 +287,37 @@ body input, body textarea, body select {
 body input::placeholder, body textarea::placeholder {
   color: rgba(197, 211, 229, .65);
 }
+
+
+/* Ajuste da composição visual da tela inicial para aproximar a referência institucional.
+   Mantém o brasão como elemento secundário e abre espaço visual à esquerda para o mapa. */
+body::before {
+  background-image:
+    repeating-radial-gradient(ellipse at 23% 42%, transparent 0 22px, rgba(102, 143, 183, .055) 23px 24px, transparent 25px 42px),
+    linear-gradient(120deg, transparent 0 38%, rgba(80, 132, 181, .08) 38.1%, transparent 38.5% 64%, rgba(80, 132, 181, .05) 64.1%, transparent 64.5%),
+    radial-gradient(ellipse at 22% 43%, rgba(210, 26, 43, .28), transparent 31%),
+    radial-gradient(ellipse at 22% 43%, rgba(35, 80, 77, .4), transparent 26%),
+    url('/aracoiaba-citizen-helper/android-chrome-192x192.png');
+  background-repeat: no-repeat;
+  background-position: center, center, 12% 42%, 12% 42%, right 7% bottom 4%;
+  background-size: cover, cover, 42rem 42rem, 38rem 38rem, min(61vw, 610px) auto;
+  opacity: .62;
+}
+body::after {
+  background:
+    linear-gradient(90deg, rgba(2, 8, 18, .12), rgba(2, 8, 18, .34) 54%, rgba(2, 8, 18, .12)),
+    linear-gradient(180deg, rgba(2, 8, 18, .12), rgba(2, 8, 18, .48));
+}
+@media (max-width: 480px) {
+  body::before {
+    background-position: center, center, 5% 20%, 5% 20%, right -4.8rem top 8.7rem;
+    background-size: cover, cover, 30rem 30rem, 27rem 27rem, 27rem auto;
+    opacity: .4;
+  }
+  body::after {
+    background: linear-gradient(180deg, rgba(2, 8, 18, .04) 0%, rgba(2, 8, 18, .28) 30%, rgba(2, 8, 18, .78) 78%, rgba(2, 8, 18, .9) 100%);
+  }
+  .gcm-term-main {
+    padding-top: .65rem !important;
+  }
+}
