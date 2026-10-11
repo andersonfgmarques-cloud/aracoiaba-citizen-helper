@@ -356,3 +356,63 @@ body .mx-auto.flex.h-screen.max-w-lg.flex-col > footer {
     padding-inline: 1rem;
   }
 }
+
+
+/* Termo de ciência: painel cartográfico no topo, semelhante à referência enviada. */
+.gcm-term-main {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  align-items: center;
+  padding-top: clamp(12rem, 35vh, 19rem) !important;
+}
+.gcm-term-main::before {
+  content: "";
+  position: absolute;
+  z-index: -2;
+  inset: 0 0 auto;
+  height: clamp(23rem, 58vh, 39rem);
+  background:
+    linear-gradient(180deg, rgba(3, 14, 29, .02) 0%, rgba(3, 14, 29, .08) 45%, rgba(3, 14, 29, .94) 100%),
+    repeating-linear-gradient(34deg, transparent 0 22px, rgba(178, 205, 221, .12) 23px 24px, transparent 25px 48px),
+    repeating-linear-gradient(128deg, transparent 0 38px, rgba(221, 231, 237, .09) 39px 40px, transparent 41px 76px),
+    radial-gradient(ellipse at 43% 45%, rgba(108, 147, 79, .86) 0%, rgba(40, 83, 62, .94) 27%, transparent 48%),
+    radial-gradient(ellipse at 38% 44%, rgba(225, 41, 51, .95) 0%, rgba(225, 41, 51, .5) 31%, transparent 34%),
+    radial-gradient(ellipse at 39% 43%, rgba(22, 68, 58, .92) 0%, rgba(10, 38, 42, .94) 37%, transparent 38%),
+    linear-gradient(135deg, #101e2d, #142c3b 50%, #071629);
+  background-size: cover;
+  opacity: .96;
+  pointer-events: none;
+}
+.gcm-term-main::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: .5rem;
+  right: -2.75rem;
+  width: clamp(15rem, 66vw, 31rem);
+  aspect-ratio: 1;
+  background: url('/aracoiaba-citizen-helper/gcm-emblem.svg') center / contain no-repeat;
+  opacity: .48;
+  filter: drop-shadow(0 0 20px rgba(105, 151, 196, .25));
+  pointer-events: none;
+}
+.gcm-term-card {
+  z-index: 1;
+  background: linear-gradient(145deg, rgba(5, 22, 43, .91), rgba(4, 16, 33, .93)) !important;
+}
+@media (max-width: 480px) {
+  .gcm-term-main {
+    padding-top: clamp(13rem, 34vh, 17rem) !important;
+  }
+  .gcm-term-main::before {
+    height: 29rem;
+    background-position: center top;
+  }
+  .gcm-term-main::after {
+    top: .35rem;
+    right: -3.5rem;
+    width: 20rem;
+    opacity: .55;
+  }
+}
