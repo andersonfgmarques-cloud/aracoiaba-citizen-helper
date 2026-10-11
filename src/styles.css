@@ -321,3 +321,38 @@ body::after {
     padding-top: .65rem !important;
   }
 }
+
+
+/* Camada visual da conversa: leitura prioritária, relevo cartográfico discreto e brasão ao fundo. */
+body .mx-auto.flex.h-screen.max-w-lg.flex-col {
+  position: relative;
+  isolation: isolate;
+  background:
+    linear-gradient(180deg, rgba(3, 14, 29, .96) 0%, rgba(4, 17, 34, .82) 22%, rgba(3, 13, 27, .68) 72%, rgba(3, 13, 27, .92) 100%);
+  border-inline: 1px solid rgba(124, 166, 208, .18);
+  box-shadow: 0 0 42px rgba(0, 0, 0, .28);
+}
+body .mx-auto.flex.h-screen.max-w-lg.flex-col > main {
+  background:
+    radial-gradient(ellipse at 28% 26%, rgba(28, 83, 76, .16), transparent 34%),
+    repeating-radial-gradient(ellipse at 27% 29%, transparent 0 25px, rgba(110, 157, 188, .045) 26px 27px, transparent 28px 47px);
+}
+body .mx-auto.flex.h-screen.max-w-lg.flex-col > header {
+  background: linear-gradient(110deg, rgba(5, 23, 46, .98), rgba(9, 34, 62, .94));
+  border-bottom-color: rgba(147, 177, 208, .2);
+}
+body .mx-auto.flex.h-screen.max-w-lg.flex-col > footer {
+  background: linear-gradient(110deg, rgba(5, 20, 39, .98), rgba(8, 28, 51, .96));
+  border-top-color: rgba(147, 177, 208, .2);
+}
+@media (max-width: 480px) {
+  body .mx-auto.flex.h-screen.max-w-lg.flex-col {
+    width: 100%;
+    min-height: 100svh;
+    height: 100svh;
+    border-inline: 0;
+  }
+  body .mx-auto.flex.h-screen.max-w-lg.flex-col > main {
+    padding-inline: 1rem;
+  }
+}
