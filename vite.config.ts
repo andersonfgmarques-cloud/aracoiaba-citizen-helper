@@ -1,14 +1,17 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 const isGitHubPages = process.env["GITHUB_PAGES"] === "true";
-const basePath = isGitHubPages ? "/aracoiaba-citizen-helper/" : "/";
+const routerBasePath = isGitHubPages ? "/aracoiaba-citizen-helper/" : "/";
+// Use a relative Vite asset base for GitHub Pages project sites so lazy-loaded
+// route chunks resolve beneath the repository path instead of the domain root.
+const assetBasePath = isGitHubPages ? "./" : "/";
 
 const config = {
-  base: basePath,
+  base: assetBasePath,
   nitro: isGitHubPages ? false : undefined,
   tanstackStart: {
     router: {
-      basepath: basePath,
+      basepath: routerBasePath,
     },
     ...(isGitHubPages
       ? {
