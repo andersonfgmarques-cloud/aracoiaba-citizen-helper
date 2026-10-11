@@ -869,3 +869,39 @@ body::after {
     background-size: cover, cover;
   }
 }
+
+
+/* Fundo azul sólido: remover imagens e brasões do fundo do termo. */
+body {
+  background: #041225 !important;
+  background-image: none !important;
+  background-color: #041225 !important;
+  background-attachment: scroll !important;
+}
+body::before,
+body::after {
+  content: none !important;
+  display: none !important;
+  background-image: none !important;
+  opacity: 0 !important;
+}
+.gcm-term-shell {
+  background: #041225 !important;
+  background-image: none !important;
+}
+.gcm-term-main {
+  background: #041225 !important;
+  background-image: none !important;
+}
+.gcm-term-main::before {
+  background: #041225 !important;
+  background-image: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+.gcm-term-main::after {
+  display: none !important;
+  content: none !important;
+  background-image: none !important;
+  opacity: 0 !important;
+}
