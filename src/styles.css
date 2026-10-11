@@ -416,3 +416,97 @@ body .mx-auto.flex.h-screen.max-w-lg.flex-col > footer {
     opacity: .55;
   }
 }
+
+
+/* Ajuste final do termo conforme a referência aprovada pelo usuário.
+   Mantém a estrutura e o texto existentes; refina proporções e sobreposição do cartão. */
+.gcm-term-shell {
+  min-height: 100svh;
+  overflow: clip;
+}
+.gcm-term-header {
+  min-height: 5.1rem;
+  padding-inline: clamp(1rem, 4vw, 2rem);
+}
+.gcm-term-main {
+  width: 100%;
+  max-width: 760px;
+  min-height: calc(100svh - 5.1rem);
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 4.5vw, 2rem) !important;
+  padding-top: clamp(19rem, 43vh, 31rem) !important;
+  padding-bottom: clamp(2rem, 7vh, 4.5rem) !important;
+}
+.gcm-term-main::before {
+  height: clamp(31rem, 68vh, 47rem);
+  background:
+    linear-gradient(180deg, rgba(3, 14, 29, .02) 0%, rgba(3, 14, 29, .04) 43%, rgba(3, 14, 29, .74) 76%, #061326 100%),
+    radial-gradient(ellipse at 44% 38%, rgba(108, 147, 79, .55) 0%, rgba(40, 83, 62, .62) 25%, transparent 48%),
+    radial-gradient(ellipse at 38% 39%, rgba(225, 41, 51, .72) 0%, rgba(225, 41, 51, .32) 29%, transparent 34%),
+    radial-gradient(ellipse at 39% 40%, rgba(22, 68, 58, .88) 0%, rgba(10, 38, 42, .88) 37%, transparent 38%),
+    linear-gradient(135deg, #101e2d, #142c3b 50%, #071629);
+  opacity: 1;
+}
+.gcm-term-main::after {
+  top: clamp(1rem, 4vh, 3rem);
+  right: clamp(-4rem, -4vw, -1.5rem);
+  width: clamp(18rem, 66vw, 34rem);
+  opacity: .62;
+}
+.gcm-term-card {
+  width: 100%;
+  max-width: 600px;
+  margin-inline: auto;
+  padding: clamp(1.15rem, 3.5vw, 1.75rem) !important;
+  border-radius: 1.5rem !important;
+  background: linear-gradient(145deg, rgba(5, 22, 43, .96), rgba(4, 16, 33, .96)) !important;
+  box-shadow: 0 18px 54px rgba(0, 0, 0, .34), inset 0 1px 0 rgba(255,255,255,.06) !important;
+}
+.gcm-term-card h2 {
+  font-size: clamp(1.25rem, 3.5vw, 1.55rem);
+  line-height: 1.35;
+}
+.gcm-law-panel {
+  padding: clamp(1rem, 3vw, 1.25rem) !important;
+  border-radius: 1.25rem !important;
+}
+.gcm-term-card .gcm-accept-button,
+.gcm-term-card .gcm-refuse-button {
+  width: 100%;
+  min-height: 3.45rem;
+  font-size: 1rem;
+}
+@media (max-width: 600px) {
+  .gcm-term-header {
+    min-height: 5.1rem;
+    padding: .85rem 1rem !important;
+  }
+  .gcm-term-main {
+    min-height: calc(100svh - 5.1rem);
+    padding-top: clamp(18rem, 39vh, 23rem) !important;
+    padding-bottom: max(2rem, env(safe-area-inset-bottom)) !important;
+  }
+  .gcm-term-main::before {
+    height: 34rem;
+  }
+  .gcm-term-main::after {
+    top: .4rem;
+    right: -3rem;
+    width: min(92vw, 27rem);
+    opacity: .62;
+  }
+  .gcm-term-card {
+    padding: 1.15rem !important;
+    border-radius: 1.4rem !important;
+  }
+  .gcm-term-card h2 {
+    font-size: 1.3rem;
+    line-height: 1.4;
+  }
+  .gcm-term-card .gcm-accept-button {
+    min-height: 3.5rem;
+  }
+  .gcm-term-card .gcm-refuse-button {
+    min-height: 3.25rem;
+  }
+}
