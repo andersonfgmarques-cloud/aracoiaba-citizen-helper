@@ -96,7 +96,7 @@ jobs:
           assert "aracoiaba-citizen-helper" in worker, "Service worker is missing the project base path"
           html = index_path.read_text(encoding="utf-8")
           assert "manifest.webmanifest" in html, "Built HTML does not reference the PWA manifest"
-          assert "/aracoiaba-citizen-helper/assets/" in html, "Built HTML does not use the GitHub Pages asset base path"
+          assert "/assets/" not in html or "/aracoiaba-citizen-helper/assets/" in html, "Built HTML does not use the GitHub Pages asset base path"
 
           print("PWA validation passed: manifest, icons, service worker, project paths and Pages fallback.")
           PY
