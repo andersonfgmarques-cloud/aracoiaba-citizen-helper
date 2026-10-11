@@ -290,7 +290,7 @@ function AdminPage() {
       <main className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
         <form onSubmit={login} className="w-full max-w-md space-y-5 rounded-2xl border border-border bg-card p-6 shadow-xl">
           <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-primary/15 p-3 text-primary"><ShieldCheck className="h-7 w-7" /></div>
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 p-1.5"><img src="/aracoiaba-citizen-helper/gcm-metal-badge.webp" alt="Distintivo metálico da Guarda Civil Municipal" className="h-full w-full object-contain drop-shadow-md" /></div>
             <div><h1 className="text-xl font-bold">Administração CAD</h1><p className="text-sm text-muted-foreground">GCM Araçoiaba da Serra</p></div>
           </div>
           <p className="text-sm text-muted-foreground">Entre com a conta administrativa autorizada. A permissão será validada também pelo banco de dados.</p>
@@ -325,7 +325,7 @@ function AdminPage() {
     <main className="min-h-screen bg-background">
       <header className="border-b border-border bg-card/90 px-4 py-4 md:px-8">
         <div className="mx-auto flex max-w-7xl items-center gap-3">
-          <div className="rounded-xl bg-primary/15 p-2.5 text-primary"><ShieldCheck className="h-7 w-7" /></div>
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 p-1.5"><img src="/aracoiaba-citizen-helper/gcm-metal-badge.webp" alt="Distintivo metálico da Guarda Civil Municipal" className="h-full w-full object-contain drop-shadow-md" /></div>
           <div className="min-w-0 flex-1"><p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">GCM · Araçoiaba da Serra</p><h1 className="text-xl font-bold md:text-2xl">Painel Administrativo</h1><p className="text-xs text-muted-foreground">{session.user.email}</p></div>
           <button onClick={() => void load()} disabled={loading} className="rounded-lg bg-secondary p-2.5" title="Atualizar dados"><RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /></button>
           <button onClick={signOut} className="rounded-lg bg-secondary p-2.5" title="Sair"><LogOut className="h-4 w-4" /></button>
