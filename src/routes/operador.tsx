@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import {
   LogOut,
   MapPin,
@@ -461,9 +462,11 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
         .maybeSingle();
       if (error || !data) {
         await load();
-        window.alert(error
+        toast.error(error
           ? `Não foi possível salvar a alteração: ${error.message}`
-          : "Esta ocorrência foi alterada por outro operador. A lista foi atualizada; confira o status antes de tentar novamente.");
+          : "Esta ocorrência foi alterada por outro operador. A lista foi atualizada; confira o status antes de tentar novamente.", {
+            duration: 5000,
+          });
         return false;
       }
 
@@ -486,9 +489,14 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
         observacao: data.observacao,
       });
       if (historicoError) {
-        window.alert(`A ocorrência foi atualizada, mas o histórico não foi salvo: ${historicoError.message}`);
+        toast.error(`A ocorrência foi atualizada, mas o histórico não foi salvo: ${historicoError.message}`, {
+          duration: 6000,
+        });
       } else {
-        window.alert(`${acao} registrado com sucesso.`);
+        toast.success(`${acao} registrado com sucesso.`, {
+          duration: 2500,
+          description: "Registro operacional atualizado.",
+        });
       }
       return true;
     } finally {
