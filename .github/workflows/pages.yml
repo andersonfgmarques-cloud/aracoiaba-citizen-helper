@@ -73,13 +73,20 @@ jobs:
                   text = path.read_text(encoding="utf-8")
                   text = text.replace("/assets/", "/aracoiaba-citizen-helper/assets/")
                   text = text.replace('="/favicon.ico"', '="/aracoiaba-citizen-helper/favicon.ico"')
+                  # PWA links must also stay under the repository subpath.
+                  for filename in ("manifest.webmanifest", "sw.js", "android-chrome-192x192.png", "android-chrome-512x512.png"):
+                      text = text.replace(f'="/{filename}"', f'="/aracoiaba-citizen-helper/{filename}"')
+                      text = text.replace(f'="/{filename}?', f'="/aracoiaba-citizen-helper/{filename}?')
+                      text = text.replace(f'"/{filename}"', f'"/aracoiaba-citizen-helper/{filename}"')
                   path.write_text(text, encoding="utf-8")
 
-          # Fail the build if bundled assets still point to the domain root.
+          # Fail the build if assets or PWA entry points still target the domain root.
           for pattern in ("*.html", "*.js", "*.css"):
               for path in root.rglob(pattern):
                   text = path.read_text(encoding="utf-8")
                   assert '="/assets/' not in text and '"/assets/' not in text, f"Root-relative asset path remains in {path}"
+                  for filename in ("manifest.webmanifest", "sw.js", "android-chrome-192x192.png", "android-chrome-512x512.png"):
+                      assert f'="/{filename}"' not in text and f'"/{filename}"' not in text, f"Root-relative PWA path remains in {path}: {filename}"
           PY
 
       - name: Ensure GitHub Pages fallback
