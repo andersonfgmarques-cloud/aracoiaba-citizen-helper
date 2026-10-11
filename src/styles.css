@@ -260,3 +260,30 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
     transition-duration: .01ms !important;
   }
 }
+
+
+/* Tratamento visual compartilhado: cartões e cabeçalhos em todas as rotas */
+body .min-h-screen.bg-background {
+  background-color: transparent !important;
+}
+body .bg-card {
+  background-color: rgba(7, 24, 45, .88);
+  border-color: rgba(134, 166, 202, .23);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .16);
+}
+body .bg-secondary {
+  background-color: rgba(28, 49, 75, .82);
+}
+body .bg-input {
+  background-color: rgba(3, 14, 29, .84);
+}
+body .bg-header {
+  background: linear-gradient(110deg, rgba(5, 23, 46, .97), rgba(9, 34, 62, .91));
+  border-color: rgba(147, 177, 208, .22);
+}
+body input, body textarea, body select {
+  border-color: rgba(137, 168, 204, .3);
+}
+body input::placeholder, body textarea::placeholder {
+  color: rgba(197, 211, 229, .65);
+}
