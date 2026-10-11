@@ -822,3 +822,50 @@ body .mx-auto.flex.h-screen.max-w-lg.flex-col {
     background-size: cover, contain;
   }
 }
+
+
+/* Fundo padrão do aplicativo: imagem public/fundo.jpg em todas as telas. */
+body {
+  background-color: #041225 !important;
+  background-image:
+    linear-gradient(180deg, rgba(2, 10, 22, .48), rgba(2, 10, 22, .68)),
+    url('/aracoiaba-citizen-helper/fundo.jpg') !important;
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
+  background-size: cover, cover;
+  background-attachment: fixed, fixed;
+}
+body::before {
+  background-image:
+    linear-gradient(180deg, rgba(2, 10, 22, .12), rgba(2, 10, 22, .3)),
+    url('/aracoiaba-citizen-helper/fundo.jpg') !important;
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
+  background-size: cover, cover;
+  opacity: .38;
+}
+body::after {
+  background: linear-gradient(180deg, rgba(2, 8, 18, .12), rgba(2, 8, 18, .4));
+}
+.gcm-term-main::before {
+  background-image:
+    linear-gradient(180deg, rgba(2, 10, 22, .16) 0%, rgba(2, 10, 22, .3) 38%, rgba(2, 10, 22, .66) 70%, #041225 100%),
+    url('/aracoiaba-citizen-helper/fundo.jpg') !important;
+  background-repeat: no-repeat, no-repeat;
+  background-position: center, center;
+  background-size: cover, cover;
+  filter: saturate(.9) contrast(1.03);
+}
+@media (max-width: 600px) {
+  body {
+    background-attachment: scroll, scroll;
+  }
+  body::before {
+    background-position: center, center;
+    background-size: cover, cover;
+  }
+  .gcm-term-main::before {
+    background-position: center, center;
+    background-size: cover, cover;
+  }
+}
