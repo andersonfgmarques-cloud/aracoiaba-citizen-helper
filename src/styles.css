@@ -512,27 +512,91 @@ body .mx-auto.flex.h-screen.max-w-lg.flex-col > footer {
 }
 
 
-/* Fundo cartográfico real da região de Araçoiaba da Serra (imagem de satélite Esri).
-   O emblema institucional existente permanece como camada sobreposta. */
+/* Composição do termo: fundo panorâmico contínuo, brasão à direita e cartão legível.
+   Evita o efeito de um único tile retangular e remove o brasão duplicado do fundo global. */
+body:has(.gcm-term-shell)::before {
+  background-image: none !important;
+  opacity: 0 !important;
+}
+.gcm-term-shell {
+  width: 100%;
+  min-height: 100svh;
+  overflow: hidden;
+  background: #041225 !important;
+}
+.gcm-term-main {
+  position: relative;
+  isolation: isolate;
+  width: 100% !important;
+  max-width: none !important;
+  min-height: calc(100svh - 5.1rem);
+  margin: 0 !important;
+  align-items: center;
+  padding: clamp(18rem, 37vh, 25rem) clamp(1rem, 4vw, 3rem) 3rem !important;
+}
 .gcm-term-main::before {
+  content: "";
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   background-image:
-    linear-gradient(180deg, rgba(3, 14, 29, .04) 0%, rgba(3, 14, 29, .10) 36%, rgba(3, 14, 29, .66) 70%, #061326 100%),
-    url("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/11/1151/752");
-  background-size: cover, cover;
-  background-position: center, center 38%;
+    linear-gradient(180deg, rgba(2, 12, 25, .05) 0%, rgba(2, 12, 25, .12) 35%, rgba(2, 12, 25, .56) 66%, #041225 100%),
+    url("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?bbox=-47.78,-23.72,-47.48,-23.42&bboxSR=4326&size=2000,1300&imageSR=4326&format=jpg&f=image");
   background-repeat: no-repeat;
-  filter: saturate(.78) contrast(1.08);
+  background-size: cover;
+  background-position: center 43%;
+  filter: saturate(.82) contrast(1.04);
+  opacity: 1;
+  pointer-events: none;
 }
 .gcm-term-main::after {
-  background-image: url('/aracoiaba-citizen-helper/gcm-emblem.svg');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-  filter: grayscale(1) brightness(1.18) drop-shadow(0 10px 24px rgba(0,0,0,.42));
-  opacity: .68;
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: clamp(1rem, 3vh, 2.5rem);
+  right: clamp(0rem, 4vw, 5rem);
+  width: clamp(19rem, 39vw, 39rem);
+  aspect-ratio: 1;
+  background: url('/aracoiaba-citizen-helper/gcm-emblem.svg') center / contain no-repeat;
+  opacity: .72;
+  filter: grayscale(1) brightness(1.18) drop-shadow(0 10px 28px rgba(0,0,0,.5));
+  pointer-events: none;
+}
+.gcm-term-card {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 35rem);
+  max-width: 35rem;
+  margin: 0 auto !important;
+  padding: clamp(1.15rem, 2.4vw, 1.6rem) !important;
+  border: 1px solid rgba(119, 164, 204, .36) !important;
+  border-radius: 1.5rem !important;
+  background: linear-gradient(145deg, rgba(4, 19, 39, .96), rgba(3, 14, 30, .97)) !important;
+  box-shadow: 0 18px 54px rgba(0, 0, 0, .4), inset 0 1px 0 rgba(255,255,255,.06) !important;
+}
+@media (min-width: 900px) {
+  .gcm-term-main {
+    padding-top: clamp(20rem, 40vh, 28rem) !important;
+  }
 }
 @media (max-width: 600px) {
+  .gcm-term-main {
+    min-height: calc(100svh - 5.1rem);
+    padding: clamp(17rem, 35vh, 22rem) 1rem max(2rem, env(safe-area-inset-bottom)) !important;
+  }
   .gcm-term-main::before {
-    background-position: center, center 34%;
+    background-position: center 35%;
+  }
+  .gcm-term-main::after {
+    top: .4rem;
+    right: -2.2rem;
+    width: min(84vw, 24rem);
+    opacity: .68;
+  }
+  .gcm-term-card {
+    padding: 1.15rem !important;
+    border-radius: 1.35rem !important;
   }
 }
