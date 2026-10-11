@@ -13,6 +13,10 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
+// GitHub Pages hosts this repository under a project subpath, not the domain root.
+const PAGES_BASE_PATH = "/aracoiaba-citizen-helper/";
+const APP_BASE_PATH = import.meta.env.PROD ? PAGES_BASE_PATH : import.meta.env.BASE_URL;
+
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -66,7 +70,7 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
             Try again
           </button>
           <a
-            href={import.meta.env.BASE_URL}
+            href={APP_BASE_PATH}
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
             Go home
@@ -91,8 +95,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-title", content: "GCM Araçoiaba" },
     ],
     links: [
-      { rel: "manifest", href: `${import.meta.env.BASE_URL}manifest.webmanifest` },
-      { rel: "apple-touch-icon", href: `${import.meta.env.BASE_URL}android-chrome-192x192.png` },
+      { rel: "manifest", href: `${APP_BASE_PATH}manifest.webmanifest` },
+      { rel: "apple-touch-icon", href: `${APP_BASE_PATH}android-chrome-192x192.png` },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       {
         rel: "stylesheet",
@@ -102,7 +106,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: `${import.meta.env.BASE_URL}android-chrome-192x192.png`, type: "image/png" },
+      { rel: "icon", href: `${APP_BASE_PATH}android-chrome-192x192.png`, type: "image/png" },
     ],
   }),
   shellComponent: RootShell,
@@ -132,7 +136,7 @@ function RootComponent() {
     if (!("serviceWorker" in navigator) || import.meta.env.DEV) return;
 
     navigator.serviceWorker
-      .register(`${import.meta.env.BASE_URL}sw.js`, { scope: import.meta.env.BASE_URL })
+      .register(`${APP_BASE_PATH}sw.js`, { scope: APP_BASE_PATH })
       .catch((error: unknown) => {
         console.error("Não foi possível registrar o modo PWA:", error);
       });
