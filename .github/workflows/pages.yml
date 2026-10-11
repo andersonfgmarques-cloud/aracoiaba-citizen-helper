@@ -39,10 +39,21 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
         run: bun run build
 
-      - name: Ensure GCM emblem is included in Pages output
+      - name: Prepare PWA icons
         run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+
+          source = Path("public/android-chrome-192x192.png")
+          target = Path("dist/client/android-chrome-512x512.png")
+          target.parent.mkdir(parents=True, exist_ok=True)
+          with Image.open(source) as image:
+              image.convert("RGBA").resize((512, 512), Image.Resampling.LANCZOS).save(target, "PNG")
+          PY
           test -f public/android-chrome-192x192.png
           cp public/android-chrome-192x192.png dist/client/android-chrome-192x192.png
+          test -f dist/client/android-chrome-512x512.png
 
       - name: Fix project-site asset paths
         run: |
@@ -50,8 +61,6 @@ jobs:
           from pathlib import Path
 
           root = Path("dist/client")
-          prefix = "/aracoiaba-citizen-helper"
-
           for path in root.rglob("*.html"):
               text = path.read_text(encoding="utf-8")
               text = text.replace('="/assets/', '="/aracoiaba-citizen-helper/assets/')
