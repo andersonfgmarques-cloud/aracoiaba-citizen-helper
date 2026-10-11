@@ -50,13 +50,15 @@ jobs:
           from PIL import Image
 
           source = Path("public/android-chrome-192x192.png")
-          target = Path("dist/client/android-chrome-512x512.png")
-          target.parent.mkdir(parents=True, exist_ok=True)
+          target_dir = Path("dist/client")
+          target_dir.mkdir(parents=True, exist_ok=True)
           with Image.open(source) as image:
-              image.convert("RGBA").resize((512, 512), Image.Resampling.LANCZOS).save(target, "PNG")
+              rgba = image.convert("RGBA")
+              rgba.resize((192, 192), Image.Resampling.LANCZOS).save(target_dir / "android-chrome-192x192.png", "PNG")
+              rgba.resize((512, 512), Image.Resampling.LANCZOS).save(target_dir / "android-chrome-512x512.png", "PNG")
           PY
           test -f public/android-chrome-192x192.png
-          cp public/android-chrome-192x192.png dist/client/android-chrome-192x192.png
+          test -f dist/client/android-chrome-192x192.png
           test -f dist/client/android-chrome-512x512.png
 
       - name: Fix project-site asset paths
