@@ -510,3 +510,29 @@ body .mx-auto.flex.h-screen.max-w-lg.flex-col > footer {
     min-height: 3.25rem;
   }
 }
+
+
+/* Fundo cartográfico real da região de Araçoiaba da Serra (imagem de satélite Esri).
+   O emblema institucional existente permanece como camada sobreposta. */
+.gcm-term-main::before {
+  background-image:
+    linear-gradient(180deg, rgba(3, 14, 29, .04) 0%, rgba(3, 14, 29, .10) 36%, rgba(3, 14, 29, .66) 70%, #061326 100%),
+    url("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/11/1151/752");
+  background-size: cover, cover;
+  background-position: center, center 38%;
+  background-repeat: no-repeat;
+  filter: saturate(.78) contrast(1.08);
+}
+.gcm-term-main::after {
+  background-image: url('/aracoiaba-citizen-helper/gcm-emblem.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  filter: grayscale(1) brightness(1.18) drop-shadow(0 10px 24px rgba(0,0,0,.42));
+  opacity: .68;
+}
+@media (max-width: 600px) {
+  .gcm-term-main::before {
+    background-position: center, center 34%;
+  }
+}
