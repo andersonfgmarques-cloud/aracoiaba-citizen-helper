@@ -53,6 +53,51 @@ function formatDate(value: string | null | undefined) {
   return value ? new Date(value).toLocaleString("pt-BR") : "Nunca";
 }
 
+const AUDIT_ACTIONS: Record<string, { title: string; category: string; tone: string }> = {
+  operator_access_granted: { title: "Acesso de operador liberado", category: "Acesso", tone: "success" },
+  operator_access_revoked: { title: "Acesso de operador revogado", category: "Acesso", tone: "warning" },
+  user_account_deletion_requested: { title: "Solicitação de exclusão de conta", category: "Conta", tone: "warning" },
+  user_account_deleted: { title: "Conta de usuário excluída", category: "Conta", tone: "danger" },
+  occurrence_deleted: { title: "Ocorrência excluída", category: "Ocorrência", tone: "danger" },
+};
+
+const AUDIT_DETAIL_LABELS: Record<string, string> = {
+  enabled: "Acesso operacional",
+  target_email: "Conta afetada",
+  reason: "Justificativa",
+  requested_at: "Data da solicitação",
+  occurrence_protocol: "Protocolo",
+  protocol: "Protocolo",
+  status: "Status",
+  viatura: "Viatura",
+};
+
+function getAuditAction(action: string) {
+  return AUDIT_ACTIONS[action] ?? {
+    title: action.replace(/_/g, " ").replace(/^./, (letter) => letter.toUpperCase()),
+    category: "Sistema",
+    tone: "neutral",
+  };
+}
+
+function formatAuditValue(key: string, value: unknown) {
+  if (key === "enabled") return value === true ? "Liberado" : value === false ? "Revogado" : String(value);
+  if (key === "requested_at" && typeof value === "string") return formatDate(value);
+  if (typeof value === "boolean") return value ? "Sim" : "Não";
+  if (value === null || value === undefined || value === "") return "—";
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value);
+}
+
+function auditDetails(details: Json) {
+  if (!details || typeof details !== "object" || Array.isArray(details)) return [];
+  return Object.entries(details as Record<string, unknown>).map(([key, value]) => ({
+    key,
+    label: AUDIT_DETAIL_LABELS[key] ?? key.replace(/_/g, " ").replace(/^./, (letter) => letter.toUpperCase()),
+    value: formatAuditValue(key, value),
+  }));
+}
+
 function AdminPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [sessionReady, setSessionReady] = useState(false);
@@ -314,7 +359,51 @@ function AdminPage() {
         </section>}
         {allowed && tab === "auditoria" && <section className="overflow-hidden rounded-2xl border border-border bg-card">
           <div className="border-b border-border p-4"><h2 className="font-bold">Auditoria administrativa</h2><p className="mt-1 text-sm text-muted-foreground">Registro de liberações, bloqueios e exclusões com usuário responsável, data e detalhes.</p></div>
-          <div className="divide-y divide-border">{audit.length === 0 && <p className="p-5 text-sm text-muted-foreground">Nenhuma ação administrativa registrada até o momento.</p>}{audit.map((entry) => <article key={entry.id} className="p-4"><div className="flex flex-wrap items-start justify-between gap-2"><div><p className="font-semibold">{entry.action === "operator_access_granted" ? "Acesso de operador liberado" : entry.action === "operator_access_revoked" ? "Acesso de operador revogado" : entry.action === "occurrence_deleted" ? "Ocorrência excluída" : entry.action}</p><p className="mt-1 text-sm text-muted-foreground">Responsável: {entry.actor_email}</p>{entry.occurrence_id && <p className="text-xs text-muted-foreground">ID da ocorrência: {entry.occurrence_id}</p>}{entry.target_user_id && <p className="text-xs text-muted-foreground">ID do usuário: {entry.target_user_id}</p>}</div><time className="text-xs text-muted-foreground">{formatDate(entry.created_at)}</time></div><pre className="mt-2 whitespace-pre-wrap break-words rounded-lg bg-secondary/60 p-3 text-xs">{JSON.stringify(entry.details, null, 2)}</pre></article>)}</div>
+          <div className="divide-y divide-border">
+            {audit.length === 0 && <p className="p-5 text-sm text-muted-foreground">Nenhuma ação administrativa registrada até o momento.</p>}
+            {audit.map((entry) => {
+              const action = getAuditAction(entry.action);
+              const details = auditDetails(entry.details);
+              const toneClass = action.tone === "success"
+                ? "border-success/30 bg-success/10 text-success"
+                : action.tone === "warning"
+                  ? "border-amber-500/30 bg-amber-500/10 text-amber-500"
+                  : action.tone === "danger"
+                    ? "border-destructive/30 bg-destructive/10 text-destructive"
+                    : "border-border bg-secondary/70 text-muted-foreground";
+              return <article key={entry.id} className="p-4 md:p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-start gap-3">
+                    <div className={`mt-0.5 rounded-xl border p-2 ${toneClass}`}>
+                      {action.category === "Acesso" ? <ShieldCheck className="h-5 w-5" /> : action.category === "Ocorrência" ? <ClipboardList className="h-5 w-5" /> : <Users className="h-5 w-5" />}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="font-semibold">{action.title}</h3>
+                        <span className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${toneClass}`}>{action.category}</span>
+                      </div>
+                      <p className="mt-1 text-sm text-muted-foreground">Responsável: <span className="break-all text-foreground">{entry.actor_email || "Não identificado"}</span></p>
+                    </div>
+                  </div>
+                  <time dateTime={entry.created_at} className="text-xs text-muted-foreground">{formatDate(entry.created_at)}</time>
+                </div>
+                {details.length > 0 && <dl className="mt-4 grid gap-2 rounded-xl border border-border bg-background/40 p-3 sm:grid-cols-2">
+                  {details.map((detail) => <div key={detail.key} className="min-w-0">
+                    <dt className="text-xs text-muted-foreground">{detail.label}</dt>
+                    <dd className="mt-0.5 break-words text-sm font-medium">{detail.value}</dd>
+                  </div>)}
+                </dl>}
+                {(entry.target_user_id || entry.occurrence_id) && <details className="mt-3">
+                  <summary className="cursor-pointer text-xs font-medium text-muted-foreground hover:text-foreground">Detalhes técnicos e identificadores</summary>
+                  <dl className="mt-2 grid gap-2 rounded-lg bg-secondary/50 p-3 text-xs sm:grid-cols-2">
+                    {entry.target_user_id && <div className="min-w-0"><dt className="text-muted-foreground">ID do usuário</dt><dd className="break-all">{entry.target_user_id}</dd></div>}
+                    {entry.occurrence_id && <div className="min-w-0"><dt className="text-muted-foreground">ID da ocorrência</dt><dd className="break-all">{entry.occurrence_id}</dd></div>}
+                    <div className="min-w-0"><dt className="text-muted-foreground">Evento técnico</dt><dd className="break-all">{entry.action}</dd></div>
+                  </dl>
+                </details>}
+              </article>;
+            })}
+          </div>
         </section>}
         <p className="mt-5 text-xs text-muted-foreground">A interface não armazena senhas. Todas as ações privilegiadas são verificadas no banco e registradas na auditoria.</p>
       </div>
