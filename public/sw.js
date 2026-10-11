@@ -1,4 +1,4 @@
-const CACHE_NAME = "gcm-aracoiaba-shell-v1";
+const CACHE_NAME = "gcm-aracoiaba-shell-v2";
 const APP_BASE = "/aracoiaba-citizen-helper/";
 const APP_SHELL = [
   APP_BASE,
@@ -29,13 +29,19 @@ self.addEventListener("fetch", (event) => {
   const request = event.request;
   const url = new URL(request.url);
 
-  // Never intercept API, authentication, or non-GET requests.
+  // Never intercept API, authentication, cross-origin, or non-GET requests.
   if (request.method !== "GET" || url.origin !== self.location.origin) return;
   if (!url.pathname.startsWith(APP_BASE)) return;
 
   if (request.mode === "navigate") {
     event.respondWith(
-      fetch(request).catch(async () => {
+      fetch(request).then((response) => {
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(APP_BASE, copy));
+        }
+        return response;
+      }).catch(async () => {
         const cache = await caches.open(CACHE_NAME);
         return (await cache.match(APP_BASE)) || Response.error();
       })
@@ -43,18 +49,18 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Cache only same-origin static files; never cache Supabase data or responses.
+  // Network-first prevents stale JavaScript chunks from masking deployments.
+  // Cache successful same-origin static responses for offline fallback only.
   if (/\.(?:js|css|png|webp|ico|svg|woff2?|ttf|webmanifest)$/i.test(url.pathname)) {
     event.respondWith(
-      caches.match(request).then((cached) => {
-        const network = fetch(request).then((response) => {
-          if (response.ok && response.type === "basic") {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-          }
-          return response;
-        });
-        return cached || network;
+      fetch(request).then((response) => {
+        if (response.ok && response.type === "basic") {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+        }
+        return response;
+      }).catch(async () => {
+        return (await caches.match(request)) || Response.error();
       })
     );
   }
