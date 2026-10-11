@@ -61,6 +61,9 @@ jobs:
           (Path("dist/client") / source.name).write_bytes(source.read_bytes())
           PY
 
+      - name: Prepare GitHub Pages fallback
+        run: cp dist/client/index.html dist/client/404.html
+
       - name: Validate PWA manifest, service worker and Pages output
         run: |
           python - <<'PY'
