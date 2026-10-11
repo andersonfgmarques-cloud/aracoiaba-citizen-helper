@@ -79,7 +79,7 @@ jobs:
           for pattern in ("*.html", "*.js", "*.css"):
               for path in root.rglob(pattern):
                   text = path.read_text(encoding="utf-8")
-                  assert '="/assets/' not in text and "\\"/assets/" not in text, f"Root-relative asset path remains in {path}"
+                  assert '="/assets/' not in text and '"/assets/' not in text, f"Root-relative asset path remains in {path}"
           PY
 
       - name: Ensure GitHub Pages fallback
