@@ -88,7 +88,7 @@ jobs:
           for pattern in ("*.html", "*.js", "*.css"):
               for path in root.rglob(pattern):
                   text = path.read_text(encoding="utf-8")
-                  assert "/assets/" not in text, f"Root-relative asset path remains in {path}"
+                  assert not re.search(r"(?<!aracoiaba-citizen-helper)/assets/", text), f"Root-relative asset path remains in {path}"
                   for filename in ("manifest.webmanifest", "sw.js", "android-chrome-192x192.png", "android-chrome-512x512.png"):
                       assert f'="/{filename}"' not in text and f'"/{filename}"' not in text, f"Root-relative PWA path remains in {path}: {filename}"
           PY
