@@ -707,3 +707,61 @@ body:has(.gcm-term-shell)::after {
     border-radius: 1.35rem !important;
   }
 }
+
+
+/* Correção definitiva do brasão e da composição do termo conforme a referência aprovada. */
+.gcm-term-main::before {
+  background-image:
+    linear-gradient(180deg, rgba(2, 10, 22, .03) 0%, rgba(2, 10, 22, .08) 36%, rgba(2, 10, 22, .44) 63%, #041225 100%),
+    url('/aracoiaba-citizen-helper/consent-map-outline.svg'),
+    url("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?bbox=-47.78,-23.72,-47.48,-23.42&bboxSR=4326&size=2000,1300&imageSR=4326&format=jpg&f=image");
+  background-repeat: no-repeat, no-repeat, no-repeat;
+  background-position: center, left center, center 38%;
+  background-size: cover, clamp(28rem, 57vw, 68rem) 94%, cover;
+  filter: saturate(.88) contrast(1.04);
+}
+.gcm-term-main::after {
+  background-image: url('/aracoiaba-citizen-helper/gcm-metal-badge.webp') !important;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  width: clamp(22rem, 42vw, 43rem);
+  top: clamp(.5rem, 2vh, 1.5rem);
+  right: clamp(.25rem, 3vw, 4rem);
+  opacity: .9;
+  filter: drop-shadow(0 12px 28px rgba(0,0,0,.56));
+}
+.gcm-term-card {
+  width: min(100%, 31.5rem);
+  max-width: 31.5rem;
+}
+@media (min-width: 900px) {
+  .gcm-term-main {
+    padding-top: clamp(13rem, 25vh, 19rem) !important;
+    padding-bottom: 2rem !important;
+  }
+  .gcm-term-main::after {
+    width: clamp(25rem, 40vw, 43rem);
+    right: clamp(1rem, 3vw, 4rem);
+    opacity: .92;
+  }
+}
+@media (max-width: 600px) {
+  .gcm-term-main {
+    padding-top: clamp(11.5rem, 27vh, 17rem) !important;
+  }
+  .gcm-term-main::before {
+    background-position: center, left top, center 32%;
+    background-size: cover, min(100vw, 40rem) 65%, cover;
+  }
+  .gcm-term-main::after {
+    top: .25rem;
+    right: -1.4rem;
+    width: min(88vw, 25rem);
+    opacity: .92;
+  }
+  .gcm-term-card {
+    width: 100%;
+    max-width: 31.5rem;
+  }
+}
