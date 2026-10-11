@@ -1031,47 +1031,89 @@ textarea {
 }
 
 
-/* Enquadramento mobile do fundo original, sem deformar a arte. */
+/* Ajuste mobile real: prioriza mostrar a arte inteira na largura do telefone. */
 @media (max-width: 600px) {
   .gcm-term-shell {
+    width: 100%;
+    max-width: 100%;
     overflow-x: clip;
     overflow-y: visible;
   }
 
+  .gcm-term-header {
+    width: 100%;
+    min-height: 5.1rem;
+    padding: .85rem .75rem;
+    gap: .65rem;
+  }
+
+  .gcm-term-header h1 {
+    font-size: clamp(.88rem, 4vw, 1rem);
+    line-height: 1.2;
+  }
+
+  .gcm-term-header p {
+    font-size: .75rem;
+    line-height: 1.2;
+  }
+
+  .gcm-term-header img {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .gcm-term-header a {
+    padding: .55rem .65rem;
+    font-size: .7rem;
+  }
+
   .gcm-term-main {
-    padding-top: clamp(13rem, 29svh, 17rem) !important;
-    padding-bottom: max(1.5rem, env(safe-area-inset-bottom)) !important;
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    width: 100%;
+    min-height: calc(100svh - 5.1rem);
+    padding: clamp(10rem, 47vw, 13rem) .75rem 1.5rem !important;
   }
 
   .gcm-term-main::before {
     position: absolute;
     inset: 0 0 auto;
     width: 100%;
-    height: min(100svh, 48rem);
-    background-position: center top, center top !important;
+    height: clamp(14rem, 78vw, 21rem);
+    /* 100% auto mostra toda a largura da imagem, sem o corte do cover. */
+    background-position: top center, top center !important;
     background-repeat: no-repeat, no-repeat !important;
-    /* Ajusta a arte pela altura da tela mantendo a proporção original. */
-    background-size: auto 100%, auto 100% !important;
+    background-size: 100% auto, 100% auto !important;
     filter: none !important;
     opacity: 1 !important;
   }
 
   .gcm-term-main::after {
-    top: .75rem;
-    right: -2rem;
-    width: min(62vw, 17rem);
-    opacity: .42 !important;
+    top: .5rem;
+    right: -.8rem;
+    width: min(48vw, 12rem);
+    opacity: .3 !important;
   }
 
   .gcm-term-card {
+    position: relative;
     width: 100%;
-    max-width: 35rem;
-    padding: 1.1rem !important;
-    margin-inline: auto !important;
+    max-width: 100%;
+    min-width: 0;
+    padding: 1rem !important;
+    margin: 0 auto !important;
+    border-radius: 1.25rem;
+    overflow-wrap: anywhere;
   }
 
   .gcm-term-card h2 {
-    font-size: clamp(1.15rem, 5vw, 1.35rem);
-    line-height: 1.35;
+    font-size: clamp(1.1rem, 5vw, 1.35rem);
+    line-height: 1.32;
+  }
+
+  .gcm-term-card p,
+  .gcm-law-panel {
+    overflow-wrap: anywhere;
   }
 }
