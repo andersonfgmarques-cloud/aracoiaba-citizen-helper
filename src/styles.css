@@ -943,3 +943,21 @@ body::after {
     background-attachment: scroll, scroll !important;
   }
 }
+
+
+/* Ajuste de enquadramento: mostrar o mapa inteiro, sem cortar as bordas. */
+body {
+  background-position: center center, center center !important;
+  background-size: 100% 100%, 100% 100% !important;
+}
+.gcm-term-main::before {
+  background-position: center center, center center !important;
+  background-size: 100% 100%, 100% 100% !important;
+}
+@media (max-width: 600px) {
+  body,
+  .gcm-term-main::before {
+    background-position: center center, center center !important;
+    background-size: 100% 100%, 100% 100% !important;
+  }
+}
