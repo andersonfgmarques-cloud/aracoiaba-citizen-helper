@@ -330,7 +330,7 @@ function AdminPage() {
     <div class="signature"><div>Responsável pelo registro / conferência</div><div>Visto da chefia</div></div>
     <footer>Documento emitido pelo painel administrativo em ${escapeHtml(new Date().toLocaleString("pt-BR"))}. Contém dados pessoais e deve ser manuseado conforme as regras institucionais de sigilo e proteção de dados.</footer>
     <script>window.addEventListener('load',()=>{setTimeout(()=>window.print(),300)});</script></body></html>`;
-    const printWindow = window.open("", "_blank", "noopener,noreferrer");
+    const printWindow = window.open("", "_blank");
     if (!printWindow) {
       setError("O navegador bloqueou a janela de impressão. Permita pop-ups para este site e tente novamente.");
       return;
