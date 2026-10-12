@@ -356,12 +356,8 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           setConnectionStatus("disconnected");
           return;
         }
-        const { data: perfilData } = await supabase
-          .from("operator_profiles")
-          .select("nome_completo, matricula, cargo, lotacao")
-          .eq("user_id", session.user.id)
-          .maybeSingle();
-        if (active) setPerfilOperador(perfilData ?? null);
+        const { data: perfilData, error: perfilError } = await supabase.rpc("get_my_operator_profile");
+        if (active) setPerfilOperador(!perfilError ? perfilData?.[0] ?? null : null);
 
         const { data, error } = await supabase
           .from("user_roles")
