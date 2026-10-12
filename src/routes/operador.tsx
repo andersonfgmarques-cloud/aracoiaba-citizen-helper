@@ -782,7 +782,7 @@ function Detalhe({ o, update, saving, session }: {
 
   const despachoEquipe = [...historico].reverse().find((item) =>
     item.acao.toLowerCase().includes("despacho") &&
-    /\\[EQUIPE EMPENHADA\\]/i.test(item.observacao ?? ""),
+    /\[EQUIPE EMPENHADA\]/i.test(item.observacao ?? ""),
   );
   const integrantes = (() => {
     const texto = despachoEquipe?.observacao ?? o.observacao ?? "";
@@ -1000,7 +1000,7 @@ function Detalhe({ o, update, saving, session }: {
                   "",
                   "Informações do despacho:",
                   obs.trim(),
-                ].join("\\n");
+                ].join("\n");
                 const sucesso = await update(
                   o.id,
                   { status: "em_atendimento", viatura: vtr, observacao: equipe },
