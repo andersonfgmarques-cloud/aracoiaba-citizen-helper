@@ -357,6 +357,14 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           return;
         }
         const { data: perfilData, error: perfilError } = await supabase.rpc("get_my_operator_profile");
+        console.info("[CAD] Perfil funcional consultado", {
+          conta: session.user.email,
+          perfilEncontrado: Array.isArray(perfilData) && perfilData.length > 0,
+          quantidadeResultados: Array.isArray(perfilData) ? perfilData.length : null,
+        });
+        if (perfilError) {
+          console.error("[CAD] Falha ao consultar perfil funcional:", perfilError);
+        }
         if (active) setPerfilOperador(!perfilError ? perfilData?.[0] ?? null : null);
 
         const { data, error } = await supabase
