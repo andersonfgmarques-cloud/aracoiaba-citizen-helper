@@ -981,12 +981,12 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
           <div className="mt-2 flex items-center gap-2 text-xs"><CheckCircle2 className="h-4 w-4 text-primary" /> Declaração de veracidade: {veracidadeAceite ? "ACEITA" : "SEM REGISTRO DE ACEITE"}</div>
           {veracidadeAceite && <p className="mt-1 text-xs text-muted-foreground">Versão {veracidadeAceite[1]} · Aceite registrado em {new Date(veracidadeAceite[2]!).toLocaleString("pt-BR")}</p>}
         </div>
-        <p className="leading-relaxed">{descricaoLimpa}</p>
+        <p className="min-w-0 break-words leading-relaxed [overflow-wrap:anywhere]">{descricaoLimpa}</p>
         <a
           href={`https://www.google.com/maps/search/${encodeURIComponent(o.endereco + ", Araçoiaba da Serra - SP")}`}
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-2 text-sm text-primary"
+          className="flex min-w-0 items-start gap-2 break-words text-sm text-primary [overflow-wrap:anywhere]"
         >
           <MapPin className="h-4 w-4" /> {o.endereco}
         </a>
