@@ -588,7 +588,28 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
               Administração
             </Link>
           )}
-          <span className="text-right" title={`Conta: ${session?.user.email ?? TEMP_OPERATOR_EMAIL}`}>{perfilOperador ? <><span className="block font-semibold text-foreground">{perfilOperador.cargo} {perfilOperador.nome_completo}</span><span className="block text-[10px]">RM-{perfilOperador.matricula.replace(/^RM-/i, "").trim()}</span></> : (session?.user.email ?? TEMP_OPERATOR_EMAIL)}</span>
+          <div
+            className="flex min-w-0 max-w-[230px] flex-col rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 leading-tight"
+            title={`Conta: ${session?.user.email ?? TEMP_OPERATOR_EMAIL}`}
+          >
+            {perfilOperador ? (
+              <>
+                <span className="truncate text-[9px] font-bold uppercase tracking-[0.12em] text-primary">
+                  {perfilOperador.cargo}
+                </span>
+                <span className="truncate text-xs font-semibold text-foreground">
+                  {perfilOperador.nome_completo}
+                </span>
+                <span className="mt-1 self-start rounded bg-secondary px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-muted-foreground">
+                  RM-{perfilOperador.matricula.replace(/^RM-/i, "").trim()}
+                </span>
+              </>
+            ) : (
+              <span className="max-w-[190px] truncate text-xs font-semibold text-foreground">
+                {session?.user.email ?? TEMP_OPERATOR_EMAIL}
+              </span>
+            )}
+          </div>
           <button
             onClick={sair}
             aria-label="Sair"
