@@ -106,6 +106,8 @@ function Index() {
   const [contatoSelecionado, setContatoSelecionado] = useState<string | null>(null);
   const [medidaFile, setMedidaFile] = useState<File | null>(null);
   const [uploadingMedida, setUploadingMedida] = useState(false);
+  const [medidaFile, setMedidaFile] = useState<File | null>(null);
+  const [uploadingMedida, setUploadingMedida] = useState(false);
   const toggleVoiceInput = () => {
     if (isListening) {
       recognitionRef.current?.stop();
