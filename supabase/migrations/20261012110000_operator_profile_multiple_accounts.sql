@@ -87,3 +87,16 @@ $$;
 
 revoke all on function public.admin_link_operator_account(uuid, uuid) from public, anon;
 grant execute on function public.admin_link_operator_account(uuid, uuid) to authenticated;
+
+-- Link the known Gmail login to the existing functional profile without duplicating
+-- the unique functional registration number. The original Proton account remains linked.
+insert into public.operator_profile_accounts (user_id, profile_user_id)
+select gmail.id, profile.user_id
+from auth.users gmail
+join auth.users proton
+  on lower(proton.email) = 'andersonf.g.marques@proton.me'
+join public.operator_profiles profile
+  on profile.user_id = proton.id
+where lower(gmail.email) = 'andersonf.g.marques@gmail.com'
+on conflict (user_id) do update
+  set profile_user_id = excluded.profile_user_id;
