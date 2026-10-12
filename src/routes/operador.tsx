@@ -822,8 +822,12 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
     // Compatibilidade com registros antigos: exibe o perfil funcional, nunca o e-mail de login.
     if (observacao?.startsWith("[OPERADOR_LOGIN: ") && end !== undefined && end > 0) {
       const metadata = observacao.slice("[OPERADOR_LOGIN: ".length, end);
-      const perfil = metadata.match(/(?:^|\\|\\s*)PERFIL:\\s*(.+)$/i)?.[1]?.trim();
-      if (perfil) return perfil;
+      const perfilMarker = "PERFIL:";
+      const perfilIndex = metadata.indexOf(perfilMarker);
+      if (perfilIndex >= 0) {
+        const perfil = metadata.slice(perfilIndex + perfilMarker.length).trim();
+        if (perfil) return perfil;
+      }
     }
     if ((operadorId === session?.user.id || operadorId === perfilFuncionalUserId) && perfilOperador) {
       return `${perfilOperador.cargo} ${perfilOperador.nome_completo} · RM-${perfilOperador.matricula.replace(/^RM-/i, "").trim()}`;
