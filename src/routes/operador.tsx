@@ -839,6 +839,7 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
   };
   const termoAceite = o.descricao.match(/\[REGISTRO_TERMO_ART340: ACEITO_EM=([^\]\n]+)\]/);
   const veracidadeAceite = o.descricao.match(/\[REGISTRO_TERMO_VERACIDADE: VERSAO=([^;]+); ACEITO_EM=([^\]\n]+)\]/);
+  const anexoMedida = o.descricao.match(/\[ANEXO_MEDIDA_PROTETIVA: path=([^\]\n]+)\]/);
   const descricaoLimpa = o.descricao
     .replace(/\n?\[REGISTRO_TERMO_ART340: ACEITO_EM=[^\]\n]+\]/, "")
     .replace(/\n?\[REGISTRO_TERMO_VERACIDADE: VERSAO=[^;]+; ACEITO_EM=[^\]\n]+\]/, "")
@@ -985,6 +986,24 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
           {veracidadeAceite && <p className="mt-1 text-xs text-muted-foreground">Versão {veracidadeAceite[1]} · Aceite registrado em {new Date(veracidadeAceite[2]!).toLocaleString("pt-BR")}</p>}
         </div>
         <p className="min-w-0 break-words leading-relaxed [overflow-wrap:anywhere]">{descricaoLimpa}</p>
+        {anexoMedida && (
+          <button
+            type="button"
+            onClick={async () => {
+              const { data, error } = await supabase.storage
+                .from("gcm-medidas-protetivas")
+                .createSignedUrl(anexoMedida[1]!, 60);
+              if (error || !data?.signedUrl) {
+                toast.error("Não foi possível abrir o documento anexado.");
+                return;
+              }
+              window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+            }}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary/40 bg-secondary px-4 py-3 text-sm font-semibold text-primary"
+          >
+            <Printer className="h-4 w-4" /> Consultar medida protetiva anexada
+          </button>
+        )}
         <a
           href={`https://www.google.com/maps/search/${encodeURIComponent(o.endereco + ", Araçoiaba da Serra - SP")}`}
           target="_blank"
