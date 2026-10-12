@@ -838,6 +838,11 @@ function Index() {
                     </button>
                   </div>
                 )}
+                <p className="text-xs leading-relaxed text-muted-foreground" role="status">
+                  {medidaFile
+                    ? "Arquivo selecionado. Toque em Continuar para seguir com a triagem; o anexo será enviado ao registrar a ocorrência."
+                    : "Você pode informar os detalhes e continuar sem anexar documento. O atendimento não depende do envio da medida protetiva."}
+                </p>
               </section>
             )}
             <div className="flex gap-2">
@@ -873,11 +878,12 @@ function Index() {
               <button
                 type="submit"
                 disabled={uploadingMedida}
-                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-50"
-                aria-label={uploadingMedida ? "Enviando documento" : "Enviar"}
-                title={uploadingMedida ? "Enviando documento..." : "Enviar resposta"}
+                className="flex h-12 min-w-12 shrink-0 items-center justify-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:cursor-wait disabled:opacity-50"
+                aria-label={uploadingMedida ? "Enviando documento" : fieldsForCategory(form.category)[form.step]?.key === "medida_protetiva" ? "Continuar na triagem da medida protetiva" : "Enviar resposta"}
+                title={uploadingMedida ? "Enviando documento..." : "Avançar para a próxima etapa"}
               >
-                <Send className="h-5 w-5" />
+                <span>{uploadingMedida ? "Enviando..." : fieldsForCategory(form.category)[form.step]?.key === "medida_protetiva" ? "Continuar" : "Enviar"}</span>
+                <Send className="h-4 w-4" />
               </button>
             </div>
           </form>
