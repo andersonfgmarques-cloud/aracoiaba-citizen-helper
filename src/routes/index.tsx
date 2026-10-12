@@ -270,6 +270,25 @@ function Index() {
       const prioridade = ["Atitude suspeita", "Perturbação do sossego", "Violência doméstica", "Descumprimento de medida protetiva de urgência"].includes(form.category)
         ? "alta"
         : "media";
+      let anexoPath: string | null = null;
+      if (medidaFile) {
+        setUploadingMedida(true);
+        const safeName = medidaFile.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-100);
+        const { data: uploaded, error: uploadError } = await supabase.storage
+          .from("gcm-medidas-protetivas")
+          .upload(`${protocol}/${Date.now()}-${safeName}`, medidaFile, { contentType: medidaFile.type, upsert: false });
+        setUploadingMedida(false);
+        if (uploadError) {
+          setMsgs((m) => [...m, { from: "bot", text: "Não foi possível anexar o arquivo. Remova o anexo para registrar a solicitação sem documento ou tente novamente." }]);
+          return;
+        }
+        anexoPath = uploaded.path;
+      }
+      const dadosTriagem = [
+        data["agressor_local"] ? `\n\n[TRIAGEM_VIOLENCIA_DOMESTICA: POSSIVEL_AGRESSOR=${data["agressor_local"]}]` : "",
+        data["medida_protetiva"] ? `\n[TRIAGEM_MEDIDA_PROTETIVA: ${data["medida_protetiva"]}]` : "",
+        anexoPath ? `\n[ANEXO_MEDIDA_PROTETIVA: path=${anexoPath}]` : "",
+      ].join("");
       const payload = {
         protocolo: protocol,
         categoria: form.category,
@@ -279,7 +298,7 @@ function Index() {
         endereco_solicitante: data["endereco_solicitante"]!,
         telefone: data["telefone"]!,
         endereco: data["endereco"]!,
-        descricao: `${data["descricao"]!}\n\n[REGISTRO_TERMO_ART340: ACEITO_EM=${termoAceitoEm ?? new Date().toISOString()}]\n[REGISTRO_TERMO_VERACIDADE: VERSAO=1; ACEITO_EM=${veracidadeAceitaEm ?? new Date().toISOString()}]`,
+        descricao: `${data["descricao"]!}${dadosTriagem}\n\n[REGISTRO_TERMO_ART340: ACEITO_EM=${termoAceitoEm ?? new Date().toISOString()}]\n[REGISTRO_TERMO_VERACIDADE: VERSAO=1; ACEITO_EM=${veracidadeAceitaEm ?? new Date().toISOString()}]`,
       };
       // Envio obrigatório ao CAD: até 3 tentativas antes de informar falha
       let insertError: { message: string } | null = null;
