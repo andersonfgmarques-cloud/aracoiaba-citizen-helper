@@ -1076,7 +1076,7 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
                 ].join("\n");
                 const sucesso = await update(
                   o.id,
-                  { status: "em_atendimento", viatura: vtr, observacao: equipe, despachado_por: session!.user.id },
+                  { status: "em_atendimento", viatura: vtr, observacao: equipe },
                   "Despacho realizado — equipe acionada e atendimento iniciado",
                 );
                 if (sucesso) {
