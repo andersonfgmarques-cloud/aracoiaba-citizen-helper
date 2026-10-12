@@ -349,7 +349,13 @@ function AdminPage() {
       "<p>Estou ciente de que a apresentação de informações falsas ou a inserção de declarações inverídicas em documentos poderá acarretar responsabilização civil, administrativa e/ou criminal, conforme a legislação aplicável, especialmente o artigo 299 do Código Penal Brasileiro, quando presentes os requisitos legais para sua configuração.</p>" +
       "<p>Declaro, ainda, estar ciente de que o fornecimento de informações corretas é essencial para o adequado registro, análise e encaminhamento da solicitação à Guarda Civil Municipal.</p><p><strong>Registro de aceite:</strong> " + (veracidade ? "ACEITO · versão " + escapeHtml(veracidade[1]!) + " · " + escapeHtml(formatDate(veracidade[2]!)) : "Sem registro de aceite") + "</p></div>";
     const history = occurrenceHistory.length
-      ? occurrenceHistory.map((item) => `<tr><td>${escapeHtml(formatDate(item.criado_em))}</td><td>${escapeHtml(item.acao)}</td><td>${escapeHtml(item.status_anterior || "—")} → ${escapeHtml(item.status_novo || "—")}</td><td>${escapeHtml(item.viatura || "—")}</td><td>${escapeHtml(item.observacao || "—")}</td></tr>`).join("")
+      ? occurrenceHistory.map((item) => {
+          const marker = "[OPERADOR_FUNCIONAL: ";
+          const markerEnd = item.observacao?.indexOf("]") ?? -1;
+          const operador = item.observacao?.startsWith(marker) && markerEnd > marker.length ? item.observacao.slice(marker.length, markerEnd) : item.operador_id;
+          const observacao = item.observacao?.startsWith(marker) && markerEnd >= 0 ? item.observacao.slice(markerEnd + 1).trim() : item.observacao;
+          return "<tr><td>" + escapeHtml(formatDate(item.criado_em)) + "</td><td>" + escapeHtml(item.acao) + "</td><td>" + escapeHtml(operador) + "</td><td>" + escapeHtml(item.status_anterior || "—") + " → " + escapeHtml(item.status_novo || "—") + "</td><td>" + escapeHtml(item.viatura || "—") + "</td><td>" + escapeHtml(observacao || "—") + "</td></tr>";
+        }).join("")
       : '<tr><td colspan="5">Nenhum histórico operacional disponível.</td></tr>';
     const doc = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Ocorrência ${escapeHtml(o.protocolo)}</title><style>
       @page{size:A4;margin:16mm}*{box-sizing:border-box}body{font:12px Arial,sans-serif;color:#111;margin:0}
