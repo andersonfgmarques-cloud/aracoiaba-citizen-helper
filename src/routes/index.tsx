@@ -233,16 +233,13 @@ function Index() {
     const activeFields = fieldsForCategory(form.category);
     const f = activeFields[form.step]!;
     const attachmentOnly = f.key === "medida_protetiva" && !!medidaFile && !input.trim();
-    if (!input.trim() && !attachmentOnly) {
-      if (f.key === "medida_protetiva") {
-        setMsgs((m) => [
-          ...m,
-          { from: "bot", text: "Para continuar, informe se existe medida protetiva e se houve descumprimento. Se preferir, anexe a foto ou o PDF e toque em Enviar novamente. O documento é complementar e não é obrigatório para receber atendimento." },
-        ]);
-      }
-      return;
-    }
-    let value = attachmentOnly ? "Documento anexado; detalhes adicionais não informados." : input.trim();
+    const optionalProtectiveOrderStep = f.key === "medida_protetiva" && !input.trim() && !medidaFile;
+    if (!input.trim() && !attachmentOnly && !optionalProtectiveOrderStep) return;
+    let value = attachmentOnly
+      ? "Documento anexado; detalhes adicionais não informados."
+      : optionalProtectiveOrderStep
+        ? "Não informado; documento não anexado."
+        : input.trim();
     if ((f.key as string) === "cpf") {
       const d = value.replace(/\D/g, "");
       if (!validaCpf(d)) {
