@@ -133,6 +133,7 @@ function AdminPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [occurrences, setOccurrences] = useState<AdminOccurrence[]>([]);
   const [audit, setAudit] = useState<AuditEntry[]>([]);
+  const [selectedAudit, setSelectedAudit] = useState<AuditEntry | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [busyId, setBusyId] = useState("");
@@ -155,6 +156,23 @@ function AdminPage() {
     });
     return () => data.subscription.unsubscribe();
   }, []);
+
+
+  const printAuditReport = (entry: AuditEntry) => {
+    const esc = (value: unknown) => String(value ?? "—").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]!);
+    const action = getAuditAction(entry.action);
+    const details = auditDetails(entry.details);
+    const rows = details.map((item) => "<tr><th>" + esc(item.label) + "</th><td>" + esc(item.value) + "</td></tr>").join("") || "<tr><th>Detalhes</th><td>Não há detalhes adicionais registrados.</td></tr>";
+    const technical = [["ID do evento", entry.id], ["Ação técnica", entry.action], ["ID da conta afetada", entry.target_user_id], ["ID da ocorrência", entry.occurrence_id]].filter((item) => item[1]).map((item) => "<tr><th>" + esc(item[0]) + "</th><td>" + esc(item[1]) + "</td></tr>").join("");
+    const win = window.open("", "_blank");
+    if (!win) { setError("O navegador bloqueou a janela do relatório. Permita pop-ups e tente novamente."); return; }
+    win.document.write("<!doctype html><html lang='pt-BR'><head><meta charset='utf-8'><title>Relatório de auditoria</title><style>@page{size:A4;margin:18mm}body{font:11pt Arial,sans-serif;color:#111827;line-height:1.45}header{text-align:center;border-bottom:2px solid #172554;padding-bottom:14px;margin-bottom:22px}h1{font-size:17pt}h2{font-size:12pt;margin:22px 0 8px}table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{text-align:left;vertical-align:top;border:1px solid #d1d5db;padding:8px;overflow-wrap:anywhere}th{width:34%;background:#f3f4f6}footer{margin-top:28px;border-top:1px solid #9ca3af;padding-top:8px;font-size:8pt;color:#4b5563}</style></head><body>" +
+      "<header><h1>Guarda Civil Municipal</h1><p>Araçoiaba da Serra — SP</p><p>Relatório de auditoria administrativa</p></header>" +
+      "<h2>Identificação do evento</h2><table><tr><th>Evento</th><td>" + esc(action.title) + "</td></tr><tr><th>Categoria</th><td>" + esc(action.category) + "</td></tr><tr><th>Data e hora</th><td>" + esc(formatDate(entry.created_at)) + "</td></tr><tr><th>Responsável</th><td>" + esc(entry.actor_email || "Não identificado") + "</td></tr></table>" +
+      "<h2>Detalhes registrados</h2><table>" + rows + "</table><h2>Identificadores técnicos</h2><table>" + (technical || "<tr><th>Identificadores</th><td>Não disponíveis</td></tr>") + "</table>" +
+      "<footer>Relatório gerado em " + esc(formatDate(new Date().toISOString())) + ". Documento baseado no registro original da auditoria; não altera o evento. Manusear conforme as normas institucionais de sigilo e proteção de dados.</footer></body></html>");
+    win.document.close(); win.focus(); win.print();
+  };
 
   const load = useCallback(async () => {
     if (!session) return;
@@ -505,6 +523,10 @@ function AdminPage() {
                     <dd className="mt-0.5 break-words text-sm font-medium">{detail.value}</dd>
                   </div>)}
                 </dl>}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button type="button" onClick={() => setSelectedAudit(entry)} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:bg-secondary"><Eye className="h-3.5 w-3.5" /> Visualizar relatório</button>
+                  <button type="button" onClick={() => printAuditReport(entry)} className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"><FileDown className="h-3.5 w-3.5" /> Imprimir / Salvar PDF</button>
+                </div>
                 {(entry.target_user_id || entry.occurrence_id) && <details className="mt-3">
                   <summary className="cursor-pointer text-xs font-medium text-muted-foreground hover:text-foreground">Detalhes técnicos e identificadores</summary>
                   <dl className="mt-2 grid gap-2 rounded-lg bg-secondary/50 p-3 text-xs sm:grid-cols-2">
@@ -517,6 +539,17 @@ function AdminPage() {
             })}
           </div>
         </section>}
+        {allowed && selectedAudit && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-labelledby="audit-detail-title">
+          <section className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-border bg-card shadow-2xl">
+            <div className="flex items-start justify-between gap-3 border-b border-border p-5"><div><p className="text-xs uppercase tracking-wide text-muted-foreground">Auditoria administrativa</p><h2 id="audit-detail-title" className="mt-1 text-xl font-bold">{getAuditAction(selectedAudit.action).title}</h2><p className="mt-1 text-sm text-muted-foreground">{formatDate(selectedAudit.created_at)}</p></div><button type="button" onClick={() => setSelectedAudit(null)} className="rounded-lg border border-border p-2" aria-label="Fechar detalhes"><X className="h-4 w-4" /></button></div>
+            <div className="space-y-5 p-5"><div className="grid gap-3 sm:grid-cols-2"><div className="rounded-xl border border-border p-3"><p className="text-xs text-muted-foreground">Categoria</p><p className="mt-1 font-semibold">{getAuditAction(selectedAudit.action).category}</p></div><div className="rounded-xl border border-border p-3"><p className="text-xs text-muted-foreground">Responsável</p><p className="mt-1 break-all font-semibold">{selectedAudit.actor_email || "Não identificado"}</p></div></div>
+              <div><h3 className="mb-2 font-semibold">Detalhes registrados</h3>{auditDetails(selectedAudit.details).length ? <dl className="grid gap-2 sm:grid-cols-2">{auditDetails(selectedAudit.details).map((detail) => <div key={detail.key} className="rounded-lg border border-border p-3"><dt className="text-xs text-muted-foreground">{detail.label}</dt><dd className="mt-1 break-words text-sm font-medium">{detail.value}</dd></div>)}</dl> : <p className="rounded-lg border border-border p-3 text-sm text-muted-foreground">Este evento não possui detalhes adicionais registrados.</p>}</div>
+              <div><h3 className="mb-2 font-semibold">Detalhes técnicos e identificadores</h3><dl className="grid gap-2 rounded-xl bg-secondary/40 p-3 sm:grid-cols-2"><div><dt className="text-xs text-muted-foreground">ID do evento</dt><dd className="break-all text-sm">{selectedAudit.id}</dd></div><div><dt className="text-xs text-muted-foreground">Ação técnica</dt><dd className="break-all text-sm">{selectedAudit.action}</dd></div>{selectedAudit.target_user_id && <div><dt className="text-xs text-muted-foreground">ID da conta afetada</dt><dd className="break-all text-sm">{selectedAudit.target_user_id}</dd></div>}{selectedAudit.occurrence_id && <div><dt className="text-xs text-muted-foreground">ID da ocorrência</dt><dd className="break-all text-sm">{selectedAudit.occurrence_id}</dd></div>}</dl></div>
+              <p className="text-xs text-muted-foreground">Esta visualização não permite alterar nem excluir o evento original.</p></div>
+            <div className="flex flex-wrap justify-end gap-2 border-t border-border p-4"><button type="button" onClick={() => setSelectedAudit(null)} className="rounded-xl border border-border px-4 py-2 text-sm font-semibold">Fechar</button><button type="button" onClick={() => printAuditReport(selectedAudit)} className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"><FileDown className="h-4 w-4" /> Imprimir / Salvar PDF</button></div>
+          </section>
+        </div>}
+
         <p className="mt-5 text-xs text-muted-foreground">A interface não armazena senhas. Todas as ações privilegiadas são verificadas no banco e registradas na auditoria.</p>
       </div>
     </main>
