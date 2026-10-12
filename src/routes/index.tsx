@@ -543,7 +543,7 @@ function Index() {
           m.from === "user" ? (
             <div
               key={i}
-              className="bubble-in ml-auto max-w-[80%] rounded-2xl rounded-br-sm bg-accent px-4 py-2.5 text-sm text-accent-foreground"
+              className="bubble-in ml-auto min-w-0 max-w-[80%] break-words rounded-2xl rounded-br-sm bg-accent px-4 py-2.5 text-sm text-accent-foreground [overflow-wrap:anywhere]"
             >
               {m.text}
             </div>
@@ -571,7 +571,7 @@ function Index() {
           ) : (
             <div
               key={i}
-              className={`bubble-in max-w-[88%] rounded-2xl rounded-bl-sm px-4 py-3 text-sm ${m.urgent ? "border border-destructive/60 bg-destructive/15" : "bg-card"}`}
+              className={`bubble-in min-w-0 max-w-[88%] break-words rounded-2xl rounded-bl-sm px-4 py-3 text-sm [overflow-wrap:anywhere] ${m.urgent ? "border border-destructive/60 bg-destructive/15" : "bg-card"}`}
             >
               {m.urgent && (
                 <div className="mb-1 flex items-center gap-1.5 text-xs font-bold uppercase text-destructive">
