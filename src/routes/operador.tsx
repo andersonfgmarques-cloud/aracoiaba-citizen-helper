@@ -775,6 +775,20 @@ function Detalhe({ o, update, saving, session }: {
   // O campo é para a próxima ação, não para reapresentar a observação já gravada na ocorrência.
   // Assim, ao reabrir ou selecionar novamente uma ocorrência, não repete o texto do despacho anterior.
   const [obs, setObs] = useState("");
+  const [ev, setEv] = useState("");
+  const [condutor, setCondutor] = useState("");
+  const [aux1, setAux1] = useState("");
+  const [aux2, setAux2] = useState("");
+
+  const despachoEquipe = [...historico].reverse().find((item) =>
+    item.acao.toLowerCase().includes("despacho") &&
+    /\\[EQUIPE EMPENHADA\\]/i.test(item.observacao ?? ""),
+  );
+  const integrantes = (() => {
+    const texto = despachoEquipe?.observacao ?? o.observacao ?? "";
+    const valor = (campo: string) => texto.match(new RegExp(`(?:^|\\n)${campo}:\\s*(.*)`, "i"))?.[1]?.trim() ?? "";
+    return { ev: valor("EV"), condutor: valor("Condutor"), aux1: valor("AUX \\(1\\)"), aux2: valor("AUX \\(2\\)") };
+  })();
 
   const imprimirRelatorio = () => {
     const escapeHtml = (value: unknown) =>
@@ -825,6 +839,13 @@ function Detalhe({ o, update, saving, session }: {
         <div class="field"><span class="label">Prioridade:</span> ${escapeHtml(o.prioridade)}</div>
         <div class="field"><span class="label">Data de registro:</span> ${escapeHtml(dataHora(o.created_at))}</div>
         <div class="field"><span class="label">Viatura:</span> ${escapeHtml(o.viatura)}</div>
+      </div>
+      <h2>Integrantes da equipe empenhada</h2>
+      <div class="grid">
+        <div class="field"><span class="label">EV — Encarregado:</span> ${escapeHtml(integrantes.ev)}</div>
+        <div class="field"><span class="label">Condutor:</span> ${escapeHtml(integrantes.condutor)}</div>
+        <div class="field"><span class="label">AUX (1):</span> ${escapeHtml(integrantes.aux1)}</div>
+        <div class="field"><span class="label">AUX (2):</span> ${escapeHtml(integrantes.aux2)}</div>
       </div>
       <h2>Dados do solicitante</h2>
       <div class="field"><span class="label">Nome:</span> ${escapeHtml(o.nome)}</div>
@@ -945,6 +966,14 @@ function Detalhe({ o, update, saving, session }: {
             </button>
           ))}
         </div>
+        {o.status !== "em_atendimento" && o.status !== "encerrada" && o.status !== "cancelada" && (
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block space-y-1.5"><span className="text-xs font-semibold text-muted-foreground">EV — Encarregado</span><input value={ev} onChange={(e) => setEv(e.target.value)} maxLength={160} placeholder="Nome do encarregado" className="w-full rounded-xl border bg-input p-3 text-sm outline-none focus:ring-2 focus:ring-ring" /></label>
+            <label className="block space-y-1.5"><span className="text-xs font-semibold text-muted-foreground">Condutor</span><input value={condutor} onChange={(e) => setCondutor(e.target.value)} maxLength={160} placeholder="Nome do condutor" className="w-full rounded-xl border bg-input p-3 text-sm outline-none focus:ring-2 focus:ring-ring" /></label>
+            <label className="block space-y-1.5"><span className="text-xs font-semibold text-muted-foreground">AUX (1)</span><input value={aux1} onChange={(e) => setAux1(e.target.value)} maxLength={160} placeholder="Nome do auxiliar 1 (opcional)" className="w-full rounded-xl border bg-input p-3 text-sm outline-none focus:ring-2 focus:ring-ring" /></label>
+            <label className="block space-y-1.5"><span className="text-xs font-semibold text-muted-foreground">AUX (2)</span><input value={aux2} onChange={(e) => setAux2(e.target.value)} maxLength={160} placeholder="Nome do auxiliar 2 (opcional)" className="w-full rounded-xl border bg-input p-3 text-sm outline-none focus:ring-2 focus:ring-ring" /></label>
+          </div>
+        )}
         <label className="block space-y-1.5">
           <span className="text-xs font-semibold text-muted-foreground">
             {o.status === "em_atendimento" ? "Desfecho do atendimento / providências adotadas" : "Equipe responsável / informações do despacho"}
@@ -960,15 +989,29 @@ function Detalhe({ o, update, saving, session }: {
         <div className="flex flex-wrap gap-2">
           {o.status !== "em_atendimento" && o.status !== "encerrada" && o.status !== "cancelada" && (
             <button
-              disabled={saving || !vtr || !obs.trim()}
+              disabled={saving || !vtr || !ev.trim() || !condutor.trim() || !obs.trim()}
               onClick={async () => {
+                const equipe = [
+                  "[EQUIPE EMPENHADA]",
+                  `EV: ${ev.trim()}`,
+                  `Condutor: ${condutor.trim()}`,
+                  `AUX (1): ${aux1.trim() || "Não informado"}`,
+                  `AUX (2): ${aux2.trim() || "Não informado"}`,
+                  "",
+                  "Informações do despacho:",
+                  obs.trim(),
+                ].join("\\n");
                 const sucesso = await update(
                   o.id,
-                  { status: "em_atendimento", viatura: vtr, observacao: obs.trim() },
+                  { status: "em_atendimento", viatura: vtr, observacao: equipe },
                   "Despacho realizado — equipe acionada e atendimento iniciado",
                 );
                 if (sucesso) {
                   setObs("");
+                  setEv("");
+                  setCondutor("");
+                  setAux1("");
+                  setAux2("");
                   setHistoricoRevision((revision) => revision + 1);
                 }
               }}
