@@ -203,7 +203,7 @@ function Index() {
       setForm({ category: n.category, step: 0, data: {} });
       setMsgs((m) => [
         ...m,
-        { from: "bot", text: n.text, contacts: n.contacts },
+        { from: "bot", text: n.text, contacts: n.contacts, urgent: !!n.urgent },
         { from: "bot", text: fieldsForCategory(n.category)[0]!.q },
       ]);
     }
@@ -226,6 +226,7 @@ function Index() {
     setVeracidadeAceitaEm(null);
     setNode("start");
     setInput("");
+    setMedidaFile(null);
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -323,6 +324,7 @@ function Index() {
         return;
       }
       setForm(null);
+      setMedidaFile(null);
       setNode("__done");
       setMsgs((m) => [
         ...m,
