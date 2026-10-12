@@ -282,7 +282,9 @@ function Index() {
           .upload(`${protocol}/${Date.now()}-${safeName}`, medidaFile, { contentType: medidaFile.type, upsert: false });
         setUploadingMedida(false);
         if (uploadError) {
-          setMsgs((m) => [...m, { from: "bot", text: "Não foi possível anexar o arquivo. Remova o anexo para registrar a solicitação sem documento ou tente novamente." }]);
+          setMedidaFile(null);
+          setInput(value);
+          setMsgs((m) => [...m, { from: "bot", text: "Não foi possível anexar o documento. A solicitação ainda não foi registrada. Você pode reenviar sem o anexo; o documento é opcional." }]);
           return;
         }
         anexoPath = uploaded.path;
