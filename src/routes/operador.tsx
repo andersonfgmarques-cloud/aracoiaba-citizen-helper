@@ -547,15 +547,15 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
     );
 
   return (
-    <div className="flex h-screen flex-col">
-      <header className="bg-header flex items-center gap-3 border-b px-5 py-3">
+    <div className="flex h-[100dvh] min-h-[100dvh] flex-col overflow-hidden">
+      <header className="bg-header flex flex-wrap items-center gap-x-3 gap-y-2 border-b px-3 py-2 sm:flex-nowrap sm:px-5 sm:py-3">
         <img
           src={`/aracoiaba-citizen-helper/android-chrome-192x192.png`}
           alt="Emblema da Guarda Civil Municipal"
-          className="h-8 w-8 rounded-full object-cover"
+          className="h-8 w-8 shrink-0 rounded-full object-cover"
         />
-        <h1 className="font-bold">CAD · Central de Despacho GCM</h1>
-        <span className={`ml-2 flex items-center gap-1.5 text-xs ${connectionStatus === "connected" ? "text-success" : connectionStatus === "connecting" ? "text-primary" : "text-destructive"}`} role="status" aria-live="polite">
+        <h1 className="min-w-0 flex-1 text-sm font-bold leading-tight sm:flex-none sm:text-base">CAD · Central de Despacho GCM</h1>
+        <span className={`ml-0 flex shrink-0 items-center gap-1 whitespace-nowrap text-[10px] sm:ml-2 sm:gap-1.5 sm:text-xs ${connectionStatus === "connected" ? "text-success" : connectionStatus === "connecting" ? "text-primary" : "text-destructive"}`} role="status" aria-live="polite">
           {connectionStatus === "connected" ? <Wifi className="h-3.5 w-3.5" /> : <WifiOff className="h-3.5 w-3.5" />}
           {connectionStatus === "connected" ? "Ao vivo" : connectionStatus === "connecting" ? "Conectando…" : "Sem conexão em tempo real"}
         </span>
@@ -572,11 +572,14 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
             Reconectar
           </button>
         )}
-        <div className="ml-auto flex items-center gap-3 text-xs text-muted-foreground">
+        <div className="w-full truncate text-[10px] text-muted-foreground sm:hidden">
+          {perfilOperador ? `${perfilOperador.cargo} ${perfilOperador.nome_completo} · RM-${perfilOperador.matricula.replace(/^RM-/i, "").trim()}` : (session?.user.email ?? TEMP_OPERATOR_EMAIL)}
+        </div>
+        <div className="ml-auto flex w-full flex-wrap items-center justify-end gap-2 text-xs text-muted-foreground sm:w-auto sm:flex-nowrap sm:gap-3">
           <button
             onClick={load}
             disabled={loadingOcs}
-            className="flex items-center gap-1.5 rounded-lg bg-secondary px-3 py-2 font-semibold text-foreground disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-lg bg-secondary px-2.5 py-2 font-semibold text-foreground disabled:opacity-50 sm:px-3"
             title="Atualizar ocorrências"
           >
             <RefreshCw className={`h-4 w-4 ${loadingOcs ? "animate-spin" : ""}`} />
@@ -584,7 +587,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           </button>
           <button
             onClick={toggleSound}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-2 font-semibold ${soundEnabled ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}
+            className={`flex items-center gap-1.5 rounded-lg px-2.5 py-2 font-semibold ${soundEnabled ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"} sm:px-3`}
             title={soundEnabled ? "Desativar alertas sonoros" : "Ativar alertas sonoros para novas ocorrências"}
             aria-pressed={soundEnabled}
           >
@@ -597,7 +600,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
             </Link>
           )}
           <div
-            className="flex min-w-0 max-w-[230px] flex-col rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 leading-tight"
+            className="hidden min-w-0 max-w-[230px] flex-col rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 leading-tight sm:flex"
             title={`Conta: ${session?.user.email ?? TEMP_OPERATOR_EMAIL}`}
           >
             {perfilOperador ? (
@@ -628,7 +631,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
         </div>
       </header>
 
-      <div className="grid grid-cols-2 gap-3 border-b p-4 md:grid-cols-4">
+      <div className="grid shrink-0 grid-cols-2 gap-2 border-b p-2 sm:gap-3 sm:p-4 md:grid-cols-4">
         {[
           ["pendente", Siren],
           ["despachada", Radio],
@@ -637,7 +640,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
         ].map(([s, Icon]) => {
           const I = Icon as typeof Siren;
           return (
-            <div key={s as string} className="flex items-center gap-3 rounded-xl bg-card p-3">
+            <div key={s as string} className="flex min-w-0 items-center gap-2 rounded-xl bg-card p-2.5 sm:gap-3 sm:p-3">
               <I className="h-5 w-5 text-primary" />
               <div>
                 <p className="font-display text-2xl font-bold">{cont(s as string)}</p>
@@ -648,9 +651,9 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
         })}
       </div>
 
-      <div className="flex min-h-0 flex-1">
-        <aside className="flex w-full flex-col border-r md:w-[420px]">
-          <div className="flex flex-wrap items-center gap-2 border-b px-3 py-2.5">
+      <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+        <aside className="flex min-h-0 w-full flex-1 flex-col border-r md:flex-none md:w-[420px]">
+          <div className="flex shrink-0 flex-wrap items-center gap-1.5 border-b px-2 py-2 sm:gap-2 sm:px-3 sm:py-2.5">
             {["ativas", "pendente", "despachada", "em_atendimento", "encerrada", "cancelada", "todas"].map(
               (f) => (
                 <button
@@ -658,7 +661,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
                   onClick={() => {
                     setFiltro(f);
                   }}
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${filtro === f ? "bg-primary text-primary-foreground" : "bg-secondary hover:bg-secondary/80"}`}
+                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[11px] font-semibold transition-colors sm:gap-1.5 sm:px-3 sm:text-xs ${filtro === f ? "bg-primary text-primary-foreground" : "bg-secondary hover:bg-secondary/80"}`}
                 >
                   {f === "pendente" && novasPendentes > 0 && (
                     <BellRing className="h-3.5 w-3.5 animate-pulse text-amber-400" aria-label="Novas ocorrências pendentes" />
@@ -673,7 +676,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
               ),
             )}
           </div>
-          <div className="flex-1 space-y-2 overflow-y-auto px-3 pb-3">
+          <div className="min-h-0 flex-1 space-y-2 overflow-y-auto px-2 pb-3 sm:px-3">
             {loadError && (
               <div className="m-2 rounded-xl border border-destructive/50 bg-destructive/10 p-3 text-xs">
                 <p className="font-bold text-destructive">Falha ao carregar ocorrências</p>
