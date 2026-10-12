@@ -785,7 +785,7 @@ function Detalhe({ o, update, saving, session }: {
     /\[EQUIPE EMPENHADA\]/i.test(item.observacao ?? ""),
   );
   const integrantes = (() => {
-    const texto = despachoEquipe?.observacao ?? o.observacao ?? "";
+    const texto = (despachoEquipe?.observacao ?? o.observacao ?? "").replace(/\\\\n/g, "\\n");
     const valor = (campo: string) => texto.match(new RegExp(`(?:^|\\n)${campo}:\\s*(.*)`, "i"))?.[1]?.trim() ?? "";
     return { ev: valor("EV"), condutor: valor("Condutor"), aux1: valor("AUX \\(1\\)"), aux2: valor("AUX \\(2\\)") };
   })();
