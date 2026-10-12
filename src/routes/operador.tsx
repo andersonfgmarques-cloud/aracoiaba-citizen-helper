@@ -780,7 +780,11 @@ function Detalhe({ o, update, saving, session }: {
   const despachoRegistrado = historico.find((item) => item.status_novo === "em_atendimento" || item.acao.toLowerCase().includes("despacho"));
   const encerramentoRegistrado = [...historico].reverse().find((item) => item.status_novo === "encerrada");
   const identificacaoOperador = (operadorId: string, observacao?: string | null) => {
-    const snapshot = observacao?.match(/^\\[OPERADOR_FUNCIONAL: ([^\\]]+)\\]/)?.[1];
+    const marker = "[OPERADOR_FUNCIONAL: ";
+    const markerEnd = observacao?.indexOf("]");
+    const snapshot = observacao?.startsWith(marker) && markerEnd !== undefined && markerEnd > marker.length
+      ? observacao.slice(marker.length, markerEnd)
+      : null;
     if (snapshot) return snapshot;
     if (operadorId === session?.user.id && perfilOperador) {
       return `${perfilOperador.cargo} ${perfilOperador.nome_completo} · RM-${perfilOperador.matricula.replace(/^RM[-\\s]*/i, "")}`;
