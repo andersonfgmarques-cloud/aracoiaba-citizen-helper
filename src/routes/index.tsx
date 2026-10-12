@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Phone, RotateCcw, Send, AlertTriangle, CheckCircle2, LayoutDashboard, Mic, MicOff, Paperclip } from "lucide-react";
+import { Phone, RotateCcw, Send, AlertTriangle, CheckCircle2, LayoutDashboard, Mic, MicOff, Paperclip, FileText, X } from "lucide-react";
 import { TREE, CONTACTS, type Contact } from "@/lib/triage";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -229,10 +229,12 @@ function Index() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form || !input.trim()) return;
+    if (!form) return;
     const activeFields = fieldsForCategory(form.category);
     const f = activeFields[form.step]!;
-    let value = input.trim();
+    const attachmentOnly = f.key === "medida_protetiva" && !!medidaFile && !input.trim();
+    if (!input.trim() && !attachmentOnly) return;
+    let value = attachmentOnly ? "Documento anexado; detalhes adicionais não informados." : input.trim();
     if ((f.key as string) === "cpf") {
       const d = value.replace(/\D/g, "");
       if (!validaCpf(d)) {
@@ -786,8 +788,48 @@ function Index() {
                 {speechError}
               </p>
             )}
+            {["Violência doméstica", "Descumprimento de medida protetiva de urgência"].includes(form.category) && fieldsForCategory(form.category)[form.step]?.key === "medida_protetiva" && (
+              <section className="space-y-2 rounded-2xl border border-primary/30 bg-secondary/40 p-3" aria-label="Anexar medida protetiva">
+                <div className="flex items-start gap-3">
+                  <div className="rounded-xl bg-primary/10 p-2 text-primary"><Paperclip className="h-5 w-5" /></div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold">Medida protetiva de urgência</p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Anexe uma foto ou PDF, se tiver. O documento é opcional e não impede o atendimento.</p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <label className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-primary/40 bg-background px-3 py-2 text-sm font-semibold text-foreground">
+                    <Paperclip className="h-4 w-4" />
+                    {medidaFile ? "Trocar arquivo" : "Escolher arquivo"}
+                    <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" className="sr-only" onChange={(e) => {
+                      const file = e.target.files?.[0] ?? null;
+                      if (file && file.size > 10 * 1024 * 1024) {
+                        setMsgs((m) => [...m, { from: "bot", text: "O arquivo deve ter no máximo 10 MB. Escolha um arquivo menor." }]);
+                        e.target.value = "";
+                        return;
+                      }
+                      if (file && !["image/jpeg", "image/png", "image/webp", "application/pdf"].includes(file.type)) {
+                        setMsgs((m) => [...m, { from: "bot", text: "Formato não aceito. Escolha uma foto JPG, PNG, WEBP ou um PDF." }]);
+                        e.target.value = "";
+                        return;
+                      }
+                      setMedidaFile(file);
+                    }} />
+                  </label>
+                  <span className="text-xs text-muted-foreground">JPG, PNG, WEBP ou PDF · máximo 10 MB</span>
+                </div>
+                {medidaFile && (
+                  <div className="flex min-w-0 items-center gap-2 rounded-xl border bg-background p-2.5">
+                    <FileText className="h-5 w-5 shrink-0 text-primary" />
+                    <span className="min-w-0 flex-1 break-all text-xs font-medium">{medidaFile.name}</span>
+                    <button type="button" aria-label="Remover arquivo anexado" onClick={() => setMedidaFile(null)} className="rounded-lg p-2 text-destructive hover:bg-destructive/10">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+              </section>
+            )}
             <div className="flex gap-2">
-              {["Violência doméstica", "Descumprimento de medida protetiva de urgência"].includes(form.category) && fieldsForCategory(form.category)[form.step]?.key === "medida_protetiva" && <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-primary/30 px-3 py-2 text-xs font-semibold"><Paperclip className="h-4 w-4" />{medidaFile ? medidaFile.name : "Anexar foto ou PDF da medida (opcional)"}<input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" className="sr-only" onChange={(e) => { const file = e.target.files?.[0] ?? null; if (file && file.size > 10 * 1024 * 1024) { setMsgs((m) => [...m, { from: "bot", text: "O arquivo deve ter no máximo 10 MB." }]); e.target.value = ""; return; } if (file && !["image/jpeg", "image/png", "image/webp", "application/pdf"].includes(file.type)) { setMsgs((m) => [...m, { from: "bot", text: "Envie uma foto JPG, PNG, WEBP ou um PDF." }]); e.target.value = ""; return; } setMedidaFile(file); }} /></label>}
               {fieldsForCategory(form.category)[form.step]?.key === "descricao" ? (
                 <textarea
                   autoFocus
