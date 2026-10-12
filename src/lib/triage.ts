@@ -20,7 +20,7 @@ export type Option = { label: string; next: string };
 export type Node =
   | { kind: "ask"; text: string; options: Option[] }
   | { kind: "route"; text: string; contacts: Contact[]; urgent?: boolean }
-  | { kind: "gcm"; text: string; category: string; contacts?: Contact[] };
+  | { kind: "gcm"; text: string; category: string; contacts?: Contact[]; urgent?: boolean };
 
 export const TREE: Record<string, Node> = {
   start: {
@@ -38,6 +38,7 @@ export const TREE: Record<string, Node> = {
       { label: "Pessoa ferida / passando mal", next: "r_samu" },
       { label: "Incêndio / pessoa presa", next: "r_bomb" },
       { label: "Crime acontecendo (assalto, arma, agressão)", next: "r_pm" },
+      { label: "Violência doméstica / agressão", next: "g_violencia_domestica" },
       { label: "Enchente / desabamento", next: "r_defesa" },
     ],
   },
@@ -70,7 +71,8 @@ export const TREE: Record<string, Node> = {
     options: [
       { label: "Perturbação do sossego / som alto", next: "g_sossego" },
       { label: "Pessoa ou veículo em atitude suspeita", next: "g_suspeito" },
-      { label: "Violência doméstica / Maria da Penha", next: "r_pm" },
+      { label: "Violência doméstica / Maria da Penha", next: "g_violencia_domestica" },
+      { label: "Descumprimento de medida protetiva", next: "g_descumprimento_medida" },
       { label: "Apoio em evento / ronda no bairro", next: "g_ronda" },
     ],
   },
@@ -157,6 +159,20 @@ export const TREE: Record<string, Node> = {
     kind: "route",
     text: "Tratando-se de sinistro de trânsito sem vítima, não é necessário aguardar viatura no local. Retirem os veículos da via (se possível e seguro), troquem os dados e façam registros fotográficos. O solicitante pode registrar o Boletim de Ocorrência online pela Delegacia Digital da Polícia Civil de São Paulo; o boletim é importante para o seguro.",
     contacts: [],
+  },
+  g_violencia_domestica: {
+    kind: "gcm",
+    urgent: true,
+    category: "Violência doméstica",
+    text: "A GCM pode receber sua solicitação e atuar dentro de suas atribuições, em articulação com a Polícia Militar e os demais serviços competentes. Se a agressão estiver acontecendo agora ou houver risco imediato, procure um local seguro e ligue 190 (Polícia Militar) ou 153 (GCM). Não aguarde o envio de documentos para pedir ajuda.",
+    contacts: [CONTACTS.gcm, CONTACTS.pm],
+  },
+  g_descumprimento_medida: {
+    kind: "gcm",
+    urgent: true,
+    category: "Descumprimento de medida protetiva de urgência",
+    text: "Informe o que aconteceu e quais restrições da medida protetiva podem ter sido descumpridas. Se houver risco imediato, procure um local seguro e ligue 190 (Polícia Militar) ou 153 (GCM). A foto ou PDF da decisão pode ser anexada opcionalmente; a falta do documento não impede o atendimento.",
+    contacts: [CONTACTS.gcm, CONTACTS.pm],
   },
   g_sossego: {
     kind: "gcm",
