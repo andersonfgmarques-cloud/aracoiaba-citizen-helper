@@ -274,25 +274,30 @@ function Index() {
         ? "alta"
         : "media";
       let anexoPath: string | null = null;
+      let anexoFalhou = false;
       if (medidaFile) {
         setUploadingMedida(true);
-        const safeName = medidaFile.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-100);
-        const { data: uploaded, error: uploadError } = await supabase.storage
-          .from("gcm-medidas-protetivas")
-          .upload(`${protocol}/${Date.now()}-${safeName}`, medidaFile, { contentType: medidaFile.type, upsert: false });
-        setUploadingMedida(false);
-        if (uploadError) {
-          setMedidaFile(null);
-          setInput(value);
-          setMsgs((m) => [...m, { from: "bot", text: "Não foi possível anexar o documento. A solicitação ainda não foi registrada. Você pode reenviar sem o anexo; o documento é opcional." }]);
-          return;
+        try {
+          const safeName = medidaFile.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-100);
+          const { data: uploaded, error: uploadError } = await supabase.storage
+            .from("gcm-medidas-protetivas")
+            .upload(`${protocol}/${Date.now()}-${safeName}`, medidaFile, { contentType: medidaFile.type, upsert: false });
+          if (uploadError) {
+            anexoFalhou = true;
+          } else {
+            anexoPath = uploaded.path;
+          }
+        } catch {
+          anexoFalhou = true;
+        } finally {
+          setUploadingMedida(false);
         }
-        anexoPath = uploaded.path;
       }
       const dadosTriagem = [
         data["agressor_local"] ? `\n\n[TRIAGEM_VIOLENCIA_DOMESTICA: POSSIVEL_AGRESSOR=${data["agressor_local"]}]` : "",
         data["medida_protetiva"] ? `\n[TRIAGEM_MEDIDA_PROTETIVA: ${data["medida_protetiva"]}]` : "",
         anexoPath ? `\n[ANEXO_MEDIDA_PROTETIVA: path=${anexoPath}]` : "",
+        anexoFalhou ? "\n[ANEXO_MEDIDA_PROTETIVA: ENVIO_FALHOU; DOCUMENTO_NAO_RECEBIDO]" : "",
       ].join("");
       const payload = {
         protocolo: protocol,
@@ -332,6 +337,7 @@ function Index() {
         ...m,
         { from: "user", text: input.trim() },
         { from: "done", protocol, category: form.category },
+        ...(anexoFalhou ? [{ from: "bot" as const, text: "A ocorrência foi registrada, mas o documento não pôde ser anexado. A equipe foi informada de que o arquivo não foi recebido. Se houver risco imediato, não aguarde o envio do documento." }] : []),
       ]);
     }
   };
