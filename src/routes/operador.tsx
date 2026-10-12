@@ -769,8 +769,12 @@ function Detalhe({ o, update, saving, session }: {
   const encerramentoRegistrado = [...historico].reverse().find((item) => item.status_novo === "encerrada");
   const identificacaoOperador = (operadorId: string) =>
     operadorId === session?.user.id ? (session?.user.email ?? operadorId) : operadorId;
-  const termoAceite = o.descricao.match(/\n\n\[REGISTRO_TERMO_ART340: ACEITO_EM=(.+)\]/);
-  const descricaoLimpa = o.descricao.replace(/\n\n\[REGISTRO_TERMO_ART340: ACEITO_EM=.+\]/, "");
+  const termoAceite = o.descricao.match(/\[REGISTRO_TERMO_ART340: ACEITO_EM=([^\]\n]+)\]/);
+  const veracidadeAceite = o.descricao.match(/\[REGISTRO_TERMO_VERACIDADE: VERSAO=([^;]+); ACEITO_EM=([^\]\n]+)\]/);
+  const descricaoLimpa = o.descricao
+    .replace(/\n?\[REGISTRO_TERMO_ART340: ACEITO_EM=[^\]\n]+\]/, "")
+    .replace(/\n?\[REGISTRO_TERMO_VERACIDADE: VERSAO=[^;]+; ACEITO_EM=[^\]\n]+\]/, "")
+    .trim();
   const [vtr, setVtr] = useState(o.viatura ?? "");
   // O campo é para a próxima ação, não para reapresentar a observação já gravada na ocorrência.
   // Assim, ao reabrir ou selecionar novamente uma ocorrência, não repete o texto do despacho anterior.
@@ -808,6 +812,9 @@ function Detalhe({ o, update, saving, session }: {
       : "<p>Não há movimentações registradas.</p>";
     const termoHtml = termoAceite
       ? `Aceito em ${escapeHtml(dataHora(termoAceite[1]!))}`
+      : "Sem registro de aceite";
+    const veracidadeHtml = veracidadeAceite
+      ? `Versão ${escapeHtml(veracidadeAceite[1]!)} · Aceito em ${escapeHtml(dataHora(veracidadeAceite[2]!))}`
       : "Sem registro de aceite";
     const relatorio = window.open("", "_blank", "width=900,height=700");
     if (!relatorio) {
@@ -854,7 +861,8 @@ function Detalhe({ o, update, saving, session }: {
       <div class="field"><span class="label">Endereço do solicitante:</span> ${escapeHtml(o.endereco_solicitante)}</div>
       <h2>Local da ocorrência</h2><div>${escapeHtml(o.endereco)}</div>
       <h2>Descrição da ocorrência</h2><div class="description">${escapeHtml(descricaoLimpa)}</div>
-      <h2>Termo de ciência do art. 340</h2><div>${termoHtml}</div>
+      <h2>Termo de ciência — art. 340 do Código Penal</h2><div class="description">O art. 340 do Código Penal trata de provocar a ação de autoridade comunicando ocorrência de crime ou contravenção que se sabe não ter ocorrido. Pena prevista: detenção, de 1 a 6 meses, ou multa.<p><strong>Registro de aceite:</strong> ${termoHtml}</p></div>
+      <h2>Declaração de Veracidade das Informações</h2><div class="description">Declaro, para os devidos fins, que as informações prestadas e os documentos apresentados neste atendimento são verdadeiros e correspondem à realidade, assumindo responsabilidade pela veracidade dos dados informados.<p>Estou ciente de que a apresentação de informações falsas ou a inserção de declarações inverídicas em documentos poderá acarretar responsabilização civil, administrativa e/ou criminal, conforme a legislação aplicável, especialmente o artigo 299 do Código Penal Brasileiro, quando presentes os requisitos legais para sua configuração.</p><p>Declaro, ainda, estar ciente de que o fornecimento de informações corretas é essencial para o adequado registro, análise e encaminhamento da solicitação à Guarda Civil Municipal.</p><p><strong>Registro de aceite:</strong> ${veracidadeHtml}</p></div>
       <h2>Observações operacionais</h2><div class="description">${escapeHtml(o.observacao)}</div>
       <h2>Histórico operacional</h2>${historicoHtml}
       <div class="signature">Responsável pelo registro / despacho</div>
@@ -905,6 +913,8 @@ function Detalhe({ o, update, saving, session }: {
             <CheckCircle2 className="h-4 w-4" /> Termo de ciência do art. 340: {termoAceite ? "ACEITO" : "SEM REGISTRO DE ACEITE"}
           </div>
           {termoAceite && <p className="mt-1 text-xs text-muted-foreground">Aceite registrado em {new Date(termoAceite[1]!).toLocaleString("pt-BR")}</p>}
+          <div className="mt-2 flex items-center gap-2 text-xs"><CheckCircle2 className="h-4 w-4 text-primary" /> Declaração de veracidade: {veracidadeAceite ? "ACEITA" : "SEM REGISTRO DE ACEITE"}</div>
+          {veracidadeAceite && <p className="mt-1 text-xs text-muted-foreground">Versão {veracidadeAceite[1]} · Aceite registrado em {new Date(veracidadeAceite[2]!).toLocaleString("pt-BR")}</p>}
         </div>
         <p className="leading-relaxed">{descricaoLimpa}</p>
         <a
