@@ -313,7 +313,7 @@ function AdminPage() {
     const dispatchEntry = [...occurrenceHistory].reverse().find((item) =>
       item.acao.toLowerCase().includes("despacho") && /\[EQUIPE EMPENHADA\]/i.test(item.observacao || ""),
     );
-    const dispatchText = dispatchEntry?.observacao || o.observacao || "";
+    const dispatchText = (dispatchEntry?.observacao || o.observacao || "").replace(/\\\\n/g, "\\n");
     const teamValue = (field: string) => dispatchText.match(new RegExp(`(?:^|\\n)${field}:\\s*(.*)`, "i"))?.[1]?.trim() || "Não informado";
     const team = [
       ["EV — Encarregado", teamValue("EV")],
