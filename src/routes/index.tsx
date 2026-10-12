@@ -94,8 +94,9 @@ function Index() {
   const endRef = useRef<HTMLDivElement | null>(null);
   const [preData, setPreData] = useState({ nome: "", cpf: "", endereco_solicitante: "" });
   const [preStep, setPreStep] = useState<0 | 1 | 2>(0);
-  const [ciencia, setCiencia] = useState<"termo" | "aceita" | "recusada">("termo");
+  const [ciencia, setCiencia] = useState<"termo" | "veracidade" | "aceita" | "recusada">("termo");
   const [termoAceitoEm, setTermoAceitoEm] = useState<string | null>(null);
+  const [veracidadeAceitaEm, setVeracidadeAceitaEm] = useState<string | null>(null);
   const [contatoSelecionado, setContatoSelecionado] = useState<string | null>(null);
   const toggleVoiceInput = () => {
     if (isListening) {
@@ -166,8 +167,13 @@ function Index() {
       setIsListening(false);
       setSpeechError("Não foi possível iniciar o microfone. Verifique a permissão do site no navegador e tente novamente.");
     }
-  };  const aceitarTermo = () => {
+  };
+  const aceitarTermo = () => {
     setTermoAceitoEm(new Date().toISOString());
+    setCiencia("veracidade");
+  };
+  const aceitarVeracidade = () => {
+    setVeracidadeAceitaEm(new Date().toISOString());
     setCiencia("aceita");
     setMsgs([]);
     setForm(null);
@@ -206,6 +212,8 @@ function Index() {
     setPreData({ nome: "", cpf: "", endereco_solicitante: "" });
     setPreStep(0);
     setCiencia("termo");
+    setTermoAceitoEm(null);
+    setVeracidadeAceitaEm(null);
     setNode("start");
     setInput("");
   };
@@ -262,7 +270,7 @@ function Index() {
         endereco_solicitante: data["endereco_solicitante"]!,
         telefone: data["telefone"]!,
         endereco: data["endereco"]!,
-        descricao: `${data["descricao"]!}\n\n[REGISTRO_TERMO_ART340: ACEITO_EM=${termoAceitoEm ?? new Date().toISOString()}]`,
+        descricao: `${data["descricao"]!}\n\n[REGISTRO_TERMO_ART340: ACEITO_EM=${termoAceitoEm ?? new Date().toISOString()}]\n[REGISTRO_TERMO_VERACIDADE: VERSAO=1; ACEITO_EM=${veracidadeAceitaEm ?? new Date().toISOString()}]`,
       };
       // Envio obrigatório ao CAD: até 3 tentativas antes de informar falha
       let insertError: { message: string } | null = null;
@@ -318,7 +326,7 @@ function Index() {
             <div className="w-full rounded-2xl border bg-card p-5 shadow-sm">
               <h2 className="text-lg font-bold text-destructive">Solicitação encerrada</h2>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                Você recusou a tomada de ciência do termo. O atendimento foi encerrado.
+                Você recusou um dos termos obrigatórios. O atendimento foi encerrado.
               </p>
               <button onClick={() => { setPreData({ nome: "", cpf: "", endereco_solicitante: "" }); setPreStep(0); setCiencia("termo"); }}
                 className="mt-5 w-full rounded-full bg-primary py-3 font-semibold text-primary-foreground">
@@ -361,6 +369,22 @@ function Index() {
               </button>
             </form>
           </main>
+        </div>
+      );
+    }
+
+    if (ciencia === "veracidade") {
+      return (
+        <div className="gcm-term-shell mx-auto flex min-h-screen w-full flex-col">
+          <header className="gcm-term-header bg-header flex items-center gap-3 border-b px-4 py-4 shadow-lg"><img src="/aracoiaba-citizen-helper/android-chrome-192x192.png" alt="Emblema da Guarda Civil Municipal" className="h-11 w-11 shrink-0 rounded-full object-contain" /><div className="min-w-0 flex-1"><h1 className="text-base font-bold">GCM Araçoiaba da Serra</h1><p className="text-xs text-muted-foreground">Atendimento ao cidadão</p></div><span className="rounded-full border border-primary/50 px-3 py-1 text-xs font-semibold text-primary">2 de 2</span></header>
+          <main className="gcm-term-main flex flex-1 items-center"><div className="gcm-term-card w-full rounded-2xl border bg-card p-5 shadow-sm">
+            <h2 className="text-lg font-bold">Declaração de Veracidade das Informações</h2><div className="mt-4 space-y-3 text-sm leading-relaxed">
+              <p>Declaro, para os devidos fins, que as informações prestadas e os documentos apresentados neste atendimento são verdadeiros e correspondem à realidade, assumindo responsabilidade pela veracidade dos dados informados.</p>
+              <p>Estou ciente de que a apresentação de informações falsas ou a inserção de declarações inverídicas em documentos poderá acarretar responsabilização civil, administrativa e/ou criminal, conforme a legislação aplicável, especialmente o artigo 299 do Código Penal Brasileiro, quando presentes os requisitos legais para sua configuração.</p>
+              <p>Declaro, ainda, estar ciente de que o fornecimento de informações corretas é essencial para o adequado registro, análise e encaminhamento da solicitação à Guarda Civil Municipal.</p>
+              <p className="gcm-term-note font-semibold">Ao marcar a opção de aceite, confirmo que li, compreendi e concordo com os termos desta declaração, estando ciente de que o aceite é obrigatório para prosseguir com o atendimento eletrônico.</p>
+            </div><div className="mt-5 grid gap-2"><button onClick={aceitarVeracidade} className="gcm-accept-button w-full rounded-full bg-primary py-3 font-semibold text-primary-foreground">Li e concordo — Prosseguir</button><button onClick={() => setCiencia("recusada")} className="gcm-refuse-button w-full rounded-full border border-destructive/60 py-3 font-semibold text-destructive">Recuso-me a aceitar a declaração</button></div>
+          </div></main>
         </div>
       );
     }
