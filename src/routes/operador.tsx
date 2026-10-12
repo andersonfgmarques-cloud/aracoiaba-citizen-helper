@@ -71,7 +71,7 @@ function Operador() {
   }, []);
 
   if (!ready) return null;
-  return session ? <Painel session={session} perfilOperador={perfilOperador} /> : <Login onLogin={setSession} />;
+  return session ? <Painel session={session} /> : <Login onLogin={setSession} />;
 }
 
 function Login({ onLogin }: { onLogin: (session: Session) => void }) {
