@@ -310,6 +310,18 @@ function AdminPage() {
       .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
     const o = viewingOccurrence;
     const row = (label: string, value: unknown) => `<div class="field"><span>${escapeHtml(label)}</span><p>${escapeHtml(value || "Não informado")}</p></div>`;
+    const dispatchEntry = [...occurrenceHistory].reverse().find((item) =>
+      item.acao.toLowerCase().includes("despacho") && /\\[EQUIPE EMPENHADA\\]/i.test(item.observacao || ""),
+    );
+    const dispatchText = dispatchEntry?.observacao || o.observacao || "";
+    const teamValue = (field: string) => dispatchText.match(new RegExp(`(?:^|\\n)${field}:\\s*(.*)`, "i"))?.[1]?.trim() || "Não informado";
+    const team = [
+      ["EV — Encarregado", teamValue("EV")],
+      ["Condutor", teamValue("Condutor")],
+      ["AUX (1)", teamValue("AUX \\(1\\)")],
+      ["AUX (2)", teamValue("AUX \\(2\\)")],
+    ];
+    const teamHtml = team.map(([label, value]) => row(label, value)).join("");
     const history = occurrenceHistory.length
       ? occurrenceHistory.map((item) => `<tr><td>${escapeHtml(formatDate(item.criado_em))}</td><td>${escapeHtml(item.acao)}</td><td>${escapeHtml(item.status_anterior || "—")} → ${escapeHtml(item.status_novo || "—")}</td><td>${escapeHtml(item.viatura || "—")}</td><td>${escapeHtml(item.observacao || "—")}</td></tr>`).join("")
       : '<tr><td colspan="5">Nenhum histórico operacional disponível.</td></tr>';
