@@ -501,9 +501,8 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
         : "Dados da ocorrência atualizados");
       const identidadeFuncional = perfilOperador
         ? `${perfilOperador.cargo} ${perfilOperador.nome_completo} · RM-${perfilOperador.matricula.replace(/^RM-/i, "").trim()}`
-        : session?.user.email ?? session!.user.id;
-      const loginOperador = session?.user.email ?? session!.user.id;
-      const observacaoComIdentidade = `[OPERADOR_LOGIN: ${loginOperador} | PERFIL: ${identidadeFuncional}]${data.observacao ? String.fromCharCode(10) + data.observacao : ""}`;
+        : "Operador autorizado";
+      const observacaoComIdentidade = `[OPERADOR_FUNCIONAL: ${identidadeFuncional}]${data.observacao ? String.fromCharCode(10) + data.observacao : ""}`;
       const { error: historicoError } = await supabase.from("ocorrencia_historico").insert({
         ocorrencia_id: id,
         operador_id: session!.user.id,
@@ -816,21 +815,20 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
   const despachoRegistrado = historico.find((item) => item.status_novo === "em_atendimento" || item.acao.toLowerCase().includes("despacho"));
   const encerramentoRegistrado = [...historico].reverse().find((item) => item.status_novo === "encerrada");
   const identificacaoOperador = (operadorId: string, observacao?: string | null) => {
-    const loginMarker = "[OPERADOR_LOGIN: ";
-    const loginEnd = observacao?.indexOf("]");
-    if (observacao?.startsWith(loginMarker) && loginEnd !== undefined && loginEnd > loginMarker.length) {
-      return observacao.slice(loginMarker.length, loginEnd).trim();
+    const end = observacao?.indexOf("]");
+    if (observacao?.startsWith("[OPERADOR_FUNCIONAL: ") && end !== undefined && end > 0) {
+      return observacao.slice("[OPERADOR_FUNCIONAL: ".length, end).trim();
     }
-    const legacyMarker = "[OPERADOR_FUNCIONAL: ";
-    const legacyEnd = observacao?.indexOf("]");
-    const legacySnapshot = observacao?.startsWith(legacyMarker) && legacyEnd !== undefined && legacyEnd > legacyMarker.length
-      ? observacao.slice(legacyMarker.length, legacyEnd)
-      : null;
-    if (legacySnapshot) return legacySnapshot;
+    // Compatibilidade com registros antigos: exibe o perfil funcional, nunca o e-mail de login.
+    if (observacao?.startsWith("[OPERADOR_LOGIN: ") && end !== undefined && end > 0) {
+      const metadata = observacao.slice("[OPERADOR_LOGIN: ".length, end);
+      const perfil = metadata.match(/(?:^|\\|\\s*)PERFIL:\\s*(.+)$/i)?.[1]?.trim();
+      if (perfil) return perfil;
+    }
     if ((operadorId === session?.user.id || operadorId === perfilFuncionalUserId) && perfilOperador) {
       return `${perfilOperador.cargo} ${perfilOperador.nome_completo} · RM-${perfilOperador.matricula.replace(/^RM-/i, "").trim()}`;
     }
-    return operadorId === session?.user.id ? (session?.user.email ?? operadorId) : operadorId;
+    return "Operador";
   };
   const termoAceite = o.descricao.match(/\[REGISTRO_TERMO_ART340: ACEITO_EM=([^\]\n]+)\]/);
   const veracidadeAceite = o.descricao.match(/\[REGISTRO_TERMO_VERACIDADE: VERSAO=([^;]+); ACEITO_EM=([^\]\n]+)\]/);
