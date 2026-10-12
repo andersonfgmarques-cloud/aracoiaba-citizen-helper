@@ -751,13 +751,25 @@ function Index() {
               </p>
             )}
             <div className="flex gap-2">
-              <input
-                autoFocus
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Digite ou fale sua resposta..."
-                className="min-w-0 flex-1 rounded-full border bg-input px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-              />
+              {FIELDS[form.step]?.key === "descricao" ? (
+                <textarea
+                  autoFocus
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Descreva a ocorrência..."
+                  rows={3}
+                  className="min-h-12 min-w-0 flex-1 resize-y rounded-2xl border bg-input px-4 py-3 text-sm outline-none [overflow-wrap:anywhere] focus:ring-2 focus:ring-ring"
+                  style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
+                />
+              ) : (
+                <input
+                  autoFocus
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Digite ou fale sua resposta..."
+                  className="min-w-0 flex-1 rounded-full border bg-input px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                />
+              )}
               <button
                 type="button"
                 onClick={toggleVoiceInput}
