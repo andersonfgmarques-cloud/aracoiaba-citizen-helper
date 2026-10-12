@@ -19,6 +19,7 @@ export type Database = {
           categoria: string
           cpf: string | null
           created_at: string
+          despachado_por: string | null
           descricao: string
           endereco: string
           endereco_solicitante: string | null
@@ -36,6 +37,7 @@ export type Database = {
           categoria: string
           cpf?: string | null
           created_at?: string
+          despachado_por?: string | null
           descricao: string
           endereco: string
           endereco_solicitante?: string | null
@@ -53,6 +55,7 @@ export type Database = {
           categoria?: string
           cpf?: string | null
           created_at?: string
+          despachado_por?: string | null
           descricao?: string
           endereco?: string
           endereco_solicitante?: string | null
