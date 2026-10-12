@@ -165,7 +165,7 @@ function Login({ onLogin }: { onLogin: (session: Session) => void }) {
         </div>
 
         {cadastro && <>
-          <input type="text" required minLength={3} maxLength={160} autoComplete="name" placeholder="Nome completo" value={nomeCompleto} onChange={(e) => setNomeCompleto(e.target.value)} className="w-full rounded-xl border bg-input px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring" />
+          <input type="text" required minLength={3} maxLength={160} autoComplete="name" placeholder="Nome de guerra" value={nomeCompleto} onChange={(e) => setNomeCompleto(e.target.value)} className="w-full rounded-xl border bg-input px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring" />
           <input type="text" required minLength={2} maxLength={30} placeholder="Matrícula funcional" value={matricula} onChange={(e) => setMatricula(e.target.value)} className="w-full rounded-xl border bg-input px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring" />
           <input type="text" required minLength={2} maxLength={80} placeholder="Cargo / graduação" value={cargo} onChange={(e) => setCargo(e.target.value)} className="w-full rounded-xl border bg-input px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring" />
           <input type="text" required minLength={2} maxLength={120} placeholder="Lotação / equipe" value={lotacao} onChange={(e) => setLotacao(e.target.value)} className="w-full rounded-xl border bg-input px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring" />
@@ -245,6 +245,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loadingOcs, setLoadingOcs] = useState(true);
   const [autorizado, setAutorizado] = useState<boolean | null>(demoOperator ? true : null);
+  const [perfilOperador, setPerfilOperador] = useState<{ nome_completo: string; matricula: string; cargo: string; lotacao: string } | null>(null);
   const [filtro, setFiltro] = useState("ativas");
   const [sel, setSel] = useState<string | null>(null);
   const [novasPendentesIds, setNovasPendentesIds] = useState<string[]>([]);
@@ -355,6 +356,13 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           setConnectionStatus("disconnected");
           return;
         }
+        const { data: perfilData } = await supabase
+          .from("operator_profiles")
+          .select("nome_completo, matricula, cargo, lotacao")
+          .eq("user_id", session.user.id)
+          .maybeSingle();
+        if (active) setPerfilOperador(perfilData ?? null);
+
         const { data, error } = await supabase
           .from("user_roles")
           .select("role")
@@ -479,6 +487,10 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
         : patch.status === "encerrada" ? "Ocorrência encerrada"
         : patch.status === "cancelada" ? "Ocorrência cancelada"
         : "Dados da ocorrência atualizados");
+      const identidadeFuncional = perfilOperador
+        ? `${perfilOperador.cargo} ${perfilOperador.nome_completo} · RM-${perfilOperador.matricula.replace(/^RM[-\\s]*/i, "")}`
+        : session?.user.email ?? session!.user.id;
+      const observacaoComIdentidade = `[OPERADOR_FUNCIONAL: ${identidadeFuncional}]${data.observacao ? String.fromCharCode(10) + data.observacao : ""}`;
       const { error: historicoError } = await supabase.from("ocorrencia_historico").insert({
         ocorrencia_id: id,
         operador_id: session!.user.id,
@@ -486,7 +498,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
         status_anterior: anterior.status,
         status_novo: data.status,
         viatura: data.viatura,
-        observacao: data.observacao,
+        observacao: observacaoComIdentidade,
       });
       if (historicoError) {
         toast.error(`A ocorrência foi atualizada, mas o histórico não foi salvo: ${historicoError.message}`, {
@@ -767,8 +779,14 @@ function Detalhe({ o, update, saving, session }: {
 
   const despachoRegistrado = historico.find((item) => item.status_novo === "em_atendimento" || item.acao.toLowerCase().includes("despacho"));
   const encerramentoRegistrado = [...historico].reverse().find((item) => item.status_novo === "encerrada");
-  const identificacaoOperador = (operadorId: string) =>
-    operadorId === session?.user.id ? (session?.user.email ?? operadorId) : operadorId;
+  const identificacaoOperador = (operadorId: string, observacao?: string | null) => {
+    const snapshot = observacao?.match(/^\\[OPERADOR_FUNCIONAL: ([^\\]]+)\\]/)?.[1];
+    if (snapshot) return snapshot;
+    if (operadorId === session?.user.id && perfilOperador) {
+      return `${perfilOperador.cargo} ${perfilOperador.nome_completo} · RM-${perfilOperador.matricula.replace(/^RM[-\\s]*/i, "")}`;
+    }
+    return operadorId === session?.user.id ? (session?.user.email ?? operadorId) : operadorId;
+  };
   const termoAceite = o.descricao.match(/\[REGISTRO_TERMO_ART340: ACEITO_EM=([^\]\n]+)\]/);
   const veracidadeAceite = o.descricao.match(/\[REGISTRO_TERMO_VERACIDADE: VERSAO=([^;]+); ACEITO_EM=([^\]\n]+)\]/);
   const descricaoLimpa = o.descricao
@@ -805,7 +823,7 @@ function Detalhe({ o, update, saving, session }: {
           <article class="movimento">
             <strong>${escapeHtml(h.acao)}</strong>
             <div>${escapeHtml(dataHora(h.criado_em))} · ${escapeHtml(h.status_anterior ?? "novo")} → ${escapeHtml(h.status_novo ?? "—")}</div>
-            <div>Operador: ${escapeHtml(identificacaoOperador(h.operador_id))}</div>
+            <div>Operador: ${escapeHtml(identificacaoOperador(h.operador_id, h.observacao))}</div>
             ${h.viatura ? `<div>Viatura: ${escapeHtml(h.viatura)}</div>` : ""}
             ${h.observacao ? `<p>${escapeHtml(h.observacao)}</p>` : ""}
           </article>`).join("")
@@ -891,12 +909,12 @@ function Detalhe({ o, update, saving, session }: {
         <div className="rounded-xl border border-primary/30 bg-card p-3">
           <p className="text-xs text-muted-foreground">Despacho / início do atendimento</p>
           <p className="mt-1 text-sm font-semibold">{despachoRegistrado ? new Date(despachoRegistrado.criado_em).toLocaleString("pt-BR") : "Ainda não registrado"}</p>
-          {despachoRegistrado && <p className="mt-1 break-all text-xs text-muted-foreground">Operador: {identificacaoOperador(despachoRegistrado.operador_id)}</p>}
+          {despachoRegistrado && <p className="mt-1 break-all text-xs text-muted-foreground">Operador: {identificacaoOperador(despachoRegistrado.operador_id, despachoRegistrado.observacao)}</p>}
         </div>
         <div className="rounded-xl border border-success/30 bg-card p-3">
           <p className="text-xs text-muted-foreground">Encerramento</p>
           <p className="mt-1 text-sm font-semibold">{encerramentoRegistrado ? new Date(encerramentoRegistrado.criado_em).toLocaleString("pt-BR") : "Ainda não encerrada"}</p>
-          {encerramentoRegistrado && <p className="mt-1 break-all text-xs text-muted-foreground">Operador: {identificacaoOperador(encerramentoRegistrado.operador_id)}</p>}
+          {encerramentoRegistrado && <p className="mt-1 break-all text-xs text-muted-foreground">Operador: {identificacaoOperador(encerramentoRegistrado.operador_id, encerramentoRegistrado.observacao)}</p>}
         </div>
       </div>
       <button
