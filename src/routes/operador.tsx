@@ -840,11 +840,20 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
   const termoAceite = o.descricao.match(/\[REGISTRO_TERMO_ART340: ACEITO_EM=([^\]\n]+)\]/);
   const veracidadeAceite = o.descricao.match(/\[REGISTRO_TERMO_VERACIDADE: VERSAO=([^;]+); ACEITO_EM=([^\]\n]+)\]/);
   const anexoMedida = o.descricao.match(/\[ANEXO_MEDIDA_PROTETIVA: path=([^\]\n]+)\]/);
+  const triagemAgressor = o.descricao.match(/\[TRIAGEM_VIOLENCIA_DOMESTICA: POSSIVEL_AGRESSOR=([^\]\n]*)\]/);
+  const triagemMedida = o.descricao.match(/\[TRIAGEM_MEDIDA_PROTETIVA: ([^\]\n]*)\]/);
+  const anexoMedidaFalhou = /\[ANEXO_MEDIDA_PROTETIVA: ENVIO_FALHOU; DOCUMENTO_NAO_RECEBIDO\]/.test(o.descricao);
   const descricaoLimpa = o.descricao
     .replace(/\n?\[REGISTRO_TERMO_ART340: ACEITO_EM=[^\]\n]+\]/, "")
     .replace(/\n?\[REGISTRO_TERMO_VERACIDADE: VERSAO=[^;]+; ACEITO_EM=[^\]\n]+\]/, "")
     .replace(/\n?\[ANEXO_MEDIDA_PROTETIVA: path=[^\]\n]+\]/, "")
+    .replace(/\n?\[ANEXO_MEDIDA_PROTETIVA: ENVIO_FALHOU; DOCUMENTO_NAO_RECEBIDO\]/, "")
+    .replace(/\n?\[TRIAGEM_VIOLENCIA_DOMESTICA: POSSIVEL_AGRESSOR=[^\]\n]*\]/, "")
+    .replace(/\n?\[TRIAGEM_MEDIDA_PROTETIVA: [^\]\n]*\]/, "")
     .trim();
+  const triagemHtml = triagemAgressor || triagemMedida || anexoMedidaFalhou
+    ? `<h2>Informações específicas da triagem</h2><div class="description">${triagemAgressor ? `Possível agressor no local / ameaça / aproximação: ${escapeHtml(triagemAgressor[1] || "Não informado")}\n` : ""}${triagemMedida ? `Medida protetiva: ${escapeHtml(triagemMedida[1] || "Não informado")}\n` : ""}${anexoMedidaFalhou ? "ATENÇÃO: o arquivo da medida protetiva não foi recebido pelo sistema.\n" : ""}</div>`
+    : "";
   const [vtr, setVtr] = useState(o.viatura ?? "");
   // O campo é para a próxima ação, não para reapresentar a observação já gravada na ocorrência.
   // Assim, ao reabrir ou selecionar novamente uma ocorrência, não repete o texto do despacho anterior.
@@ -930,6 +939,7 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
       <div class="field"><span class="label">Telefone:</span> ${escapeHtml(o.telefone)}</div>
       <div class="field"><span class="label">Endereço do solicitante:</span> ${escapeHtml(o.endereco_solicitante)}</div>
       <h2>Local da ocorrência</h2><div>${escapeHtml(o.endereco)}</div>
+      ${triagemHtml}
       <h2>Descrição da ocorrência</h2><div class="description">${escapeHtml(descricaoLimpa)}</div>
       <h2>Termo de ciência — art. 340 do Código Penal</h2><div class="description">O art. 340 do Código Penal trata de provocar a ação de autoridade comunicando ocorrência de crime ou contravenção que se sabe não ter ocorrido. Pena prevista: detenção, de 1 a 6 meses, ou multa.<p><strong>Registro de aceite:</strong> ${termoHtml}</p></div>
       <h2>Declaração de Veracidade das Informações</h2><div class="description">Declaro, para os devidos fins, que as informações prestadas e os documentos apresentados neste atendimento são verdadeiros e correspondem à realidade, assumindo responsabilidade pela veracidade dos dados informados.<p>Estou ciente de que a apresentação de informações falsas ou a inserção de declarações inverídicas em documentos poderá acarretar responsabilização civil, administrativa e/ou criminal, conforme a legislação aplicável, especialmente o artigo 299 do Código Penal Brasileiro, quando presentes os requisitos legais para sua configuração.</p><p>Declaro, ainda, estar ciente de que o fornecimento de informações corretas é essencial para o adequado registro, análise e encaminhamento da solicitação à Guarda Civil Municipal.</p><p><strong>Registro de aceite:</strong> ${veracidadeHtml}</p></div>
@@ -987,6 +997,14 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
           {veracidadeAceite && <p className="mt-1 text-xs text-muted-foreground">Versão {veracidadeAceite[1]} · Aceite registrado em {new Date(veracidadeAceite[2]!).toLocaleString("pt-BR")}</p>}
         </div>
         <p className="min-w-0 break-words leading-relaxed [overflow-wrap:anywhere]">{descricaoLimpa}</p>
+        {(triagemAgressor || triagemMedida || anexoMedidaFalhou) && (
+          <section className="space-y-2 rounded-xl border border-destructive/30 bg-destructive/5 p-3" aria-label="Informações específicas da triagem">
+            <p className="text-sm font-semibold">Informações da triagem de violência doméstica</p>
+            {triagemAgressor && <p className="text-sm break-words"><span className="font-medium">Agressor, ameaça ou aproximação:</span> {triagemAgressor[1] || "Não informado"}</p>}
+            {triagemMedida && <p className="text-sm break-words"><span className="font-medium">Medida protetiva:</span> {triagemMedida[1] || "Não informado"}</p>}
+            {anexoMedidaFalhou && <p className="text-sm font-semibold text-destructive">Atenção: o documento não foi recebido pelo sistema. Verifique a necessidade de contato com a solicitante, sem condicionar o atendimento ao envio do arquivo.</p>}
+          </section>
+        )}
         {anexoMedida && (
           <button
             type="button"
