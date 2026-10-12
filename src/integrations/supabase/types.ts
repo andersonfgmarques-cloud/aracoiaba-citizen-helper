@@ -147,6 +147,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: { user_id: string; nome_completo: string; matricula: string; cargo: string; lotacao: string; email: string | null; updated_at: string }[]
       }
+      admin_upsert_operator_profile: {
+        Args: { _user_id: string; _nome_completo: string; _matricula: string; _cargo: string; _lotacao: string }
+        Returns: undefined
+      }
       admin_set_operator_access: {
         Args: { _user_id: string; _enabled: boolean }
         Returns: undefined
