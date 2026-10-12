@@ -1,4 +1,4 @@
-const CACHE_NAME = "gcm-aracoiaba-shell-v3";
+const CACHE_NAME = "gcm-aracoiaba-shell-v4";
 const APP_BASE = "/aracoiaba-citizen-helper/";
 const APP_SHELL = [
   APP_BASE,
