@@ -59,13 +59,9 @@ const FIELDS = [
 ] as const;
 
 function validaCpf(c: string) {
-  if (c.length !== 11 || /^(\d)\1+$/.test(c)) return false;
-  for (const t of [9, 10]) {
-    let sum = 0;
-    for (let i = 0; i < t; i++) sum += Number(c[i]) * (t + 1 - i);
-    if (((sum * 10) % 11) % 10 !== Number(c[t])) return false;
-  }
-  return true;
+  // Validação de formato: exige exatamente 11 dígitos numéricos.
+  // Não rejeita o CPF com base nos dígitos verificadores.
+  return /^\d{11}$/.test(c);
 }
 
 function validaEndereco(e: string) {
