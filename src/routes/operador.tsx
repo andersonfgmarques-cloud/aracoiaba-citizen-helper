@@ -870,7 +870,7 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
             <div>${escapeHtml(dataHora(h.criado_em))} · ${escapeHtml(h.status_anterior ?? "novo")} → ${escapeHtml(h.status_novo ?? "—")}</div>
             <div>Operador: ${escapeHtml(identificacaoOperador(h.operador_id, h.observacao))}</div>
             ${h.viatura ? `<div>Viatura: ${escapeHtml(h.viatura)}</div>` : ""}
-            ${h.observacao ? `<p>${escapeHtml(h.observacao.startsWith("[OPERADOR_FUNCIONAL: ") ? (h.observacao.slice(h.observacao.indexOf("]") + 1).trim() || "—") : h.observacao)}</p>` : ""}
+            ${h.observacao ? `<p>${escapeHtml(h.observacao.startsWith("[OPERADOR_FUNCIONAL: ") || h.observacao.startsWith("[OPERADOR_LOGIN: ") ? (h.observacao.slice(h.observacao.indexOf("]") + 1).trim() || "—") : h.observacao)}</p>` : ""}
           </article>`).join("")
       : "<p>Não há movimentações registradas.</p>";
     const termoHtml = termoAceite
@@ -1022,7 +1022,7 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
             <p className="text-xs text-muted-foreground">{new Date(h.criado_em).toLocaleString("pt-BR")} · {h.status_anterior ?? "novo"} → {h.status_novo ?? "—"}</p>
             <p className="text-xs text-muted-foreground">Operador: {identificacaoOperador(h.operador_id, h.observacao)}</p>
             {h.viatura && <p className="text-xs text-muted-foreground">Viatura: {h.viatura}</p>}
-            {h.observacao && <p className="mt-1 text-xs">{h.observacao}</p>}
+            {h.observacao && <p className="mt-1 text-xs">{h.observacao.startsWith("[OPERADOR_LOGIN: ") || h.observacao.startsWith("[OPERADOR_FUNCIONAL: ") ? (h.observacao.slice(h.observacao.indexOf("]") + 1).trim() || "—") : h.observacao}</p>}
           </div>
         ))}
       </div>
