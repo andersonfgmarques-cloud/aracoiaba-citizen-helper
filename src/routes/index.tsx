@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Phone, RotateCcw, Send, AlertTriangle, CheckCircle2, LayoutDashboard, Mic, MicOff, Paperclip, FileText, X } from "lucide-react";
+import { Phone, RotateCcw, Send, AlertTriangle, CheckCircle2, LayoutDashboard, Mic, MicOff, Paperclip } from "lucide-react";
 import { TREE, CONTACTS, type Contact } from "@/lib/triage";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -783,7 +783,7 @@ function Index() {
               </p>
             )}
             <div className="flex gap-2">
-              {form.category === "Descumprimento de medida protetiva de urgência" && fieldsForCategory(form.category)[form.step]?.key === "medida_protetiva" && <input type="file" accept="image/*,application/pdf" onChange={(e) => setMedidaFile(e.target.files?.[0] ?? null)} />}
+              {["Violência doméstica", "Descumprimento de medida protetiva de urgência"].includes(form.category) && fieldsForCategory(form.category)[form.step]?.key === "medida_protetiva" && <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-primary/30 px-3 py-2 text-xs font-semibold"><Paperclip className="h-4 w-4" />{medidaFile ? medidaFile.name : "Anexar foto ou PDF da medida (opcional)"}<input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" className="sr-only" onChange={(e) => { const file = e.target.files?.[0] ?? null; if (file && file.size > 10 * 1024 * 1024) { setMsgs((m) => [...m, { from: "bot", text: "O arquivo deve ter no máximo 10 MB." }]); e.target.value = ""; return; } if (file && !["image/jpeg", "image/png", "image/webp", "application/pdf"].includes(file.type)) { setMsgs((m) => [...m, { from: "bot", text: "Envie uma foto JPG, PNG, WEBP ou um PDF." }]); e.target.value = ""; return; } setMedidaFile(file); }} /></label>}
               {fieldsForCategory(form.category)[form.step]?.key === "descricao" ? (
                 <textarea
                   autoFocus
@@ -814,7 +814,8 @@ function Index() {
                 <span>Voz</span>
               </button>
               <button
-                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground"
+                disabled={uploadingMedida}
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-50"
                 aria-label="Enviar"
               >
                 <Send className="h-5 w-5" />
