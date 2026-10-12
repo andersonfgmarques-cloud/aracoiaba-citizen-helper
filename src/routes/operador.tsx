@@ -246,6 +246,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
   const [loadingOcs, setLoadingOcs] = useState(true);
   const [autorizado, setAutorizado] = useState<boolean | null>(demoOperator ? true : null);
   const [perfilOperador, setPerfilOperador] = useState<{ nome_completo: string; matricula: string; cargo: string; lotacao: string } | null>(null);
+  const [perfilFuncionalUserId, setPerfilFuncionalUserId] = useState<string | null>(null);
   const [filtro, setFiltro] = useState("ativas");
   const [sel, setSel] = useState<string | null>(null);
   const [novasPendentesIds, setNovasPendentesIds] = useState<string[]>([]);
@@ -366,6 +367,13 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           console.error("[CAD] Falha ao consultar perfil funcional:", perfilError);
         }
         if (active) setPerfilOperador(!perfilError ? perfilData?.[0] ?? null : null);
+
+        const { data: vinculoConta } = await supabase
+          .from("operator_profile_accounts")
+          .select("profile_user_id")
+          .eq("user_id", session.user.id)
+          .maybeSingle();
+        if (active) setPerfilFuncionalUserId(vinculoConta?.profile_user_id ?? session.user.id);
 
         const { data, error } = await supabase
           .from("user_roles")
@@ -735,7 +743,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
               Selecione uma ocorrência para despachar.
             </div>
           ) : (
-            <Detalhe key={atual.id} o={atual} update={update} saving={savingIds.includes(atual.id)} session={session} perfilOperador={perfilOperador} />
+            <Detalhe key={atual.id} o={atual} update={update} saving={savingIds.includes(atual.id)} session={session} perfilOperador={perfilOperador} perfilFuncionalUserId={perfilFuncionalUserId} />
           )}
         </section>
       </div>
@@ -762,12 +770,13 @@ type HistoricoOcorrencia = {
   operador_id: string;
 };
 
-function Detalhe({ o, update, saving, session, perfilOperador }: {
+function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUserId }: {
   o: Oc;
   update: (id: string, p: Partial<Oc>, acaoPersonalizada?: string) => Promise<boolean>;
   saving: boolean;
   session: Session | null;
   perfilOperador: { nome_completo: string; matricula: string; cargo: string; lotacao: string } | null;
+  perfilFuncionalUserId: string | null;
 }) {
   const [historico, setHistorico] = useState<HistoricoOcorrencia[]>([]);
   const [historicoErro, setHistoricoErro] = useState<string | null>(null);
@@ -812,7 +821,7 @@ function Detalhe({ o, update, saving, session, perfilOperador }: {
       ? observacao.slice(marker.length, markerEnd)
       : null;
     if (snapshot) return snapshot;
-    if (operadorId === session?.user.id && perfilOperador) {
+    if ((operadorId === session?.user.id || operadorId === perfilFuncionalUserId) && perfilOperador) {
       return `${perfilOperador.cargo} ${perfilOperador.nome_completo} · RM-${perfilOperador.matricula.replace(/^RM-/i, "").trim()}`;
     }
     return operadorId === session?.user.id ? (session?.user.email ?? operadorId) : operadorId;
