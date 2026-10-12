@@ -843,6 +843,7 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
   const descricaoLimpa = o.descricao
     .replace(/\n?\[REGISTRO_TERMO_ART340: ACEITO_EM=[^\]\n]+\]/, "")
     .replace(/\n?\[REGISTRO_TERMO_VERACIDADE: VERSAO=[^;]+; ACEITO_EM=[^\]\n]+\]/, "")
+    .replace(/\n?\[ANEXO_MEDIDA_PROTETIVA: path=[^\]\n]+\]/, "")
     .trim();
   const [vtr, setVtr] = useState(o.viatura ?? "");
   // O campo é para a próxima ação, não para reapresentar a observação já gravada na ocorrência.
