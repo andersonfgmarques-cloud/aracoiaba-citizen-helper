@@ -1076,7 +1076,7 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
                 ].join("\n");
                 const sucesso = await update(
                   o.id,
-                  { status: "em_atendimento", viatura: vtr, observacao: equipe },
+                  { status: "em_atendimento", viatura: vtr, observacao: equipe, despachado_por: session!.user.id },
                   "Despacho realizado — equipe acionada e atendimento iniciado",
                 );
                 if (sucesso) {
@@ -1113,7 +1113,7 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
           <button
             disabled={saving}
             onClick={async () => {
-              const sucesso = await update(o.id, { status: "cancelada", observacao: obs.trim() || o.observacao }, "Ocorrência cancelada");
+              const sucesso = await update(o.id, { status: "cancelada", observacao: obs.trim() || o.observacao, despachado_por: o.despachado_por ?? session!.user.id }, "Ocorrência cancelada");
               if (sucesso) {
                 setObs("");
                 setHistoricoRevision((revision) => revision + 1);
