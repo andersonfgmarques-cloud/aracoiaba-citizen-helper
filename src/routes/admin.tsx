@@ -311,7 +311,7 @@ function AdminPage() {
     const o = viewingOccurrence;
     const row = (label: string, value: unknown) => `<div class="field"><span>${escapeHtml(label)}</span><p>${escapeHtml(value || "Não informado")}</p></div>`;
     const dispatchEntry = [...occurrenceHistory].reverse().find((item) =>
-      item.acao.toLowerCase().includes("despacho") && /\\[EQUIPE EMPENHADA\\]/i.test(item.observacao || ""),
+      item.acao.toLowerCase().includes("despacho") && /\[EQUIPE EMPENHADA\]/i.test(item.observacao || ""),
     );
     const dispatchText = dispatchEntry?.observacao || o.observacao || "";
     const teamValue = (field: string) => dispatchText.match(new RegExp(`(?:^|\\n)${field}:\\s*(.*)`, "i"))?.[1]?.trim() || "Não informado";
