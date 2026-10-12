@@ -40,7 +40,7 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
         run: bun run build
 
-      - name: Generate Android PWA icons from the GCM SVG
+      - name: Generate dedicated Android install icons from the GCM SVG
         run: |
           python -m pip install --user cairosvg
           python - <<'PY'
@@ -54,13 +54,19 @@ jobs:
           for size in (192, 512):
               cairosvg.svg2png(
                   url=str(source),
-                  write_to=str(target_dir / f"android-chrome-{size}x{size}.png"),
+                  write_to=str(target_dir / f"gcm-install-{size}.png"),
                   output_width=size,
                   output_height=size,
               )
+          # Keep the existing android-chrome PNGs untouched; the page header uses them.
+          for filename in ("android-chrome-192x192.png", "android-chrome-512x512.png"):
+              source_png = Path("public") / filename
+              if source_png.is_file():
+                  (target_dir / filename).write_bytes(source_png.read_bytes())
           PY
+          test -f dist/client/gcm-install-192.png
+          test -f dist/client/gcm-install-512.png
           test -f dist/client/android-chrome-192x192.png
-          test -f dist/client/android-chrome-512x512.png
 
       - name: Fix project-site asset paths
         run: |
