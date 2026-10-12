@@ -71,7 +71,7 @@ function Operador() {
   }, []);
 
   if (!ready) return null;
-  return session ? <Painel session={session} /> : <Login onLogin={setSession} />;
+  return session ? <Painel session={session} perfilOperador={perfilOperador} /> : <Login onLogin={setSession} />;
 }
 
 function Login({ onLogin }: { onLogin: (session: Session) => void }) {
@@ -710,7 +710,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
               Selecione uma ocorrência para despachar.
             </div>
           ) : (
-            <Detalhe key={atual.id} o={atual} update={update} saving={savingIds.includes(atual.id)} session={session} />
+            <Detalhe key={atual.id} o={atual} update={update} saving={savingIds.includes(atual.id)} session={session} perfilOperador={perfilOperador} />
           )}
         </section>
       </div>
@@ -719,7 +719,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           <button onClick={() => setSel(null)} className="mb-3 text-sm text-primary">
             ← Voltar
           </button>
-          <Detalhe key={atual.id} o={atual} update={update} saving={savingIds.includes(atual.id)} session={session} />
+          <Detalhe key={atual.id} o={atual} update={update} saving={savingIds.includes(atual.id)} session={session} perfilOperador={perfilOperador} />
         </div>
       )}
     </div>
@@ -737,11 +737,12 @@ type HistoricoOcorrencia = {
   operador_id: string;
 };
 
-function Detalhe({ o, update, saving, session }: {
+function Detalhe({ o, update, saving, session, perfilOperador }: {
   o: Oc;
   update: (id: string, p: Partial<Oc>, acaoPersonalizada?: string) => Promise<boolean>;
   saving: boolean;
   session: Session | null;
+  perfilOperador: { nome_completo: string; matricula: string; cargo: string; lotacao: string } | null;
 }) {
   const [historico, setHistorico] = useState<HistoricoOcorrencia[]>([]);
   const [historicoErro, setHistoricoErro] = useState<string | null>(null);
