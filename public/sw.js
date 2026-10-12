@@ -1,9 +1,10 @@
-const CACHE_NAME = "gcm-aracoiaba-shell-v2";
+const CACHE_NAME = "gcm-aracoiaba-shell-v3";
 const APP_BASE = "/aracoiaba-citizen-helper/";
 const APP_SHELL = [
   APP_BASE,
   APP_BASE + "manifest.webmanifest",
-  APP_BASE + "android-chrome-192x192.png"
+  APP_BASE + "android-chrome-192x192.png",
+  APP_BASE + "gcm-app-icon.svg"
 ];
 
 self.addEventListener("install", (event) => {
