@@ -502,7 +502,8 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
       const identidadeFuncional = perfilOperador
         ? `${perfilOperador.cargo} ${perfilOperador.nome_completo} · RM-${perfilOperador.matricula.replace(/^RM-/i, "").trim()}`
         : session?.user.email ?? session!.user.id;
-      const observacaoComIdentidade = `[OPERADOR_FUNCIONAL: ${identidadeFuncional}]${data.observacao ? String.fromCharCode(10) + data.observacao : ""}`;
+      const loginOperador = session?.user.email ?? session!.user.id;
+      const observacaoComIdentidade = `[OPERADOR_LOGIN: ${loginOperador} | PERFIL: ${identidadeFuncional}]${data.observacao ? String.fromCharCode(10) + data.observacao : ""}`;
       const { error: historicoError } = await supabase.from("ocorrencia_historico").insert({
         ocorrencia_id: id,
         operador_id: session!.user.id,
@@ -752,7 +753,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           <button onClick={() => setSel(null)} className="mb-3 text-sm text-primary">
             ← Voltar
           </button>
-          <Detalhe key={atual.id} o={atual} update={update} saving={savingIds.includes(atual.id)} session={session} perfilOperador={perfilOperador} />
+          <Detalhe key={atual.id} o={atual} update={update} saving={savingIds.includes(atual.id)} session={session} perfilOperador={perfilOperador} perfilFuncionalUserId={perfilFuncionalUserId} />
         </div>
       )}
     </div>
@@ -815,12 +816,17 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
   const despachoRegistrado = historico.find((item) => item.status_novo === "em_atendimento" || item.acao.toLowerCase().includes("despacho"));
   const encerramentoRegistrado = [...historico].reverse().find((item) => item.status_novo === "encerrada");
   const identificacaoOperador = (operadorId: string, observacao?: string | null) => {
-    const marker = "[OPERADOR_FUNCIONAL: ";
-    const markerEnd = observacao?.indexOf("]");
-    const snapshot = observacao?.startsWith(marker) && markerEnd !== undefined && markerEnd > marker.length
-      ? observacao.slice(marker.length, markerEnd)
+    const loginMarker = "[OPERADOR_LOGIN: ";
+    const loginEnd = observacao?.indexOf("]");
+    if (observacao?.startsWith(loginMarker) && loginEnd !== undefined && loginEnd > loginMarker.length) {
+      return observacao.slice(loginMarker.length, loginEnd).trim();
+    }
+    const legacyMarker = "[OPERADOR_FUNCIONAL: ";
+    const legacyEnd = observacao?.indexOf("]");
+    const legacySnapshot = observacao?.startsWith(legacyMarker) && legacyEnd !== undefined && legacyEnd > legacyMarker.length
+      ? observacao.slice(legacyMarker.length, legacyEnd)
       : null;
-    if (snapshot) return snapshot;
+    if (legacySnapshot) return legacySnapshot;
     if ((operadorId === session?.user.id || operadorId === perfilFuncionalUserId) && perfilOperador) {
       return `${perfilOperador.cargo} ${perfilOperador.nome_completo} · RM-${perfilOperador.matricula.replace(/^RM-/i, "").trim()}`;
     }
