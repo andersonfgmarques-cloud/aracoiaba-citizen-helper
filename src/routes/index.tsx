@@ -233,7 +233,15 @@ function Index() {
     const activeFields = fieldsForCategory(form.category);
     const f = activeFields[form.step]!;
     const attachmentOnly = f.key === "medida_protetiva" && !!medidaFile && !input.trim();
-    if (!input.trim() && !attachmentOnly) return;
+    if (!input.trim() && !attachmentOnly) {
+      if (f.key === "medida_protetiva") {
+        setMsgs((m) => [
+          ...m,
+          { from: "bot", text: "Para continuar, informe se existe medida protetiva e se houve descumprimento. Se preferir, anexe a foto ou o PDF e toque em Enviar novamente. O documento é complementar e não é obrigatório para receber atendimento." },
+        ]);
+      }
+      return;
+    }
     let value = attachmentOnly ? "Documento anexado; detalhes adicionais não informados." : input.trim();
     if ((f.key as string) === "cpf") {
       const d = value.replace(/\D/g, "");
@@ -866,9 +874,11 @@ function Index() {
                 <span>Voz</span>
               </button>
               <button
+                type="submit"
                 disabled={uploadingMedida}
                 className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-50"
-                aria-label="Enviar"
+                aria-label={uploadingMedida ? "Enviando documento" : "Enviar"}
+                title={uploadingMedida ? "Enviando documento..." : "Enviar resposta"}
               >
                 <Send className="h-5 w-5" />
               </button>
