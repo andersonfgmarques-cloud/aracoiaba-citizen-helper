@@ -58,6 +58,16 @@ const FIELDS = [
   { key: "descricao", q: "Descreva rapidamente o que está acontecendo." },
 ] as const;
 
+const fieldsForCategory = (category: string) => {
+  if (category !== "Violência doméstica" && category !== "Descumprimento de medida protetiva de urgência") return FIELDS;
+  return [
+    ...FIELDS.slice(0, 5),
+    { key: "agressor_local", q: "O possível agressor está no local, tentando entrar em contato ou se aproximar? Informe também se há ameaça ou agressão em andamento." },
+    { key: "medida_protetiva", q: "Existe medida protetiva de urgência? Informe se está vigente, se houve descumprimento e quais restrições foram violadas. Se não souber, informe isso." },
+    FIELDS[5],
+  ] as const;
+};
+
 function validaCpf(c: string) {
   // Validação de formato: exige exatamente 11 dígitos numéricos.
   // Não rejeita o CPF com base nos dígitos verificadores.
@@ -94,6 +104,8 @@ function Index() {
   const [termoAceitoEm, setTermoAceitoEm] = useState<string | null>(null);
   const [veracidadeAceitaEm, setVeracidadeAceitaEm] = useState<string | null>(null);
   const [contatoSelecionado, setContatoSelecionado] = useState<string | null>(null);
+  const [medidaFile, setMedidaFile] = useState<File | null>(null);
+  const [uploadingMedida, setUploadingMedida] = useState(false);
   const toggleVoiceInput = () => {
     if (isListening) {
       recognitionRef.current?.stop();
@@ -190,7 +202,7 @@ function Index() {
       setMsgs((m) => [
         ...m,
         { from: "bot", text: n.text, contacts: n.contacts },
-        { from: "bot", text: FIELDS[0]!.q },
+        { from: "bot", text: fieldsForCategory(n.category)[0]!.q },
       ]);
     }
   };
@@ -217,7 +229,8 @@ function Index() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form || !input.trim()) return;
-    const f = FIELDS[form.step]!;
+    const activeFields = fieldsForCategory(form.category);
+    const f = activeFields[form.step]!;
     let value = input.trim();
     if ((f.key as string) === "cpf") {
       const d = value.replace(/\D/g, "");
@@ -249,12 +262,12 @@ function Index() {
     const data = { ...form.data, [f.key]: value };
     setInput("");
     const next = form.step + 1;
-    if (next < FIELDS.length) {
+    if (next < activeFields.length) {
       setForm({ ...form, step: next, data });
-      setMsgs((m) => [...m, { from: "user", text: value }, { from: "bot", text: FIELDS[next]!.q }]);
+      setMsgs((m) => [...m, { from: "user", text: value }, { from: "bot", text: activeFields[next]!.q }]);
     } else {
       const protocol = `GCM-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
-      const prioridade = ["Atitude suspeita", "Perturbação do sossego"].includes(form.category)
+      const prioridade = ["Atitude suspeita", "Perturbação do sossego", "Violência doméstica", "Descumprimento de medida protetiva de urgência"].includes(form.category)
         ? "alta"
         : "media";
       const payload = {
@@ -751,7 +764,7 @@ function Index() {
               </p>
             )}
             <div className="flex gap-2">
-              {FIELDS[form.step]?.key === "descricao" ? (
+              {fieldsForCategory(form.category)[form.step]?.key === "descricao" ? (
                 <textarea
                   autoFocus
                   value={input}
