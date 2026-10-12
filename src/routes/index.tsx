@@ -764,6 +764,7 @@ function Index() {
               </p>
             )}
             <div className="flex gap-2">
+              {form.category === "Descumprimento de medida protetiva de urgência" && fieldsForCategory(form.category)[form.step]?.key === "medida_protetiva" && <input type="file" accept="image/*,application/pdf" onChange={(e) => setMedidaFile(e.target.files?.[0] ?? null)} />}
               {fieldsForCategory(form.category)[form.step]?.key === "descricao" ? (
                 <textarea
                   autoFocus
