@@ -336,6 +336,7 @@ function AdminPage() {
     </style></head><body><header><img src="${escapeHtml(new URL("/aracoiaba-citizen-helper/android-chrome-192x192.png", window.location.origin).href)}" alt="Emblema GCM"><div><h1>Guarda Civil Municipal</h1><div>Araçoiaba da Serra · Ficha administrativa de ocorrência</div></div></header>
     <div class="protocol">Protocolo: ${escapeHtml(o.protocolo)} · Status: ${escapeHtml(o.status)}</div>
     <h2>Identificação e registro</h2><div class="grid">${row("Natureza / categoria",o.categoria)}${row("Prioridade",o.prioridade)}${row("Data do registro",formatDate(o.created_at))}${row("Última atualização",formatDate(o.updated_at))}${row("Solicitante",o.nome)}${row("Telefone",o.telefone)}${row("CPF",o.cpf)}${row("Endereço da ocorrência",o.endereco)}${row("Endereço do solicitante",o.endereco_solicitante)}${row("Viatura",o.viatura)}</div>
+    <h2>Integrantes da equipe empenhada</h2><div class="grid">${teamHtml}</div>
     <h2>Descrição da ocorrência</h2><div class="field"><p>${escapeHtml(o.descricao)}</p></div>
     <h2>Providências / observações</h2><div class="field"><p>${escapeHtml(o.observacao)}</p></div>
     <h2>Histórico operacional</h2><table><thead><tr><th>Data e hora</th><th>Ação</th><th>Alteração de status</th><th>Viatura</th><th>Observação</th></tr></thead><tbody>${history}</tbody></table>
