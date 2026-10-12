@@ -488,7 +488,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
         : patch.status === "cancelada" ? "Ocorrência cancelada"
         : "Dados da ocorrência atualizados");
       const identidadeFuncional = perfilOperador
-        ? `${perfilOperador.cargo} ${perfilOperador.nome_completo} · RM-${perfilOperador.matricula.replace(/^RM[-\\s]*/i, "")}`
+        ? `${perfilOperador.cargo} ${perfilOperador.nome_completo} · RM-${perfilOperador.matricula.replace(/^RM-/i, "").trim()}`
         : session?.user.email ?? session!.user.id;
       const observacaoComIdentidade = `[OPERADOR_FUNCIONAL: ${identidadeFuncional}]${data.observacao ? String.fromCharCode(10) + data.observacao : ""}`;
       const { error: historicoError } = await supabase.from("ocorrencia_historico").insert({
@@ -584,7 +584,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
               Administração
             </Link>
           )}
-          <span title={`Operador autenticado: ${session?.user.id ?? "demonstração"}`}>{session?.user.email ?? TEMP_OPERATOR_EMAIL}</span>
+          <span className="text-right" title={`Conta: ${session?.user.email ?? TEMP_OPERATOR_EMAIL}`}>{perfilOperador ? <><span className="block font-semibold text-foreground">{perfilOperador.cargo} {perfilOperador.nome_completo}</span><span className="block text-[10px]">RM-{perfilOperador.matricula.replace(/^RM-/i, "").trim()}</span></> : (session?.user.email ?? TEMP_OPERATOR_EMAIL)}</span>
           <button
             onClick={sair}
             aria-label="Sair"
@@ -787,7 +787,7 @@ function Detalhe({ o, update, saving, session }: {
       : null;
     if (snapshot) return snapshot;
     if (operadorId === session?.user.id && perfilOperador) {
-      return `${perfilOperador.cargo} ${perfilOperador.nome_completo} · RM-${perfilOperador.matricula.replace(/^RM[-\\s]*/i, "")}`;
+      return `${perfilOperador.cargo} ${perfilOperador.nome_completo} · RM-${perfilOperador.matricula.replace(/^RM-/i, "").trim()}`;
     }
     return operadorId === session?.user.id ? (session?.user.email ?? operadorId) : operadorId;
   };
@@ -829,7 +829,7 @@ function Detalhe({ o, update, saving, session }: {
             <div>${escapeHtml(dataHora(h.criado_em))} · ${escapeHtml(h.status_anterior ?? "novo")} → ${escapeHtml(h.status_novo ?? "—")}</div>
             <div>Operador: ${escapeHtml(identificacaoOperador(h.operador_id, h.observacao))}</div>
             ${h.viatura ? `<div>Viatura: ${escapeHtml(h.viatura)}</div>` : ""}
-            ${h.observacao ? `<p>${escapeHtml(h.observacao)}</p>` : ""}
+            ${h.observacao ? `<p>${escapeHtml(h.observacao.startsWith("[OPERADOR_FUNCIONAL: ") ? (h.observacao.slice(h.observacao.indexOf("]") + 1).trim() || "—") : h.observacao)}</p>` : ""}
           </article>`).join("")
       : "<p>Não há movimentações registradas.</p>";
     const termoHtml = termoAceite
