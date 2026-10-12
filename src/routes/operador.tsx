@@ -612,7 +612,6 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
                   key={f}
                   onClick={() => {
                     setFiltro(f);
-                    if (f === "pendente") setNovasPendentesIds([]);
                   }}
                   className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${filtro === f ? "bg-primary text-primary-foreground" : "bg-secondary hover:bg-secondary/80"}`}
                 >
