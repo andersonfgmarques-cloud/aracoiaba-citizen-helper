@@ -895,6 +895,7 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
   const anexoMedida = o.descricao.match(/\[ANEXO_MEDIDA_PROTETIVA: path=([^\]\n]+)\]/);
   const triagemAgressor = o.descricao.match(/\[TRIAGEM_VIOLENCIA_DOMESTICA: POSSIVEL_AGRESSOR=([^\]\n]*)\]/);
   const triagemMedida = o.descricao.match(/\[TRIAGEM_MEDIDA_PROTETIVA: ([^\]\n]*)\]/);
+  const triagemAnimal = o.descricao.match(/\[TRIAGEM_ANIMAL: TUTOR_CONHECIDO=([^;\]]*); NOME=([^;\]]*); ENDERECO_TUTOR=([^;\]]*); TELEFONE_TUTOR=([^\]]*)\]/);
   const anexoMedidaFalhou = /\[ANEXO_MEDIDA_PROTETIVA: ENVIO_FALHOU; DOCUMENTO_NAO_RECEBIDO\]/.test(o.descricao);
   const anexoMedidaPendente = /\[ANEXO_MEDIDA_PROTETIVA: PENDENTE; ARQUIVO_SELECIONADO\]/.test(o.descricao);
   const descricaoLimpa = o.descricao
@@ -905,6 +906,7 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
     .replace(/\n?\[ANEXO_MEDIDA_PROTETIVA: PENDENTE; ARQUIVO_SELECIONADO\]/, "")
     .replace(/\n?\[TRIAGEM_VIOLENCIA_DOMESTICA: POSSIVEL_AGRESSOR=[^\]\n]*\]/, "")
     .replace(/\n?\[TRIAGEM_MEDIDA_PROTETIVA: [^\]\n]*\]/, "")
+    .replace(/\n?\[TRIAGEM_ANIMAL: [^\]\n]*\]/, "")
     .trim();
   const triagemHtml = triagemAgressor || triagemMedida || anexoMedidaFalhou || anexoMedidaPendente
     ? `<h2>Informações específicas da triagem</h2><div class="description">${triagemAgressor ? `Possível agressor no local / ameaça / aproximação: ${escapeHtml(triagemAgressor[1] || "Não informado")}\n` : ""}${triagemMedida ? `Medida protetiva: ${escapeHtml(triagemMedida[1] || "Não informado")}\n` : ""}${anexoMedidaFalhou ? "ATENÇÃO: o arquivo da medida protetiva não foi recebido pelo sistema.\n" : ""}${anexoMedidaPendente ? "ATENÇÃO: o solicitante selecionou um arquivo, mas o sistema ainda não confirmou o vínculo. Verifique a pendência antes de encerrar a ocorrência.\n" : ""}</div>`
@@ -1048,6 +1050,15 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
           {veracidadeAceite && <p className="mt-1 text-xs text-muted-foreground">Versão {veracidadeAceite[1]} · Aceite registrado em {new Date(veracidadeAceite[2]!).toLocaleString("pt-BR")}</p>}
         </div>
         <p className="min-w-0 break-words leading-relaxed [overflow-wrap:anywhere]">{descricaoLimpa}</p>
+        {triagemAnimal && (
+          <section className="space-y-2 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3" aria-label="Informações da triagem do animal">
+            <p className="text-sm font-semibold">Informações do tutor ou responsável pelo animal</p>
+            <p className="text-sm"><span className="font-medium">Tutor conhecido:</span> {triagemAnimal[1] || "Não informado"}</p>
+            <p className="text-sm break-words"><span className="font-medium">Nome:</span> {triagemAnimal[2] || "Não informado"}</p>
+            <p className="text-sm break-words"><span className="font-medium">Endereço:</span> {triagemAnimal[3] || "Não informado"}</p>
+            <p className="text-sm break-words"><span className="font-medium">Telefone:</span> {triagemAnimal[4] || "Não informado"}</p>
+          </section>
+        )}
         {(triagemAgressor || triagemMedida || anexoMedidaFalhou) && (
           <section className="space-y-2 rounded-xl border border-destructive/30 bg-destructive/5 p-3" aria-label="Informações específicas da triagem">
             <p className="text-sm font-semibold">Informações da triagem de violência doméstica</p>
