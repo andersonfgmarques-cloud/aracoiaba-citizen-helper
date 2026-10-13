@@ -55,7 +55,6 @@ const STATUS: Record<string, { label: string; cls: string }> = {
   encerrada: { label: "Encerrada", cls: "bg-success/20 text-success" },
   cancelada: { label: "Cancelada", cls: "bg-muted text-muted-foreground" },
 };
-const VIATURAS = ["VTR-01", "VTR-02", "VTR-03", "MOTO-01", "MOTO-02", "Ambiental-01"];
 type VehicleStatus = { vehicle: string; status: "disponivel" | "empenhada" | "indisponivel" | "em_retorno"; occurrence_id: string | null; note: string | null; updated_at: string };
 
 function escapeHtml(value: unknown): string {
@@ -262,6 +261,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [savingIds, setSavingIds] = useState<string[]>([]);
   const [vehicleStatuses, setVehicleStatuses] = useState<VehicleStatus[]>([]);
+  const [activeVehicles, setActiveVehicles] = useState<string[]>([]);
   const [savingVehicle, setSavingVehicle] = useState<string | null>(null);
   const [vehicleStatusError, setVehicleStatusError] = useState("");
   const [vehicleDialog, setVehicleDialog] = useState<{ vehicle: string; status: "indisponivel" | "em_retorno" } | null>(null);
@@ -342,8 +342,12 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
   };
 
   const loadVehicleStatuses = async () => {
-    const { data, error } = await supabase.from("gcm_vehicle_status").select("*").order("vehicle");
-    if (error) { setVehicleStatusError("Não foi possível carregar a disponibilidade das viaturas."); return; }
+    const [{ data, error }, { data: fleet, error: fleetError }] = await Promise.all([
+      supabase.from("gcm_vehicle_status").select("*").order("vehicle"),
+      supabase.from("gcm_vehicles").select("vehicle").order("vehicle"),
+    ]);
+    if (error || fleetError) { setVehicleStatusError("Não foi possível carregar a disponibilidade das viaturas."); return; }
+    setActiveVehicles((fleet ?? []).map((item) => item.vehicle));
     setVehicleStatusError("");
     setVehicleStatuses((data ?? []) as VehicleStatus[]);
   };
@@ -755,7 +759,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
         </div>
         {vehicleStatusError && <p className="mb-2 rounded-lg bg-destructive/10 p-2 text-xs text-destructive">{vehicleStatusError}</p>}
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-          {VIATURAS.map(vehicle => {
+          {activeVehicles.map(vehicle => {
             const item = vehicleStatuses.find(v => v.vehicle === vehicle);
             const status = item?.status ?? "disponivel";
             const labels: Record<string, string> = { disponivel: "Disponível", empenhada: "Empenhada", indisponivel: "Indisponível", em_retorno: "Em retorno" };
@@ -1252,7 +1256,7 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
       <div className="space-y-3 rounded-2xl bg-card p-5">
         <p className="text-sm font-semibold">Viatura</p>
         <div className="flex flex-wrap gap-2">
-          {VIATURAS.map((v) => (
+          {activeVehicles.map((v) => (
             <button
               key={v}
               onClick={() => setVtr(v)}
