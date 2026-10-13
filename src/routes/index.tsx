@@ -125,11 +125,23 @@ function Index() {
   const [buscaCategoria, setBuscaCategoria] = useState("");
   const [medidaFile, setMedidaFile] = useState<File | null>(null);
   const [uploadingMedida, setUploadingMedida] = useState(false);
+  const [todasViaturasIndisponiveis, setTodasViaturasIndisponiveis] = useState<boolean | null>(null);
   const navigationHistoryRef = useRef<Array<{
     msgs: Msg[]; node: string; form: typeof form; input: string;
     preData: typeof preData; preStep: typeof preStep; ciencia: typeof ciencia;
     termoAceitoEm: string | null; veracidadeAceitaEm: string | null; medidaFile: File | null;
   }>>([]);
+  useEffect(() => {
+    let active = true;
+    const checkAvailability = async () => {
+      const { data, error } = await supabase.rpc("get_gcm_public_availability");
+      if (!active || error || !data?.length) return;
+      setTodasViaturasIndisponiveis(Boolean(data[0].all_vehicles_unavailable));
+    };
+    void checkAvailability();
+    const timer = window.setInterval(() => void checkAvailability(), 30000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, []);
   const saveNavigationPoint = () => {
     navigationHistoryRef.current.push({ msgs, node, form, input, preData, preStep, ciencia, termoAceitoEm, veracidadeAceitaEm, medidaFile });
     if (navigationHistoryRef.current.length > 80) navigationHistoryRef.current.shift();
@@ -557,6 +569,18 @@ function Index() {
         </button>
       </header>
 
+      {todasViaturasIndisponiveis === true && (
+        <section role="alert" className="border-b border-amber-400/40 bg-amber-950/95 px-4 py-3 text-amber-50 shadow-md">
+          <div className="mx-auto flex max-w-lg items-start gap-3">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-300" />
+            <div className="min-w-0 flex-1">
+              <h2 className="font-bold">Atenção: equipes da GCM indisponíveis neste momento</h2>
+              <p className="mt-1 text-sm leading-relaxed">Você pode continuar registrando sua solicitação. Se houver perigo imediato, ameaça em andamento ou risco à integridade de alguém, procure um local seguro e acione a Polícia Militar pelo 190. O registro no aplicativo não garante despacho imediato.</p>
+              <a href="tel:190" className="mt-2 inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 font-bold text-white hover:bg-red-700"><Phone className="h-4 w-4" /> Ligar para 190</a>
+            </div>
+          </div>
+        </section>
+      )}
       <div className="flex flex-wrap gap-2 border-b border-white/10 bg-slate-950/35 px-3 py-2.5">
         {[
           { id: "gcm", label: "GCM", number: "153" },
