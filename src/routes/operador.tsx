@@ -892,7 +892,7 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
   const integrantes = (() => {
     const texto = (despachoEquipe?.observacao ?? o.observacao ?? "").replace(/\\n/g, "\n");
     const valor = (campo: string) => texto.match(new RegExp(`(?:^|\\n)${campo}:\\s*(.*)`, "i"))?.[1]?.trim() ?? "";
-    return { ev: valor("EV"), condutor: valor("Condutor"), aux1: valor("AUX \\(1\\)"), aux2: valor("AUX \\(2\\)") };
+    return { ev: valor("Encarregado") || valor("EV"), condutor: valor("Condutor"), aux1: valor("AUX \\(1\\)"), aux2: valor("AUX \\(2\\)") };
   })();
 
   const imprimirRelatorio = () => {
@@ -946,7 +946,7 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
       </div>
       <h2>Integrantes da equipe empenhada</h2>
       <div class="grid">
-        <div class="field"><span class="label">EV — Encarregado:</span> ${escapeHtml(integrantes.ev)}</div>
+        <div class="field"><span class="label">Encarregado:</span> ${escapeHtml(integrantes.ev)}</div>
         <div class="field"><span class="label">Condutor:</span> ${escapeHtml(integrantes.condutor)}</div>
         <div class="field"><span class="label">AUX (1):</span> ${escapeHtml(integrantes.aux1)}</div>
         <div class="field"><span class="label">AUX (2):</span> ${escapeHtml(integrantes.aux2)}</div>
@@ -1083,7 +1083,7 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
             <p className="text-xs text-muted-foreground">{new Date(h.criado_em).toLocaleString("pt-BR")} · {h.status_anterior ?? "novo"} → {h.status_novo ?? "—"}</p>
             <p className="text-xs text-muted-foreground">Operador: {identificacaoOperador(h.operador_id, h.observacao)}</p>
             {h.viatura && <p className="text-xs text-muted-foreground">Viatura: {h.viatura}</p>}
-            {h.observacao && <p className="mt-1 text-xs">{h.observacao.startsWith("[OPERADOR_LOGIN: ") || h.observacao.startsWith("[OPERADOR_FUNCIONAL: ") ? (h.observacao.slice(h.observacao.indexOf("]") + 1).trim() || "—") : h.observacao}</p>}
+            {h.observacao && <p className="mt-1 text-xs">{(h.observacao.startsWith("[OPERADOR_LOGIN: ") || h.observacao.startsWith("[OPERADOR_FUNCIONAL: ") ? (h.observacao.slice(h.observacao.indexOf("]") + 1).trim() || "—") : h.observacao).replace(/^EV:/gm, "Encarregado:")}</p>}
           </div>
         ))}
       </div>
