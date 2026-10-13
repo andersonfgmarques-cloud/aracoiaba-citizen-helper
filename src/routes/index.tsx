@@ -924,9 +924,9 @@ function Index() {
         ) : current?.kind === "ask" ? (
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {current.options.map((o) => (
-              <button key={o.label} onClick={() => { setMsgs((m) => [...m, { from: "user", text: o.label }]); say(o.next); }} className="group flex min-h-[54px] w-full items-center gap-3 rounded-xl border border-primary/35 bg-slate-900/75 px-4 py-3 text-left text-sm font-semibold text-primary shadow-sm transition hover:border-primary/75 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.99]">
+              <button key={o.label} onClick={() => { setMsgs((m) => [...m, { from: "user", text: o.label }]); say(o.next); }} className="group flex min-h-[66px] w-full items-center gap-3 rounded-[20px] border border-primary/40 bg-slate-900/75 px-4 py-3 text-left text-sm font-semibold leading-snug text-primary shadow-sm transition hover:border-primary/75 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.99]">
                 <span className="min-w-0 flex-1">{o.label}</span>
-                <ChevronRight className="h-4 w-4 shrink-0 text-primary/70 transition group-hover:translate-x-0.5" />
+                <ChevronRight className="h-4 w-4 shrink-0 text-primary/80 transition group-hover:translate-x-0.5" />
               </button>
             ))}
           </div>
