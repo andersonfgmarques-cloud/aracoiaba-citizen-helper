@@ -14,6 +14,12 @@ export type Database = {
   }
   public: {
     Tables: {
+      gcm_vehicle_status: {
+        Row: { vehicle: string; status: string; occurrence_id: string | null; note: string | null; updated_by: string | null; updated_at: string }
+        Insert: { vehicle: string; status?: string; occurrence_id?: string | null; note?: string | null; updated_by?: string | null; updated_at?: string }
+        Update: { vehicle?: string; status?: string; occurrence_id?: string | null; note?: string | null; updated_by?: string | null; updated_at?: string }
+        Relationships: []
+      }
       ocorrencias: {
         Row: {
           anexo_token_hash: string | null
@@ -139,6 +145,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_gcm_public_availability: {
+        Args: Record<PropertyKey, never>
+        Returns: { all_vehicles_unavailable: boolean; unavailable_count: number; total_count: number }[]
+      }
+      set_gcm_vehicle_status: {
+        Args: { _vehicle: string; _status: string; _occurrence_id?: string | null; _note?: string | null }
+        Returns: undefined
+      }
       admin_list_users: {
         Args: Record<PropertyKey, never>
         Returns: {
