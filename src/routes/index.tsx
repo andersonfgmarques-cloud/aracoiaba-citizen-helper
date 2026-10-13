@@ -867,7 +867,8 @@ function Index() {
                   <div className="rounded-xl bg-primary/10 p-2 text-primary"><Paperclip className="h-5 w-5" /></div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold">Medida protetiva de urgência</p>
-                    <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Anexe uma foto ou PDF, se tiver. O documento é opcional e não impede o atendimento.</p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Anexe uma foto ou PDF, se tiver. O documento é opcional e não impede o atendimento. Em caso de perigo atual, vá para um local seguro e ligue 190 ou 153; não espere concluir a triagem.</p>
+                    <p className="mt-2 text-xs leading-relaxed text-muted-foreground">O arquivo será associado à solicitação para análise pela equipe autorizada. Evite anexar documentos de terceiros que não sejam necessários. O envio pelo aplicativo não substitui o boletim de ocorrência nem garante, por si só, o despacho de uma equipe.</p>
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
