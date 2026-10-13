@@ -323,10 +323,11 @@ export const TREE: Record<string, Node> = {
     ],
   },
   r_maus_tratos_agora: {
-    kind: "route",
+    kind: "gcm",
     urgent: true,
-    text: "Se os maus-tratos estão acontecendo agora ou o animal corre perigo imediato, ligue 190 (Polícia Militar) imediatamente. Você também pode acionar a GCM pelo 153 para solicitar apoio municipal. Não confronte o possível responsável e não se coloque em risco. Não use o formulário online da DEPA para uma emergência.",
-    contacts: [CONTACTS.pm, CONTACTS.gcm],
+    category: "Maus-tratos contra animais em andamento",
+    text: "Vamos registrar sua solicitação pelo aplicativo para avaliação da GCM. Informe o endereço exato e descreva o que está acontecendo, incluindo as condições do animal e, se souber, quando o fato começou. Se o animal estiver em perigo imediato ou o crime estiver acontecendo agora, ligue também para 190; não espere o envio do formulário. Não confronte o possível responsável nem se coloque em risco.",
+    contacts: [CONTACTS.gcm, CONTACTS.pm],
   },
   r_depa_maus_tratos: {
     kind: "route",
