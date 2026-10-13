@@ -1281,7 +1281,7 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
               const equipeEmpenhada = texto.includes("[EQUIPE EMPENHADA]");
               const linhas = texto.replace("[EQUIPE EMPENHADA]", "").split(/\s+(?=(?:EV|Encarregado|Condutor|AUX \(1\)|AUX \(2\)|Informações do despacho):)/i).map(item => item.trim()).filter(Boolean);
               const detalhes = linhas.find(item => item.startsWith("Informações do despacho:"))?.replace("Informações do despacho:", "").trim() || "";
-              const equipe = linhas.filter(item => /^(EV|Encarregado|Condutor|AUX \(1\)|AUX \(2\]):/i.test(item));
+              const equipe = linhas.filter(item => /^(EV|Encarregado|Condutor|AUX \\(1\\)|AUX \\(2\\)):/i.test(item));
               if (!equipeEmpenhada) return <p className="mt-1 whitespace-pre-wrap break-words text-xs leading-5 text-muted-foreground">{texto.replace(/^EV:/gm, "Encarregado:")}</p>;
               return <div className="mt-2 space-y-2">
                 <div className="flex flex-wrap gap-1.5">{equipe.map((item, index) => {
