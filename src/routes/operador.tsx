@@ -761,7 +761,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
         </div>
         {vehicleStatusError && <p className="mb-2 rounded-lg bg-destructive/10 p-2 text-xs text-destructive">{vehicleStatusError}</p>}
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-          {activeVehicles.map(vehicle => {
+          {(activeVehicles ?? []).map(vehicle => {
             const item = vehicleStatuses.find(v => v.vehicle === vehicle);
             const status = item?.status ?? "disponivel";
             const labels: Record<string, string> = { disponivel: "Disponível", empenhada: "Empenhada", indisponivel: "Indisponível" };
@@ -818,7 +818,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
             {!loadingOcs && !loadError && lista.length === 0 && (
               <p className="p-6 text-center text-sm text-muted-foreground">Nenhuma ocorrência registrada no banco de dados.</p>
             )}
-            {lista.map((o) => {
+            {(lista ?? []).map((o) => {
               const prioridadeUrgente = ["alta", "urgente"].includes(o.prioridade.toLowerCase());
               const minutosAguardando = Math.floor(Math.max(0, Date.now() - new Date(o.created_at).getTime()) / 60000);
               const pendenciaProlongada = o.status === "pendente" && minutosAguardando >= 10;
@@ -1040,8 +1040,9 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
 
   const imprimirRelatorio = () => {
     const dataHora = (value: string) => new Date(value).toLocaleString("pt-BR");
-    const historicoHtml = historico.length
-      ? historico.map((h) => `
+    const historicoSeguro = Array.isArray(historico) ? historico : [];
+    const historicoHtml = historicoSeguro.length
+      ? historicoSeguro.map((h) => `
           <article class="movimento">
             <strong>${escapeHtml(h.acao)}</strong>
             <div>${escapeHtml(dataHora(h.criado_em))} · ${escapeHtml(h.status_anterior ?? "novo")} → ${escapeHtml(h.status_novo ?? "—")}</div>
@@ -1245,7 +1246,7 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
         {historicoCarregando && <p className="text-xs text-muted-foreground">Carregando movimentações…</p>}
         {historicoErro && <p className="text-xs text-destructive">Não foi possível carregar o histórico: {historicoErro}</p>}
         {!historicoCarregando && !historicoErro && historico.length === 0 && <p className="text-xs text-muted-foreground">Nenhuma movimentação encontrada no banco para esta ocorrência. Atualize para consultar novamente.</p>}
-        {historico.map((h) => (
+        {(Array.isArray(historico) ? historico : []).map((h) => (
           <div key={h.id} className="border-l-2 border-primary/50 pl-3 py-1">
             <p className="text-sm font-semibold">{h.acao}</p>
             <p className="text-xs text-muted-foreground">{new Date(h.criado_em).toLocaleString("pt-BR")} · {h.status_anterior ?? "novo"} → {h.status_novo ?? "—"}</p>
@@ -1258,7 +1259,7 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
       <div className="space-y-3 rounded-2xl bg-card p-5">
         <p className="text-sm font-semibold">Viatura</p>
         <div className="flex flex-wrap gap-2">
-          {activeVehicles.map((v) => (
+          {(activeVehicles ?? []).map((v) => (
             <button
               key={v}
               onClick={() => setVtr(v)}
