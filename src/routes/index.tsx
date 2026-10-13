@@ -513,15 +513,6 @@ function Index() {
             <span className="h-2 w-2 rounded-full bg-success" /> Assistente de atendimento online
           </p>
         </div>
-        <Link
-          to="/operador"
-          aria-label="Acessar painel CAD do operador"
-          title="Acesso do operador CAD"
-          className="flex shrink-0 items-center gap-1.5 rounded-full border border-primary/50 bg-primary/10 px-3 py-2 text-xs font-bold text-primary transition-colors hover:bg-primary/20"
-        >
-          <LayoutDashboard className="h-4 w-4" />
-          CAD
-        </Link>
         <button
           type="button"
           onClick={goBack}
