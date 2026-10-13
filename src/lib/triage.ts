@@ -46,6 +46,7 @@ export const TREE: Record<string, Node> = {
     kind: "ask",
     text: "Certo. Sobre o que é a sua solicitação?",
     options: [
+      { label: "Crimes e ocorrências policiais", next: "crimes" },
       { label: "Segurança / perturbação", next: "seg" },
       { label: "Patrimônio público / escolas / praças", next: "g_patr" },
       { label: "Trânsito", next: "trans" },
@@ -54,6 +55,35 @@ export const TREE: Record<string, Node> = {
       { label: "Suspeita de tráfico de drogas", next: "r_trafico" },
       { label: "Saúde", next: "r_samu_nu" },
       { label: "Chuva / árvore / risco estrutural", next: "r_defesa" },
+    ],
+  },
+  crimes: {
+    kind: "ask",
+    text: "Para direcionar corretamente, o fato está acontecendo agora ou já aconteceu?",
+    options: [
+      { label: "Está acontecendo agora", next: "crimes_agora" },
+      { label: "Já aconteceu / quero comunicar", next: "crimes_passado" },
+    ],
+  },
+  crimes_agora: {
+    kind: "ask",
+    text: "Qual situação melhor descreve o fato? Se houver arma, ameaça, violência ou risco imediato, ligue 190 ou 153 sem esperar o preenchimento do formulário.",
+    options: [
+      { label: "Furto ou roubo em andamento", next: "g_furto_roubo" },
+      { label: "Ameaça ou agressão", next: "g_ameaca_agressao" },
+      { label: "Dano / vandalismo", next: "g_dano_vandalismo" },
+      { label: "Pessoa ou veículo suspeito", next: "g_suspeito" },
+      { label: "Outra ocorrência", next: "g_crime_outra" },
+    ],
+  },
+  crimes_passado: {
+    kind: "ask",
+    text: "Qual fato você deseja comunicar? A solicitação à GCM será registrada para avaliação; para boletim de ocorrência e investigação, procure também a Polícia Civil pelo 197 ou pela Delegacia Eletrônica de São Paulo.",
+    options: [
+      { label: "Furto ou roubo já ocorrido", next: "g_furto_roubo" },
+      { label: "Ameaça ou agressão", next: "g_ameaca_agressao" },
+      { label: "Dano / vandalismo", next: "g_dano_vandalismo" },
+      { label: "Outra ocorrência", next: "g_crime_outra" },
     ],
   },
   seg: {
@@ -167,6 +197,32 @@ export const TREE: Record<string, Node> = {
     kind: "route",
     text: "Tratando-se de sinistro de trânsito sem vítima, não é necessário aguardar viatura no local. Retirem os veículos da via (se possível e seguro), troquem os dados e façam registros fotográficos. O solicitante pode registrar o Boletim de Ocorrência online pela Delegacia Digital da Polícia Civil de São Paulo; o boletim é importante para o seguro.",
     contacts: [],
+  },
+  g_furto_roubo: {
+    kind: "gcm",
+    urgent: true,
+    category: "Furto / roubo",
+    text: "A GCM pode receber as informações para avaliação e atuação dentro de suas atribuições. Se o furto ou roubo estiver acontecendo agora, houver suspeito no local, arma, ameaça ou violência, ligue imediatamente 190 (Polícia Militar) ou 153 (GCM). Não confronte os envolvidos. Para formalizar o boletim e eventual investigação, procure também a Polícia Civil pelo 197 ou pela Delegacia Eletrônica.",
+    contacts: [CONTACTS.gcm, CONTACTS.pm, CONTACTS.civil],
+  },
+  g_ameaca_agressao: {
+    kind: "gcm",
+    urgent: true,
+    category: "Ameaça / agressão",
+    text: "A GCM pode receber a solicitação e avaliar as providências cabíveis. Se houver agressão em andamento, ameaça imediata, arma ou risco à integridade física, procure um local seguro e ligue 190 (Polícia Militar) ou 153 (GCM). Para registro formal e investigação, procure também a Polícia Civil.",
+    contacts: [CONTACTS.gcm, CONTACTS.pm, CONTACTS.civil],
+  },
+  g_dano_vandalismo: {
+    kind: "gcm",
+    category: "Dano / vandalismo",
+    text: "Informe os detalhes para que a solicitação seja registrada e avaliada pela GCM, especialmente se o fato envolver patrimônio público ou estiver acontecendo nas proximidades. Se o autor estiver no local e houver risco de confronto, não intervenha; ligue 153 ou 190. Para boletim de ocorrência, procure a Polícia Civil.",
+    contacts: [CONTACTS.gcm, CONTACTS.pm, CONTACTS.civil],
+  },
+  g_crime_outra: {
+    kind: "gcm",
+    category: "Outra ocorrência policial",
+    text: "Descreva o fato para que a solicitação seja registrada e avaliada pela GCM dentro de suas atribuições. Em situação urgente, crime violento em andamento ou risco imediato, ligue 190 ou 153. Para boletim de ocorrência e investigação, procure também a Polícia Civil.",
+    contacts: [CONTACTS.gcm, CONTACTS.pm, CONTACTS.civil],
   },
   g_trafico_area_publica: {
     kind: "gcm",
