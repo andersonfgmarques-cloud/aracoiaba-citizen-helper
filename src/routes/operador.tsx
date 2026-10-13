@@ -364,15 +364,31 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           return;
         }
         const { data: perfilData, error: perfilError } = await supabase.rpc("get_my_operator_profile");
-        console.info("[CAD] Perfil funcional consultado", {
-          conta: session.user.email,
-          perfilEncontrado: Array.isArray(perfilData) && perfilData.length > 0,
-          quantidadeResultados: Array.isArray(perfilData) ? perfilData.length : null,
-        });
+        let perfilResolvido = !perfilError ? perfilData?.[0] ?? null : null;
         if (perfilError) {
-          console.error("[CAD] Falha ao consultar perfil funcional:", perfilError);
+          console.error("[CAD] Falha ao consultar perfil funcional pela função RPC:", perfilError);
         }
-        if (active) setPerfilOperador(!perfilError ? perfilData?.[0] ?? null : null);
+
+        // Fallback para contas cujo perfil já existe, mas cuja função RPC ainda não está sincronizada.
+        // A política RLS permite ao operador consultar apenas o próprio perfil.
+        if (!perfilResolvido) {
+          const { data: perfilDireto, error: perfilDiretoError } = await supabase
+            .from("operator_profiles")
+            .select("nome_completo, matricula, cargo, lotacao")
+            .eq("user_id", session.user.id)
+            .maybeSingle();
+          if (perfilDiretoError) {
+            console.error("[CAD] Falha ao consultar perfil funcional diretamente:", perfilDiretoError);
+          } else {
+            perfilResolvido = perfilDireto;
+          }
+        }
+
+        console.info("[CAD] Perfil funcional consultado", {
+          perfilEncontrado: !!perfilResolvido,
+          origem: perfilData?.[0] ? "rpc" : perfilResolvido ? "consulta direta" : "não encontrado",
+        });
+        if (active) setPerfilOperador(perfilResolvido);
 
         const { data: vinculoConta } = await supabase
           .from("operator_profile_accounts")
@@ -579,7 +595,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           </button>
         )}
         <div className="w-full truncate text-[10px] text-muted-foreground sm:hidden">
-          {perfilOperador ? `${perfilOperador.cargo} ${perfilOperador.nome_completo} · RM-${perfilOperador.matricula.replace(/^RM-/i, "").trim()}` : (session?.user.email ?? TEMP_OPERATOR_EMAIL)}
+          {perfilOperador ? `${perfilOperador.cargo} ${perfilOperador.nome_completo} · RM-${perfilOperador.matricula.replace(/^RM-/i, "").trim()}` : "Perfil funcional não carregado"}
         </div>
         <div className="ml-auto flex w-full flex-wrap items-center justify-end gap-2 text-xs text-muted-foreground sm:w-auto sm:flex-nowrap sm:gap-3">
           <button
