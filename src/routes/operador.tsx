@@ -750,6 +750,17 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
         })}
       </div>
 
+      {activeVehicles.length > 0 && activeVehicles.every(vehicle => vehicleStatuses.find(v => v.vehicle === vehicle)?.status !== "disponivel") && (
+        <section role="alert" className="shrink-0 border-b border-destructive/40 bg-destructive/10 px-4 py-3">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-destructive">Todas as viaturas estão indisponíveis</p>
+              <p className="mt-1 text-xs text-muted-foreground">Novas solicitações permanecem pendentes para avaliação operacional. Não realize despacho até que uma viatura esteja disponível. Em situações de risco imediato, o cidadão deve acionar o 190.</p>
+            </div>
+          </div>
+        </section>
+      )}
       <section className="shrink-0 border-b bg-background/95 px-3 py-3 sm:px-4" aria-label="Disponibilidade operacional das viaturas">
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
           <div><h2 className="text-sm font-bold">Disponibilidade operacional</h2><p className="text-xs text-muted-foreground">O despacho empenha a viatura automaticamente. Marque indisponibilidade quando necessário.</p></div>
@@ -834,6 +845,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
                     <span className="text-sm font-bold">{o.categoria}</span>
                     <div className="flex flex-wrap items-center justify-end gap-1">
                       {prioridadeUrgente && <span className="rounded-full bg-destructive/15 px-2 py-0.5 text-[10px] font-bold text-destructive">URGENTE</span>}
+                      {o.status === "pendente" && activeVehicles.length > 0 && activeVehicles.every(vehicle => vehicleStatuses.find(v => v.vehicle === vehicle)?.status !== "disponivel") && <span className="rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-bold text-amber-300">AGUARDANDO DISPONIBILIDADE</span>}
                       {pendenciaCritica && <span className="rounded-full bg-destructive px-2 py-0.5 text-[10px] font-bold text-destructive-foreground">AGUARDANDO 20+ MIN</span>}
                       {!pendenciaCritica && pendenciaProlongada && <span className="rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-bold text-amber-300">AGUARDANDO 10+ MIN</span>}
                       <span
