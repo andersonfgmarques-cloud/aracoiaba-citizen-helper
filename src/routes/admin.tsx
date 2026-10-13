@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import {
   ArrowLeft, ShieldCheck, Users, ClipboardList, History, RefreshCw, BellRing, Volume2, VolumeX,
   LogOut, CheckCircle2, Ban, Trash2, AlertTriangle, LockKeyhole, Eye, FileDown, X, Pencil, Save, Search,
@@ -548,7 +548,7 @@ function AdminPage() {
     printWindow.document.close();
   };
 
-  const searchOccurrencesByProtocol = async (event?: React.FormEvent) => {
+  const searchOccurrencesByProtocol = async (event?: FormEvent) => {
     event?.preventDefault();
     const term = protocolSearch.trim();
     if (term.length < 3) {
