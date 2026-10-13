@@ -164,6 +164,7 @@ function AdminPage() {
   const [profileForm, setProfileForm] = useState({ nome_completo: "", matricula: "", cargo: "", lotacao: "" });
   const [adminSoundEnabled, setAdminSoundEnabled] = useState(false);
   const [newAdminOccurrenceCount, setNewAdminOccurrenceCount] = useState(0);
+  const [adminAlertMessage, setAdminAlertMessage] = useState("");
   const [liveConnection, setLiveConnection] = useState<"connecting" | "connected" | "disconnected">("connecting");
   const adminAudioRef = useRef<AudioContext | null>(null);
   const adminSoundEnabledRef = useRef(false);
@@ -304,7 +305,7 @@ function AdminPage() {
           if (occurrence.status === "pendente" && !notifiedAdminOccurrenceIds.current.has(occurrence.id)) {
             notifiedAdminOccurrenceIds.current.add(occurrence.id);
             setNewAdminOccurrenceCount((count) => count + 1);
-            setMessage((current) => current ? current : `Nova ocorrência pendente recebida: ${occurrence.protocolo || "protocolo não informado"}.`);
+            setAdminAlertMessage(`Nova ocorrência pendente recebida: ${occurrence.protocolo || "protocolo não informado"}.`);
             if (adminSoundEnabledRef.current && adminAudioRef.current) {
               try {
                 const context = adminAudioRef.current;
@@ -627,6 +628,7 @@ function AdminPage() {
           <span className="rounded-full border border-success/30 bg-success/10 px-3 py-1 text-xs font-semibold text-success">Conta administrativa</span>
           {newAdminOccurrenceCount > 0 && <button onClick={() => { setTab("ocorrencias"); setNewAdminOccurrenceCount(0); }} className="inline-flex animate-pulse items-center gap-2 rounded-full border border-destructive/40 bg-destructive/10 px-3 py-1.5 text-xs font-bold text-destructive" aria-live="polite"><BellRing className="h-4 w-4" />{newAdminOccurrenceCount} nova(s) ocorrência(s)</button>}
         </div>
+        {adminAlertMessage && <div className="mb-4 flex items-start gap-3 rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm" role="alert" aria-live="assertive"><BellRing className="mt-0.5 h-5 w-5 shrink-0 animate-pulse text-destructive" /><div className="min-w-0 flex-1"><p className="font-bold text-destructive">Nova ocorrência pendente</p><p className="mt-1">{adminAlertMessage}</p><div className="mt-3 flex flex-wrap gap-2"><button onClick={() => { setTab("ocorrencias"); setNewAdminOccurrenceCount(0); setAdminAlertMessage(""); }} className="rounded-lg bg-destructive px-3 py-1.5 text-xs font-semibold text-destructive-foreground">Ver ocorrências</button><button onClick={() => setAdminAlertMessage("")} className="rounded-lg bg-secondary px-3 py-1.5 text-xs font-semibold">Dispensar aviso</button></div></div></div>}
         <div className="mb-5 grid gap-3 sm:grid-cols-3">
           <div className="rounded-2xl border border-border bg-card p-4"><Users className="mb-2 h-5 w-5 text-primary" /><p className="text-2xl font-bold">{users.length}</p><p className="text-sm text-muted-foreground">Contas cadastradas</p></div>
           <div className="rounded-2xl border border-border bg-card p-4"><ClipboardList className="mb-2 h-5 w-5 text-primary" /><p className="text-2xl font-bold">{occurrences.length}</p><p className="text-sm text-muted-foreground">Ocorrências recentes listadas</p></div>
