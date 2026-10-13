@@ -17,6 +17,7 @@ import {
   WifiOff,
   Volume2,
   VolumeX,
+  AlertTriangle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
