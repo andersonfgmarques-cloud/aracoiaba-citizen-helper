@@ -44,6 +44,14 @@ begin
     raise exception 'Invalid protective-measure document reference';
   end if;
 
+  if not exists (
+    select 1 from storage.objects so
+    where so.bucket_id = 'gcm-medidas-protetivas'
+      and so.name = _path
+  ) then
+    raise exception 'Protective-measure object does not exist';
+  end if;
+
   update public.ocorrencias
   set descricao = concat(
     rtrim(descricao),
