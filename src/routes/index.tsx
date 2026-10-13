@@ -80,8 +80,8 @@ const fieldsForCategory = (category: string, data: Record<string, string> = {}) 
   if (category !== "Violência doméstica" && category !== "Descumprimento de medida protetiva de urgência") return FIELDS;
   return [
     ...FIELDS.slice(0, 5),
-    { key: "agressor_local", q: "O possível agressor está no local, tentando entrar em contato ou se aproximar? Informe também se há ameaça ou agressão em andamento." },
-    { key: "medida_protetiva", q: "Existe medida protetiva de urgência? Informe se está vigente, se houve descumprimento e quais restrições foram violadas. Se não souber, informe isso." },
+    { key: "agressor_local", q: "O possível agressor está no local, tentando entrar em contato ou se aproximar? Informe se há ameaça ou agressão em andamento. Se houver perigo atual, vá para um local seguro e ligue 190 ou 153; não espere concluir este formulário." },
+    { key: "medida_protetiva", q: "Existe medida protetiva de urgência? Informe se está vigente, se houve descumprimento e quais restrições podem ter sido violadas. Se não souber ou não puder informar, diga isso. Anexar o documento é opcional." },
     FIELDS[5],
   ] as const;
 };
@@ -321,30 +321,10 @@ function Index() {
         : "media";
       let anexoPath: string | null = null;
       let anexoFalhou = false;
-      if (medidaFile) {
-        setUploadingMedida(true);
-        try {
-          const safeName = medidaFile.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-100);
-          const { data: uploaded, error: uploadError } = await supabase.storage
-            .from("gcm-medidas-protetivas")
-            .upload(`${protocol}/${Date.now()}-${safeName}`, medidaFile, { contentType: medidaFile.type, upsert: false });
-          if (uploadError) {
-            anexoFalhou = true;
-          } else {
-            anexoPath = uploaded.path;
-          }
-        } catch {
-          anexoFalhou = true;
-        } finally {
-          setUploadingMedida(false);
-        }
-      }
       const dadosTriagem = [
         data["agressor_local"] ? `\n\n[TRIAGEM_VIOLENCIA_DOMESTICA: POSSIVEL_AGRESSOR=${data["agressor_local"]}]` : "",
         data["medida_protetiva"] ? `\n[TRIAGEM_MEDIDA_PROTETIVA: ${data["medida_protetiva"]}]` : "",
         (data["tutor_conhecido"] || form.category === "Animal agressivo / responsável identificado") ? `\n[TRIAGEM_ANIMAL: TUTOR_CONHECIDO=${data["tutor_conhecido"] || "SIM"}; NOME=${data["tutor_nome"] || "não informado"}; ENDERECO_TUTOR=${data["tutor_endereco"] || "não informado"}; TELEFONE_TUTOR=${data["tutor_telefone"] || "não informado"}]` : "",
-        anexoPath ? `\n[ANEXO_MEDIDA_PROTETIVA: path=${anexoPath}]` : "",
-        anexoFalhou ? "\n[ANEXO_MEDIDA_PROTETIVA: ENVIO_FALHOU; DOCUMENTO_NAO_RECEBIDO]" : "",
       ].join("");
       const payload = {
         protocolo: protocol,
@@ -357,13 +337,41 @@ function Index() {
         endereco: data["endereco"]!,
         descricao: `${data["descricao"]!}${dadosTriagem}\n\n[REGISTRO_TERMO_ART340: ACEITO_EM=${termoAceitoEm ?? new Date().toISOString()}]\n[REGISTRO_TERMO_VERACIDADE: VERSAO=1; ACEITO_EM=${veracidadeAceitaEm ?? new Date().toISOString()}]`,
       };
-      // Envio obrigatório ao CAD: até 3 tentativas antes de informar falha
+      // Registra primeiro a ocorrência; o Storage valida que o protocolo já existe.
       let insertError: { message: string } | null = null;
       for (let tentativa = 0; tentativa < 3; tentativa++) {
         const { error } = await supabase.from("ocorrencias").insert(payload);
         insertError = error;
         if (!error) break;
         await new Promise((r) => setTimeout(r, 1000 * (tentativa + 1)));
+      }
+      if (!insertError && medidaFile) {
+        setUploadingMedida(true);
+        try {
+          const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+          if (!allowedTypes.includes(medidaFile.type) || medidaFile.size > 10 * 1024 * 1024) {
+            anexoFalhou = true;
+          } else {
+            const safeName = medidaFile.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-100) || "documento";
+            const { data: uploaded, error: uploadError } = await supabase.storage
+              .from("gcm-medidas-protetivas")
+              .upload(`${protocol}/${crypto.randomUUID()}-${safeName}`, medidaFile, { contentType: medidaFile.type, upsert: false });
+            if (uploadError || !uploaded?.path) {
+              anexoFalhou = true;
+            } else {
+              const { error: attachError } = await supabase.rpc("attach_protective_measure_document", {
+                _protocol: protocol,
+                _path: uploaded.path,
+              });
+              if (attachError) anexoFalhou = true;
+              else anexoPath = uploaded.path;
+            }
+          }
+        } catch {
+          anexoFalhou = true;
+        } finally {
+          setUploadingMedida(false);
+        }
       }
       if (insertError) {
         setMsgs((m) => [
@@ -384,7 +392,7 @@ function Index() {
         ...m,
         { from: "user", text: input.trim() },
         { from: "done", protocol, category: form.category },
-        ...(anexoFalhou ? [{ from: "bot" as const, text: "A ocorrência foi registrada, mas o documento não pôde ser anexado. A equipe foi informada de que o arquivo não foi recebido. Se houver risco imediato, não aguarde o envio do documento." }] : []),
+        ...(anexoFalhou ? [{ from: "bot" as const, text: "A ocorrência foi registrada, mas o documento não pôde ser anexado ou vinculado. A falta do arquivo não invalida a solicitação; a equipe do CAD foi alertada para essa pendência. Se houver risco imediato, ligue 190 ou 153." }] : []),
       ]);
     }
   };
