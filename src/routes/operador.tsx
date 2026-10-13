@@ -1274,7 +1274,23 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
             <p className="text-xs text-muted-foreground">{new Date(h.criado_em).toLocaleString("pt-BR")} · {h.status_anterior ?? "novo"} → {h.status_novo ?? "—"}</p>
             <p className="text-xs text-muted-foreground">Operador: {identificacaoOperador(h.operador_id, h.observacao)}</p>
             {h.viatura && <p className="text-xs text-muted-foreground">Viatura: {h.viatura}</p>}
-            {h.observacao && <p className="mt-1 text-xs">{(h.observacao.startsWith("[OPERADOR_LOGIN: ") || h.observacao.startsWith("[OPERADOR_FUNCIONAL: ") ? (h.observacao.slice(h.observacao.indexOf("]") + 1).trim() || "—") : h.observacao).replace(/^EV:/gm, "Encarregado:")}</p>}
+            {h.observacao && (() => {
+              const texto = (h.observacao.startsWith("[OPERADOR_LOGIN: ") || h.observacao.startsWith("[OPERADOR_FUNCIONAL: "))
+                ? (h.observacao.slice(h.observacao.indexOf("]") + 1).trim() || "—")
+                : h.observacao;
+              const equipeEmpenhada = texto.includes("[EQUIPE EMPENHADA]");
+              const linhas = texto.replace("[EQUIPE EMPENHADA]", "").split(/\s+(?=(?:EV|Encarregado|Condutor|AUX \(1\)|AUX \(2\)|Informações do despacho):)/i).map(item => item.trim()).filter(Boolean);
+              const detalhes = linhas.find(item => item.startsWith("Informações do despacho:"))?.replace("Informações do despacho:", "").trim() || "";
+              const equipe = linhas.filter(item => /^(EV|Encarregado|Condutor|AUX \(1\)|AUX \(2\]):/i.test(item));
+              if (!equipeEmpenhada) return <p className="mt-1 whitespace-pre-wrap break-words text-xs leading-5 text-muted-foreground">{texto.replace(/^EV:/gm, "Encarregado:")}</p>;
+              return <div className="mt-2 space-y-2">
+                <div className="flex flex-wrap gap-1.5">{equipe.map((item, index) => {
+                  const [label, ...rest] = item.split(":");
+                  return <span key={index} className="rounded-md border border-border/70 bg-background/60 px-2 py-1 text-[11px] leading-4 text-muted-foreground"><span className="font-semibold text-foreground">{label}:</span> {rest.join(":").trim()}</span>;
+                })}</div>
+                {detalhes && <div className="rounded-lg bg-background/50 px-3 py-2"><p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Informações do despacho</p><p className="whitespace-pre-wrap break-words text-xs leading-5">{detalhes}</p></div>}
+              </div>;
+            })()}
           </div>
         ))}
       </div>
