@@ -75,6 +75,22 @@ function formatDate(value: string | null | undefined) {
   return value ? new Date(value).toLocaleString("pt-BR") : "Nunca";
 }
 
+function parseOccurrenceMetadata(description: string) {
+  const aggressor = description.match(/\[TRIAGEM_VIOLENCIA_DOMESTICA: POSSIVEL_AGRESSOR=([^\]\n]*)\]/)?.[1] ?? null;
+  const measure = description.match(/\[TRIAGEM_MEDIDA_PROTETIVA: ([^\]\n]*)\]/)?.[1] ?? null;
+  const attachmentPath = description.match(/\[ANEXO_MEDIDA_PROTETIVA: path=([^\]\n]+)\]/)?.[1] ?? null;
+  const attachmentFailed = /\[ANEXO_MEDIDA_PROTETIVA: ENVIO_FALHOU; DOCUMENTO_NAO_RECEBIDO\]/.test(description);
+  const cleanDescription = description
+    .replace(/\n?\[TRIAGEM_VIOLENCIA_DOMESTICA: POSSIVEL_AGRESSOR=[^\]\n]*\]/g, "")
+    .replace(/\n?\[TRIAGEM_MEDIDA_PROTETIVA: [^\]\n]*\]/g, "")
+    .replace(/\n?\[ANEXO_MEDIDA_PROTETIVA: path=[^\]\n]+\]/g, "")
+    .replace(/\n?\[ANEXO_MEDIDA_PROTETIVA: ENVIO_FALHOU; DOCUMENTO_NAO_RECEBIDO\]/g, "")
+    .replace(/\n?\[REGISTRO_TERMO_ART340: ACEITO_EM=[^\]\n]+\]/g, "")
+    .replace(/\n?\[REGISTRO_TERMO_VERACIDADE: VERSAO=[^;]+; ACEITO_EM=[^\]\n]+\]/g, "")
+    .trim();
+  return { aggressor, measure, attachmentPath, attachmentFailed, cleanDescription };
+}
+
 const AUDIT_ACTIONS: Record<string, { title: string; category: string; tone: string }> = {
   operator_access_granted: { title: "Acesso de operador liberado", category: "Acesso", tone: "success" },
   operator_access_revoked: { title: "Acesso de operador revogado", category: "Acesso", tone: "warning" },
@@ -524,7 +540,8 @@ function AdminPage() {
               <div><h3 className="mb-2 font-semibold">Identificação e registro</h3><dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{[
                 ["Natureza / categoria", viewingOccurrence.categoria], ["Prioridade", viewingOccurrence.prioridade], ["Status", viewingOccurrence.status], ["Data do registro", formatDate(viewingOccurrence.created_at)], ["Última atualização", formatDate(viewingOccurrence.updated_at)], ["Solicitante", viewingOccurrence.nome], ["Telefone", viewingOccurrence.telefone], ["CPF", viewingOccurrence.cpf], ["Endereço da ocorrência", viewingOccurrence.endereco], ["Endereço do solicitante", viewingOccurrence.endereco_solicitante], ["Viatura", viewingOccurrence.viatura],
               ].map(([label, value]) => <div key={label} className="rounded-lg border border-border bg-background/40 p-3"><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1 break-words text-sm font-medium">{value || "Não informado"}</dd></div>)}</dl></div>
-              <div><h3 className="mb-2 font-semibold">Descrição da ocorrência</h3><p className="whitespace-pre-wrap break-words rounded-lg border border-border p-4 text-sm">{viewingOccurrence.descricao || "Sem descrição registrada."}</p></div>
+              <div><h3 className="mb-2 font-semibold">Descrição da ocorrência</h3><p className="whitespace-pre-wrap break-words rounded-lg border border-border p-4 text-sm">{parseOccurrenceMetadata(viewingOccurrence.descricao).cleanDescription || "Sem descrição registrada."}</p></div>
+              {(() => { const triage = parseOccurrenceMetadata(viewingOccurrence.descricao); return (triage.aggressor || triage.measure || triage.attachmentPath || triage.attachmentFailed) ? <section className="space-y-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4"><h3 className="font-semibold">Informações da triagem de violência doméstica</h3>{triage.aggressor && <p className="text-sm"><span className="font-medium">Agressor, ameaça ou aproximação:</span> {triage.aggressor}</p>}{triage.measure && <p className="text-sm"><span className="font-medium">Medida protetiva:</span> {triage.measure}</p>}{triage.attachmentPath && <p className="text-sm text-success">Documento da medida protetiva anexado.</p>}{triage.attachmentFailed && <p className="text-sm font-semibold text-destructive">Atenção: o documento não foi recebido. O atendimento não deve ser condicionado ao envio do arquivo.</p>}</section> : null; })()}
               <div><h3 className="mb-2 font-semibold">Providências e observações</h3><p className="whitespace-pre-wrap break-words rounded-lg border border-border p-4 text-sm">{viewingOccurrence.observacao || "Nenhuma observação registrada."}</p></div>
               <div><h3 className="mb-2 font-semibold">Histórico operacional</h3>{occurrenceHistory.length ? <div className="space-y-2">{occurrenceHistory.map((item) => <article key={item.id} className="rounded-lg border border-border p-3"><div className="flex flex-wrap justify-between gap-2"><p className="font-medium">{item.acao}</p><time className="text-xs text-muted-foreground">{formatDate(item.criado_em)}</time></div><p className="mt-1 text-xs text-muted-foreground">Status: {item.status_anterior || "—"} → {item.status_novo || "—"} · Viatura: {item.viatura || "—"}</p>{(() => { const marker = "[OPERADOR_FUNCIONAL: "; const markerEnd = item.observacao?.indexOf("]") ?? -1; const operador = item.observacao?.startsWith(marker) && markerEnd > marker.length ? item.observacao.slice(marker.length, markerEnd) : item.operador_id; const observacao = item.observacao?.startsWith(marker) && markerEnd >= 0 ? item.observacao.slice(markerEnd + 1).trim() : item.observacao; return <><p className="mt-1 text-xs text-muted-foreground">Operador responsável: {operador}</p>{observacao && <p className="mt-2 whitespace-pre-wrap text-sm">{observacao}</p>}</>; })()}</article>)}</div> : <p className="rounded-lg border border-border p-3 text-sm text-muted-foreground">Nenhum histórico operacional disponível.</p>}</div>
               <p className="text-xs text-muted-foreground">O PDF contém dados pessoais e deve ser utilizado e armazenado conforme as regras institucionais de sigilo e proteção de dados.</p>
