@@ -874,7 +874,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
               Selecione uma ocorrência para despachar.
             </div>
           ) : (
-            <Detalhe key={atual.id} o={atual} update={update} saving={savingIds.includes(atual.id)} session={session} perfilOperador={perfilOperador} perfilFuncionalUserId={perfilFuncionalUserId} activeVehicles={activeVehicles} />
+            <Detalhe key={atual.id} o={atual} update={update} saving={savingIds.includes(atual.id)} session={session} perfilOperador={perfilOperador} perfilFuncionalUserId={perfilFuncionalUserId} activeVehicles={activeVehicles} vehicleStatuses={vehicleStatuses} />
           )}
         </section>
       </div>
@@ -932,7 +932,7 @@ type HistoricoOcorrencia = {
   operador_id: string;
 };
 
-function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUserId, activeVehicles }: {
+function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUserId, activeVehicles, vehicleStatuses }: {
   o: Oc;
   update: (id: string, p: Partial<Oc>, acaoPersonalizada?: string) => Promise<boolean>;
   saving: boolean;
@@ -940,6 +940,7 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
   perfilOperador: { nome_completo: string; matricula: string; cargo: string; lotacao: string } | null;
   perfilFuncionalUserId: string | null;
   activeVehicles: string[];
+  vehicleStatuses: VehicleStatus[];
 }) {
   const [historico, setHistorico] = useState<HistoricoOcorrencia[]>([]);
   const [historicoErro, setHistoricoErro] = useState<string | null>(null);
