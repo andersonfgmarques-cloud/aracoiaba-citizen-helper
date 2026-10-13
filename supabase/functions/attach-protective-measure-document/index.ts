@@ -83,9 +83,8 @@ Deno.serve(async (req: Request) => {
     const { data: updated, error: updateError } = await admin
       .from("ocorrencias")
       .update({ descricao: newDescription, anexo_token_hash: null })
-      .eq("protocolo", protocol)
+      .eq("id", occurrence.id)
       .eq("anexo_token_hash", hash)
-      .eq("created_at", occurrence.created_at)
       .select("protocolo")
       .maybeSingle();
 
