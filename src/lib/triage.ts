@@ -160,6 +160,12 @@ export const TREE: Record<string, Node> = {
     text: "Tratando-se de sinistro de trânsito sem vítima, não é necessário aguardar viatura no local. Retirem os veículos da via (se possível e seguro), troquem os dados e façam registros fotográficos. O solicitante pode registrar o Boletim de Ocorrência online pela Delegacia Digital da Polícia Civil de São Paulo; o boletim é importante para o seguro.",
     contacts: [],
   },
+  g_outra_situacao: {
+    kind: "gcm",
+    category: "Outra situação",
+    text: "Descreva a situação para que a solicitação seja registrada e avaliada pela equipe da GCM. Se houver risco imediato à vida ou crime violento em andamento, ligue 190 ou 153.",
+    contacts: [CONTACTS.gcm, CONTACTS.pm],
+  },
   g_violencia_domestica: {
     kind: "gcm",
     urgent: true,
