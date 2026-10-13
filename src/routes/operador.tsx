@@ -1042,6 +1042,14 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
   const [aux1, setAux1] = useState("");
   const [aux2, setAux2] = useState("");
 
+  const limparCamposComando = () => {
+    setObs("");
+    setEv("");
+    setCondutor("");
+    setAux1("");
+    setAux2("");
+  };
+
   const despachoEquipe = [...historico].reverse().find((item) =>
     item.acao.toLowerCase().includes("despacho") &&
     /\[EQUIPE EMPENHADA\]/i.test(item.observacao ?? ""),
@@ -1325,11 +1333,7 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
                 );
                 if (sucesso) {
                   await setVehicleStatus(vtr, "empenhada", o.id);
-                  setObs("");
-                  setEv("");
-                  setCondutor("");
-                  setAux1("");
-                  setAux2("");
+                  limparCamposComando();
                   setHistoricoRevision((revision) => revision + 1);
                 }
               }}
@@ -1346,7 +1350,7 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
                 const sucesso = await update(o.id, { status: "encerrada", observacao: obs.trim() }, "Atendimento encerrado — desfecho registrado");
                 if (sucesso) {
                   if (o.viatura) await setVehicleStatus(o.viatura, "disponivel");
-                  setObs("");
+                  limparCamposComando();
                   setHistoricoRevision((revision) => revision + 1);
                 }
               }}
@@ -1362,7 +1366,7 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
               const sucesso = await update(o.id, { status: "cancelada", observacao: obs.trim() || o.observacao, despachado_por: o.despachado_por ?? session!.user.id }, "Ocorrência cancelada");
               if (sucesso) {
                 if (o.status === "em_atendimento" && o.viatura) await setVehicleStatus(o.viatura, "disponivel");
-                setObs("");
+                limparCamposComando();
                 setHistoricoRevision((revision) => revision + 1);
               }
             }}
