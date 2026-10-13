@@ -48,7 +48,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: occurrence, error: occurrenceError } = await admin
       .from("ocorrencias")
-      .select("protocolo,categoria,descricao,created_at,anexo_token_hash")
+      .select("id,protocolo,categoria,descricao,created_at,anexo_token_hash")
       .eq("protocolo", protocol)
       .eq("anexo_token_hash", hash)
       .in("categoria", ["Violência doméstica", "Descumprimento de medida protetiva de urgência"])
