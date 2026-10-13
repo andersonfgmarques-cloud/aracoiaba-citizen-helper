@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import {
-  ArrowLeft, ShieldCheck, Users, ClipboardList, History, RefreshCw, BellRing, Volume2, VolumeX,
+  ArrowLeft, ShieldCheck, Users, ClipboardList, History, RefreshCw, BellRing, Volume2, VolumeX, CarFront, Plus,
   LogOut, CheckCircle2, Ban, Trash2, AlertTriangle, LockKeyhole, Eye, FileDown, X, Pencil, Save, Search,
 } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
@@ -9,7 +9,8 @@ import { adminSupabase } from "@/integrations/supabase/adminClient";
 import type { Json } from "@/integrations/supabase/types";
 
 const ADMIN_EMAIL = "andersonf.g.marques@gmail.com";
-type AdminTab = "usuarios" | "ocorrencias" | "auditoria";
+type AdminTab = "usuarios" | "ocorrencias" | "viaturas" | "auditoria";
+type AdminVehicle = { vehicle: string; active: boolean; created_at: string; created_by: string | null };
 type AdminUser = {
   user_id: string;
   email: string | null;
@@ -147,6 +148,9 @@ function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState<AdminTab>("usuarios");
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [vehicles, setVehicles] = useState<AdminVehicle[]>([]);
+  const [newVehicleName, setNewVehicleName] = useState("");
+  const [savingVehicle, setSavingVehicle] = useState(false);
   const [occurrences, setOccurrences] = useState<AdminOccurrence[]>([]);
   const [protocolSearch, setProtocolSearch] = useState("");
   const [protocolSearchActive, setProtocolSearchActive] = useState(false);
@@ -185,6 +189,44 @@ function AdminPage() {
     return () => data.subscription.unsubscribe();
   }, []);
 
+
+  const addVehicle = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const vehicle = newVehicleName.trim().replace(/\\s+/g, " ").toUpperCase();
+    if (!vehicle) return;
+    if (vehicle.length > 40) { setError("O nome da viatura deve ter no máximo 40 caracteres."); return; }
+    setSavingVehicle(true);
+    setError("");
+    setMessage("");
+    const { error: insertError } = await adminSupabase.from("gcm_vehicles").insert({
+      vehicle, active: true, created_by: session?.user.id ?? null,
+    });
+    setSavingVehicle(false);
+    if (insertError) {
+      setError(insertError.code === "23505" ? "Já existe uma viatura com esse identificador." : "Não foi possível cadastrar a viatura: " + insertError.message);
+      return;
+    }
+    const { error: statusError } = await adminSupabase.from("gcm_vehicle_status").insert({ vehicle, status: "disponivel" });
+    setNewVehicleName("");
+    const { data, error: refreshError } = await adminSupabase.from("gcm_vehicles").select("vehicle,active,created_at,created_by").order("vehicle");
+    if (!refreshError) setVehicles((data ?? []) as AdminVehicle[]);
+    setMessage(statusError ? "Viatura cadastrada. Atualize a frota; a criação do estado operacional precisa ser verificada." : "Viatura cadastrada e disponibilizada no painel CAD.");
+  };
+
+  const toggleVehicleActive = async (vehicle: AdminVehicle) => {
+    setBusyId(vehicle.vehicle);
+    setError("");
+    setMessage("");
+    const { error: updateError } = await adminSupabase.from("gcm_vehicles")
+      .update({ active: !vehicle.active })
+      .eq("vehicle", vehicle.vehicle);
+    setBusyId("");
+    if (updateError) { setError("Não foi possível atualizar a viatura: " + updateError.message); return; }
+    const { data, error: refreshError } = await adminSupabase.from("gcm_vehicles").select("vehicle,active,created_at,created_by").order("vehicle");
+    if (refreshError) setError("Viatura atualizada, mas não foi possível recarregar a lista: " + refreshError.message);
+    else setVehicles((data ?? []) as AdminVehicle[]);
+    setMessage(vehicle.active ? `${vehicle.vehicle} foi desativada e não aparecerá no CAD.` : `${vehicle.vehicle} foi reativada e aparecerá no CAD.`);
+  };
 
   const printAuditReport = (entry: AuditEntry) => {
     const esc = (value: unknown) => String(value ?? "—").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]!);
@@ -233,6 +275,12 @@ function AdminPage() {
       lotacao: profiles.get(user.user_id)?.lotacao ?? null,
     })));
     setAllowed(true);
+    const { data: vehicleData, error: vehicleError } = await adminSupabase
+      .from("gcm_vehicles")
+      .select("vehicle,active,created_at,created_by")
+      .order("vehicle");
+    if (vehicleError) setError("Usuários carregados, mas não foi possível consultar a frota: " + vehicleError.message);
+    else setVehicles((vehicleData ?? []) as AdminVehicle[]);
     if (profileError && !profileError.message.includes("does not exist") && !profileError.message.includes("schema cache")) {
       setError("Não foi possível carregar os perfis funcionais: " + profileError.message);
     }
@@ -648,6 +696,7 @@ function AdminPage() {
   const tabs: { id: AdminTab; label: string; icon: typeof Users }[] = [
     { id: "usuarios", label: "Usuários", icon: Users },
     { id: "ocorrencias", label: "Ocorrências", icon: ClipboardList },
+    { id: "viaturas", label: "Viaturas", icon: CarFront },
     { id: "auditoria", label: "Auditoria", icon: History },
   ];
 
@@ -682,6 +731,35 @@ function AdminPage() {
         {message && <div role="status" className="mb-4 rounded-xl border border-success/30 bg-success/10 p-3 text-sm text-success">{message}</div>}
         {!allowed && (checking || !error) && <div className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">Validando autorização administrativa…</div>}
         {!allowed && error && <div className="rounded-xl border border-border bg-card p-5"><h2 className="font-semibold">O painel ainda não pode administrar o banco</h2><p className="mt-2 text-sm text-muted-foreground">A interface não concede privilégios por conta própria. A migração administrativa precisa estar aplicada no projeto Supabase ativo antes de liberar estas funções.</p><button onClick={() => void load()} className="mt-4 rounded-lg bg-secondary px-3 py-2 text-sm font-semibold">Tentar novamente</button></div>}
+        {allowed && tab === "viaturas" && <section className="overflow-hidden rounded-2xl border border-border bg-card">
+          <div className="border-b border-border p-4">
+            <h2 className="font-bold">Cadastro e gerenciamento de viaturas</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Cadastre novos veículos ou desative temporariamente os que não devem aparecer na Central de Despacho. A desativação preserva o histórico.</p>
+          </div>
+          <form onSubmit={(event) => void addVehicle(event)} className="m-4 flex flex-col gap-3 rounded-xl border border-border bg-background/50 p-4 sm:flex-row sm:items-end">
+            <label className="min-w-0 flex-1 space-y-1 text-sm">
+              <span className="font-semibold">Identificação da viatura</span>
+              <input required maxLength={40} value={newVehicleName} onChange={(event) => setNewVehicleName(event.target.value)} placeholder="Ex.: VTR-GCM-010 ou GCM MOTO 006" className="w-full rounded-lg border border-border bg-background px-3 py-2.5" />
+            </label>
+            <button type="submit" disabled={savingVehicle || !newVehicleName.trim()} className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50">
+              <Plus className="h-4 w-4" /> {savingVehicle ? "Cadastrando..." : "Cadastrar viatura"}
+            </button>
+          </form>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[650px] text-left text-sm">
+              <thead className="bg-secondary/60 text-xs uppercase text-muted-foreground"><tr><th className="p-3">Viatura</th><th className="p-3">Cadastro</th><th className="p-3">Situação</th><th className="p-3">Ação</th></tr></thead>
+              <tbody>
+                {vehicles.map((vehicle) => <tr key={vehicle.vehicle} className="border-t border-border">
+                  <td className="p-3 font-semibold">{vehicle.vehicle}</td>
+                  <td className="p-3">{formatDate(vehicle.created_at)}</td>
+                  <td className="p-3"><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${vehicle.active ? "bg-success/10 text-success" : "bg-secondary text-muted-foreground"}`}>{vehicle.active ? "Ativa no CAD" : "Desativada"}</span></td>
+                  <td className="p-3"><button type="button" disabled={busyId === vehicle.vehicle} onClick={() => void toggleVehicleActive(vehicle)} className={`rounded-lg px-3 py-2 text-xs font-semibold disabled:opacity-50 ${vehicle.active ? "bg-destructive/10 text-destructive" : "bg-success/10 text-success"}`}>{busyId === vehicle.vehicle ? "Salvando..." : vehicle.active ? "Desativar" : "Reativar"}</button></td>
+                </tr>)}
+                {vehicles.length === 0 && <tr><td colSpan={4} className="p-5 text-center text-sm text-muted-foreground">Nenhuma viatura cadastrada.</td></tr>}
+              </tbody>
+            </table>
+          </div>
+        </section>}
         {allowed && tab === "usuarios" && <section className="overflow-hidden rounded-2xl border border-border bg-card">
           <div className="border-b border-border p-4"><h2 className="font-bold">Usuários e permissões</h2>{editingProfile && <div className="m-4 space-y-3 rounded-xl border border-primary/30 bg-primary/5 p-4"><div className="flex items-center justify-between gap-2"><div><h3 className="font-bold">Identificação funcional do operador</h3><p className="text-xs text-muted-foreground">{editingProfile.email}</p></div><button onClick={() => setEditingProfile(null)} className="rounded-lg p-2 hover:bg-secondary" aria-label="Cancelar edição"><X className="h-4 w-4" /></button></div><div className="grid gap-3 sm:grid-cols-2"><label className="space-y-1 text-sm"><span>Nome de guerra</span><input value={profileForm.nome_completo} onChange={(e) => setProfileForm((v) => ({ ...v, nome_completo: e.target.value }))} className="w-full rounded-lg border border-border bg-background p-3" placeholder="Ex.: LEDIANO" /></label><label className="space-y-1 text-sm"><span>RM</span><input value={profileForm.matricula} onChange={(e) => setProfileForm((v) => ({ ...v, matricula: e.target.value }))} className="w-full rounded-lg border border-border bg-background p-3" placeholder="Ex.: RM-4963" /></label><label className="space-y-1 text-sm"><span>Posto/graduação</span><input value={profileForm.cargo} onChange={(e) => setProfileForm((v) => ({ ...v, cargo: e.target.value }))} className="w-full rounded-lg border border-border bg-background p-3" placeholder="Ex.: 1ª Classe" /></label><label className="space-y-1 text-sm"><span>Lotação</span><input value={profileForm.lotacao} onChange={(e) => setProfileForm((v) => ({ ...v, lotacao: e.target.value }))} className="w-full rounded-lg border border-border bg-background p-3" placeholder="Ex.: CAD / Central de Despacho" /></label></div><button disabled={busyId === editingProfile.user_id} onClick={() => void saveOperatorProfile()} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"><Save className="h-4 w-4" /> Salvar identificação funcional</button></div>}<p className="mt-1 text-sm text-muted-foreground">Somente contas aprovadas recebem a função de operador. Bloquear remove a permissão operacional; excluir cadastro remove a conta de autenticação e exige justificativa.</p></div>{selectedUserDeletion && <div className="m-4 space-y-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4"><div className="flex items-start gap-2"><AlertTriangle className="mt-0.5 h-5 w-5 text-destructive" /><div><p className="font-semibold">Excluir cadastro de {selectedUserDeletion.email ?? selectedUserDeletion.user_id}</p><p className="text-sm text-muted-foreground">A conta de autenticação será removida. Esta ação é definitiva; confirme que não há necessidade de manter o acesso dessa pessoa.</p></div></div><label className="block space-y-1 text-sm"><span>Justificativa obrigatória</span><textarea value={userDeleteReason} onChange={(event) => setUserDeleteReason(event.target.value)} rows={2} className="w-full rounded-lg border border-border bg-background p-3" placeholder="Informe o motivo da exclusão..." /></label><div className="flex flex-wrap gap-2"><button disabled={busyId === selectedUserDeletion.user_id || userDeleteReason.trim().length < 5} onClick={() => void deleteUserAccount()} className="inline-flex items-center gap-2 rounded-lg bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground disabled:opacity-50"><Trash2 className="h-4 w-4" /> Confirmar exclusão</button><button onClick={() => { setSelectedUserDeletion(null); setUserDeleteReason(""); }} className="rounded-lg bg-secondary px-4 py-2 text-sm font-semibold">Cancelar</button></div></div>}
           <div className="overflow-x-auto"><table className="w-full min-w-[1150px] text-left text-sm"><thead className="bg-secondary/60 text-xs uppercase text-muted-foreground"><tr><th className="p-3">Operador / identificação funcional</th><th className="p-3">Matrícula</th><th className="p-3">Cargo / lotação</th><th className="p-3">Cadastro</th><th className="p-3">Último acesso</th><th className="p-3">Situação</th><th className="p-3">Ação</th></tr></thead><tbody>{users.map((user) => <tr key={user.user_id} className="border-t border-border"><td className="p-3"><p className="font-semibold">{user.nome_completo || "Perfil não preenchido"}</p><p className="mt-1 text-xs text-muted-foreground">{user.email ?? "E-mail indisponível"}</p><p className="mt-1 max-w-56 truncate text-[10px] text-muted-foreground">{user.user_id}</p></td><td className="p-3">{user.matricula || "—"}</td><td className="p-3"><p>{user.cargo || "—"}</p><p className="text-xs text-muted-foreground">{user.lotacao || "—"}</p></td><td className="p-3">{formatDate(user.created_at)}</td><td className="p-3">{formatDate(user.last_sign_in_at)}</td><td className="p-3"><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${user.role === "admin" ? "bg-primary/15 text-primary" : user.role === "operador" ? "bg-success/10 text-success" : "bg-amber-500/10 text-amber-500"}`}>{user.role === "admin" ? "Administrador" : user.role === "operador" ? "Operador liberado" : "Pendente / sem acesso"}</span></td><td className="p-3">{user.role === "admin" ? <span className="text-xs text-muted-foreground">Conta protegida</span> : <div className="flex flex-col items-start gap-2"><button disabled={busyId === user.user_id} onClick={() => { setEditingProfile(user); setProfileForm({ nome_completo: user.nome_completo ?? "", matricula: user.matricula ?? "", cargo: user.cargo ?? "", lotacao: user.lotacao ?? "" }); }} className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-2 text-xs font-semibold text-primary"><Pencil className="h-3.5 w-3.5" /> Dados funcionais</button><button disabled={busyId === user.user_id} onClick={() => void setOperatorAccess(user, user.role !== "operador")} className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold disabled:opacity-50 ${user.role === "operador" ? "bg-destructive/10 text-destructive" : "bg-success/10 text-success"}`}>{user.role === "operador" ? <><Ban className="h-3.5 w-3.5" /> Bloquear</> : <><CheckCircle2 className="h-3.5 w-3.5" /> Liberar acesso</>}</button><button disabled={busyId === user.user_id} onClick={() => { setSelectedUserDeletion(user); setUserDeleteReason(""); }} className="inline-flex items-center gap-1.5 rounded-lg bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive disabled:opacity-50"><Trash2 className="h-3.5 w-3.5" /> Excluir cadastro</button></div>}</td></tr>)}</tbody></table></div>
