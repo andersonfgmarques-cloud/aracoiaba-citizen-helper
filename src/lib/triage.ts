@@ -334,8 +334,9 @@ export const TREE: Record<string, Node> = {
   },
   r_animal_sem_tutor: {
     kind: "route",
-    text: "Como o tutor ou responsável não foi identificado, procure a Prefeitura ou o setor municipal responsável por animais/zoonoses para orientação sobre as medidas disponíveis. A GCM não realiza captura ou recolhimento de animais. Se surgir perigo imediato ou houver ataque em andamento, ligue 190 ou 153.",
-    contacts: [CONTACTS.prefeitura, CONTACTS.gcm, CONTACTS.pm],
+    urgent: true,
+    text: "Como o tutor ou responsável não foi identificado, procure a Prefeitura ou o setor municipal responsável por animais/zoonoses para orientação sobre as medidas disponíveis. A GCM não realiza captura ou recolhimento de animais. Mantenha distância e não tente conter o animal. Se houver risco imediato, ataque em andamento ou necessidade de resgate especializado, acione os serviços de emergência pelos contatos abaixo.",
+    contacts: [CONTACTS.prefeitura, CONTACTS.gcm, CONTACTS.pm, CONTACTS.bombeiros],
   },
   r_orientacao_geral: {
     kind: "route",
