@@ -325,6 +325,7 @@ function Index() {
         data["agressor_local"] ? `\n\n[TRIAGEM_VIOLENCIA_DOMESTICA: POSSIVEL_AGRESSOR=${data["agressor_local"]}]` : "",
         data["medida_protetiva"] ? `\n[TRIAGEM_MEDIDA_PROTETIVA: ${data["medida_protetiva"]}]` : "",
         (data["tutor_conhecido"] || form.category === "Animal agressivo / responsável identificado") ? `\n[TRIAGEM_ANIMAL: TUTOR_CONHECIDO=${data["tutor_conhecido"] || "SIM"}; NOME=${data["tutor_nome"] || "não informado"}; ENDERECO_TUTOR=${data["tutor_endereco"] || "não informado"}; TELEFONE_TUTOR=${data["tutor_telefone"] || "não informado"}]` : "",
+        medidaFile && ["Violência doméstica", "Descumprimento de medida protetiva de urgência"].includes(form.category) ? "\n[ANEXO_MEDIDA_PROTETIVA: PENDENTE; ARQUIVO_SELECIONADO]" : "",
       ].join("");
       const payload = {
         protocolo: protocol,
