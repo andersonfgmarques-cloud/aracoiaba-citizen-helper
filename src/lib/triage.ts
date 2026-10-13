@@ -81,9 +81,9 @@ export const TREE: Record<string, Node> = {
     text: "Qual fato você deseja comunicar? A solicitação à GCM será registrada para avaliação; para boletim de ocorrência e investigação, procure também a Polícia Civil pelo 197 ou pela Delegacia Eletrônica de São Paulo.",
     options: [
       { label: "Furto ou roubo já ocorrido", next: "g_furto_roubo_passado" },
-      { label: "Ameaça ou agressão", next: "g_ameaca_agressao" },
-      { label: "Dano / vandalismo", next: "g_dano_vandalismo" },
-      { label: "Outra ocorrência", next: "g_crime_outra" },
+      { label: "Ameaça ou agressão", next: "g_ameaca_agressao_passado" },
+      { label: "Dano / vandalismo", next: "g_dano_vandalismo_passado" },
+      { label: "Outra ocorrência", next: "g_crime_outra_passado" },
     ],
   },
   seg: {
@@ -231,6 +231,24 @@ export const TREE: Record<string, Node> = {
     category: "Outra ocorrência policial em andamento",
     text: "Ocorrência informada como em andamento. Descreva os fatos para avaliação da GCM. Em caso de violência, arma ou risco imediato, ligue 190 ou 153 sem aguardar o formulário.",
     contacts: [CONTACTS.gcm, CONTACTS.pm],
+  },
+  g_ameaca_agressao_passado: {
+    kind: "gcm",
+    category: "Ameaça / agressão já ocorrida",
+    text: "A GCM receberá as informações para avaliação dentro de suas atribuições. Para formalizar o boletim e eventual investigação, procure também a Polícia Civil.",
+    contacts: [CONTACTS.gcm, CONTACTS.civil],
+  },
+  g_dano_vandalismo_passado: {
+    kind: "gcm",
+    category: "Dano / vandalismo já ocorrido",
+    text: "A solicitação será registrada para avaliação da GCM. Se envolver patrimônio público, informe isso na descrição. Para boletim de ocorrência e investigação, procure também a Polícia Civil.",
+    contacts: [CONTACTS.gcm, CONTACTS.civil],
+  },
+  g_crime_outra_passado: {
+    kind: "gcm",
+    category: "Outra ocorrência policial já ocorrida",
+    text: "Descreva o fato para avaliação da GCM dentro de suas atribuições. Para boletim de ocorrência e investigação, procure também a Polícia Civil.",
+    contacts: [CONTACTS.gcm, CONTACTS.civil],
   },
   g_furto_roubo: {
     kind: "gcm",
