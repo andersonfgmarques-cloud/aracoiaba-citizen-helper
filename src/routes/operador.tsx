@@ -1027,14 +1027,25 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
           <button
             type="button"
             onClick={async () => {
+              // Abre a aba durante o clique do usuário para evitar bloqueio de pop-up
+              // enquanto a URL assinada é solicitada ao Supabase.
+              const documentWindow = window.open("about:blank", "_blank");
+              if (!documentWindow) {
+                toast.error("O navegador bloqueou a abertura do documento. Permita pop-ups para este site e tente novamente.");
+                return;
+              }
+              documentWindow.opener = null;
+              documentWindow.document.title = "Consultando documento protegido…";
+              documentWindow.document.body.innerText = "Validando acesso ao documento da medida protetiva…";
               const { data, error } = await supabase.storage
                 .from("gcm-medidas-protetivas")
                 .createSignedUrl(anexoMedida[1]!, 60);
               if (error || !data?.signedUrl) {
-                toast.error("Não foi possível abrir o documento anexado.");
+                documentWindow.close();
+                toast.error("Não foi possível abrir o documento. Verifique sua autorização no CAD e tente novamente.");
                 return;
               }
-              window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+              documentWindow.location.replace(data.signedUrl);
             }}
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary/40 bg-secondary px-4 py-3 text-sm font-semibold text-primary"
           >
