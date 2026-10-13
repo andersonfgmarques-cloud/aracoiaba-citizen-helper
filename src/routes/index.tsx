@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Phone, RotateCcw, Send, AlertTriangle, CheckCircle2, LayoutDashboard, Mic, MicOff, Paperclip, FileText, X } from "lucide-react";
+import { Phone, RotateCcw, Send, AlertTriangle, CheckCircle2, LayoutDashboard, Mic, MicOff, Paperclip, FileText, X, ShieldAlert, Landmark, CarFront, Trees, Volume2, Pill, CloudRain, Search, CircleHelp, Siren, ChevronRight } from "lucide-react";
 import { TREE, CONTACTS, type Contact } from "@/lib/triage";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -104,6 +104,7 @@ function Index() {
   const [termoAceitoEm, setTermoAceitoEm] = useState<string | null>(null);
   const [veracidadeAceitaEm, setVeracidadeAceitaEm] = useState<string | null>(null);
   const [contatoSelecionado, setContatoSelecionado] = useState<string | null>(null);
+  const [buscaCategoria, setBuscaCategoria] = useState("");
   const [medidaFile, setMedidaFile] = useState<File | null>(null);
   const [uploadingMedida, setUploadingMedida] = useState(false);
   const toggleVoiceInput = () => {
@@ -887,17 +888,43 @@ function Index() {
               </button>
             </div>
           </form>
+        ) : current?.kind === "ask" && node === "menu" ? (
+          <section className="space-y-4" aria-label="Categorias de ocorrência">
+            <label className="relative block">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input value={buscaCategoria} onChange={(e) => setBuscaCategoria(e.target.value)} placeholder="Buscar tipo de ocorrência..." aria-label="Buscar tipo de ocorrência" className="min-h-11 w-full rounded-xl border border-primary/25 bg-slate-950/60 py-3 pl-10 pr-3 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20" />
+            </label>
+            {[
+              { title: "Segurança e ordem pública", items: [{ label: "Segurança / perturbação", next: "seg", icon: ShieldAlert }, { label: "Denúncia de tráfico de drogas", next: "r_trafico", icon: Siren }] },
+              { title: "Trânsito e espaços públicos", items: [{ label: "Patrimônio público / escolas / praças", next: "g_patr", icon: Landmark }, { label: "Trânsito", next: "trans", icon: CarFront }, { label: "Fiscalização (som, obras, comércio)", next: "fisc", icon: Volume2 }] },
+              { title: "Meio ambiente e bem-estar", items: [{ label: "Meio ambiente / animais", next: "amb", icon: Trees }, { label: "Saúde", next: "r_samu_nu", icon: Pill }, { label: "Chuva / árvore / risco estrutural", next: "r_defesa", icon: CloudRain }] },
+            ].map((group) => {
+              const items = group.items.filter((item) => item.label.toLocaleLowerCase("pt-BR").includes(buscaCategoria.trim().toLocaleLowerCase("pt-BR")));
+              if (!items.length) return null;
+              return <div key={group.title} className="space-y-2">
+                <h3 className="px-1 text-[11px] font-bold uppercase tracking-[0.14em] text-primary">{group.title}</h3>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {items.map((item) => {
+                    const Icon = item.icon;
+                    return <button key={item.label} type="button" onClick={() => { setMsgs((m) => [...m, { from: "user", text: item.label }]); setBuscaCategoria(""); say(item.next); }} className="group flex min-h-[62px] items-center gap-3 rounded-xl border border-primary/25 bg-slate-900/70 px-3 py-3 text-left text-sm font-medium text-foreground shadow-sm transition hover:border-primary/70 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.99]">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary"><Icon className="h-5 w-5" /></span>
+                      <span className="min-w-0 flex-1">{item.label}</span><ChevronRight className="h-4 w-4 shrink-0 text-primary/70 transition group-hover:translate-x-0.5" />
+                    </button>;
+                  })}
+                </div>
+              </div>;
+            })}
+            {buscaCategoria.trim() && ![
+              "Segurança / perturbação", "Denúncia de tráfico de drogas", "Patrimônio público / escolas / praças", "Trânsito", "Fiscalização (som, obras, comércio)", "Meio ambiente / animais", "Saúde", "Chuva / árvore / risco estrutural"
+            ].some((label) => label.toLocaleLowerCase("pt-BR").includes(buscaCategoria.trim().toLocaleLowerCase("pt-BR"))) && <p className="rounded-lg border border-white/10 bg-slate-900/50 p-3 text-xs text-muted-foreground">Nenhuma categoria encontrada. Você pode selecionar “Outra situação”.</p>}
+            <button type="button" onClick={() => { setMsgs((m) => [...m, { from: "user", text: "Outra situação" }]); setBuscaCategoria(""); say("g_outra_situacao"); }} className="flex min-h-[54px] w-full items-center gap-3 rounded-xl border border-dashed border-primary/40 px-3 py-3 text-left text-sm font-semibold text-primary transition hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10"><CircleHelp className="h-5 w-5" /></span><span className="flex-1">Outra situação</span><ChevronRight className="h-4 w-4" />
+            </button>
+          </section>
         ) : current?.kind === "ask" ? (
           <div className="flex flex-wrap gap-2">
             {current.options.map((o) => (
-              <button
-                key={o.label}
-                onClick={() => {
-                  setMsgs((m) => [...m, { from: "user", text: o.label }]);
-                  say(o.next);
-                }}
-                className="rounded-full border border-primary/50 px-4 py-2 text-sm font-medium text-primary hover:bg-primary hover:text-primary-foreground"
-              >
+              <button key={o.label} onClick={() => { setMsgs((m) => [...m, { from: "user", text: o.label }]); say(o.next); }} className="min-h-11 rounded-xl border border-primary/50 px-4 py-3 text-sm font-medium text-primary transition hover:bg-primary hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                 {o.label}
               </button>
             ))}
