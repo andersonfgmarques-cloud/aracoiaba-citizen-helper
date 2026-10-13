@@ -276,7 +276,7 @@ function Index() {
       setMsgs((m) => [...m, { from: "user", text: value }, { from: "bot", text: activeFields[next]!.q }]);
     } else {
       const protocol = `GCM-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
-      const prioridade = ["Atitude suspeita", "Perturbação do sossego", "Violência doméstica", "Descumprimento de medida protetiva de urgência"].includes(form.category)
+      const prioridade = ["Atitude suspeita", "Perturbação do sossego", "Violência doméstica", "Descumprimento de medida protetiva de urgência", "Furto / roubo em andamento", "Ameaça / agressão em andamento", "Dano / vandalismo em andamento", "Outra ocorrência policial em andamento"].includes(form.category)
         ? "alta"
         : "media";
       let anexoPath: string | null = null;
