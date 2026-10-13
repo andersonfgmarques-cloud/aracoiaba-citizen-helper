@@ -753,8 +753,10 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
       <section className="shrink-0 border-b bg-background/95 px-3 py-3 sm:px-4" aria-label="Disponibilidade operacional das viaturas">
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
           <div><h2 className="text-sm font-bold">Disponibilidade operacional</h2><p className="text-xs text-muted-foreground">O despacho empenha a viatura automaticamente. Marque indisponibilidade quando necessário.</p></div>
-          <span className={"rounded-full px-2.5 py-1 text-xs font-bold " + (vehicleStatuses.length > 0 && vehicleStatuses.every(v => v.status !== "disponivel") ? "bg-destructive/15 text-destructive" : "bg-success/15 text-success")}>
-            {vehicleStatuses.length > 0 && vehicleStatuses.every(v => v.status !== "disponivel") ? "Todas indisponíveis" : vehicleStatuses.filter(v => v.status === "disponivel").length + " disponível(is)"}
+          <span className={"rounded-full px-2.5 py-1 text-xs font-bold " + (activeVehicles.length > 0 && activeVehicles.every(vehicle => vehicleStatuses.find(v => v.vehicle === vehicle)?.status !== "disponivel") ? "bg-destructive/15 text-destructive" : "bg-success/15 text-success")}>
+            {activeVehicles.length > 0 && activeVehicles.every(vehicle => vehicleStatuses.find(v => v.vehicle === vehicle)?.status !== "disponivel")
+              ? "Todas indisponíveis"
+              : activeVehicles.filter(vehicle => (vehicleStatuses.find(v => v.vehicle === vehicle)?.status ?? "disponivel") === "disponivel").length + " disponível(is)"}
           </span>
         </div>
         {vehicleStatusError && <p className="mb-2 rounded-lg bg-destructive/10 p-2 text-xs text-destructive">{vehicleStatusError}</p>}
