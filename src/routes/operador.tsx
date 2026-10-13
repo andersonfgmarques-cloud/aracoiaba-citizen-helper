@@ -552,7 +552,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
         : patch.status === "cancelada" ? "Ocorrência cancelada"
         : "Dados da ocorrência atualizados");
       const identidadeFuncional = perfilOperador
-        ? `${perfilOperador.cargo} · RM-${perfilOperador.matricula.replace(/^RM-/i, "").trim()}`
+        ? `${perfilOperador.cargo} ${perfilOperador.nome_completo.trim().split(/\\s+/).slice(-1)[0]} · RM-${perfilOperador.matricula.replace(/^RM-/i, "").trim()}`
         : "Operador autorizado";
       const observacaoComIdentidade = `[OPERADOR_FUNCIONAL: ${identidadeFuncional}]${data.observacao ? String.fromCharCode(10) + data.observacao : ""}`;
       const { error: historicoError } = await supabase.from("ocorrencia_historico").insert({
@@ -875,7 +875,8 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
       const metadata = observacao.slice("[OPERADOR_FUNCIONAL: ".length, end).trim();
       const matriculaEncontrada = metadata.match(/RM-?([A-Za-z0-9-]+)/i)?.[1];
       const cargo = perfilOperador?.cargo;
-      return [cargo, matriculaEncontrada ? "RM-" + matriculaEncontrada : null].filter(Boolean).join(" · ") || "Operador";
+      const sobrenome = perfilOperador?.nome_completo.trim().split(/\\s+/).slice(-1)[0];
+      return [cargo && sobrenome ? cargo + " " + sobrenome : cargo, matriculaEncontrada ? "RM-" + matriculaEncontrada : null].filter(Boolean).join(" · ") || "Operador";
     }
     // Compatibilidade com registros antigos: exibe o perfil funcional, nunca o e-mail de login.
     if (observacao?.startsWith("[OPERADOR_LOGIN: ") && end !== undefined && end > 0) {
