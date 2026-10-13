@@ -872,11 +872,8 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
   const identificacaoOperador = (operadorId: string, observacao?: string | null) => {
     const end = observacao?.indexOf("]");
     if (observacao?.startsWith("[OPERADOR_FUNCIONAL: ") && end !== undefined && end > 0) {
-      const metadata = observacao.slice("[OPERADOR_FUNCIONAL: ".length, end).trim();
-      const matriculaEncontrada = metadata.match(/RM-?([A-Za-z0-9-]+)/i)?.[1];
-      const cargo = perfilOperador?.cargo;
-      const sobrenome = perfilOperador?.nome_completo.trim().split(/\\s+/).slice(-1)[0];
-      return [cargo && sobrenome ? cargo + " " + sobrenome : cargo, matriculaEncontrada ? "RM-" + matriculaEncontrada : null].filter(Boolean).join(" · ") || "Operador";
+      // Use the identity stored with this event so every viewer sees the actual operator.
+      return observacao.slice("[OPERADOR_FUNCIONAL: ".length, end).trim() || "Operador";
     }
     // Compatibilidade com registros antigos: exibe o perfil funcional, nunca o e-mail de login.
     if (observacao?.startsWith("[OPERADOR_LOGIN: ") && end !== undefined && end > 0) {
