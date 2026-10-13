@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       ocorrencias: {
         Row: {
+          anexo_token_hash: string | null
           categoria: string
           cpf: string | null
           created_at: string
@@ -34,6 +35,7 @@ export type Database = {
           viatura: string | null
         }
         Insert: {
+          anexo_token_hash?: string | null
           categoria: string
           cpf?: string | null
           created_at?: string
@@ -52,6 +54,7 @@ export type Database = {
           viatura?: string | null
         }
         Update: {
+          anexo_token_hash?: string | null
           categoria?: string
           cpf?: string | null
           created_at?: string
