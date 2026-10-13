@@ -85,7 +85,7 @@ Deno.serve(async (req: Request) => {
       .update({ descricao: newDescription, anexo_token_hash: null })
       .eq("protocolo", protocol)
       .eq("anexo_token_hash", hash)
-      .is("updated_at", occurrence.created_at)
+      .eq("created_at", occurrence.created_at)
       .select("protocolo")
       .maybeSingle();
 
