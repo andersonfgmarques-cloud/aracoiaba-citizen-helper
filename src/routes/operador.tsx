@@ -55,7 +55,7 @@ const STATUS: Record<string, { label: string; cls: string }> = {
   encerrada: { label: "Encerrada", cls: "bg-success/20 text-success" },
   cancelada: { label: "Cancelada", cls: "bg-muted text-muted-foreground" },
 };
-type VehicleStatus = { vehicle: string; status: "disponivel" | "empenhada" | "indisponivel" | "em_retorno"; occurrence_id: string | null; note: string | null; updated_at: string };
+type VehicleStatus = { vehicle: string; status: "disponivel" | "empenhada" | "indisponivel"; occurrence_id: string | null; note: string | null; updated_at: string };
 
 function escapeHtml(value: unknown): string {
   return String(value ?? "—").replace(/[&<>"']/g, (char) => ({
@@ -264,7 +264,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
   const [activeVehicles, setActiveVehicles] = useState<string[]>([]);
   const [savingVehicle, setSavingVehicle] = useState<string | null>(null);
   const [vehicleStatusError, setVehicleStatusError] = useState("");
-  const [vehicleDialog, setVehicleDialog] = useState<{ vehicle: string; status: "indisponivel" | "em_retorno" } | null>(null);
+  const [vehicleDialog, setVehicleDialog] = useState<{ vehicle: string } | null>(null);
   const [vehicleNote, setVehicleNote] = useState("");
   const audioContextRef = useRef<AudioContext | null>(null);
   const soundEnabledRef = useRef(false);
@@ -370,7 +370,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
         : "Não foi possível atualizar a viatura: " + error.message);
       return;
     }
-    const labels: Record<string, string> = { disponivel: "Disponível", empenhada: "Empenhada", indisponivel: "Indisponível", em_retorno: "Em retorno" };
+    const labels: Record<string, string> = { disponivel: "Disponível", empenhada: "Empenhada", indisponivel: "Indisponível" };
     toast.success(vehicle + " atualizada: " + labels[status]);
     await loadVehicleStatuses();
   };
@@ -762,16 +762,15 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           {activeVehicles.map(vehicle => {
             const item = vehicleStatuses.find(v => v.vehicle === vehicle);
             const status = item?.status ?? "disponivel";
-            const labels: Record<string, string> = { disponivel: "Disponível", empenhada: "Empenhada", indisponivel: "Indisponível", em_retorno: "Em retorno" };
-            const dot = status === "disponivel" ? "bg-success" : status === "empenhada" ? "bg-destructive" : status === "em_retorno" ? "bg-amber-400" : "bg-muted-foreground";
+            const labels: Record<string, string> = { disponivel: "Disponível", empenhada: "Empenhada", indisponivel: "Indisponível" };
+            const dot = status === "disponivel" ? "bg-success" : status === "empenhada" ? "bg-destructive" : "bg-muted-foreground";
             return <div key={vehicle} className="min-w-0 rounded-xl border bg-card p-2.5">
               <div className="flex items-center justify-between gap-1"><span className="truncate text-xs font-bold">{vehicle}</span><span className={"h-2.5 w-2.5 shrink-0 rounded-full " + dot} /></div>
               <p className="mt-1 text-xs text-muted-foreground">{labels[status]}</p>
               {item?.note && <p className="mt-1 truncate text-[10px] text-muted-foreground" title={item.note}>{item.note}</p>}
               <div className="mt-2 flex flex-wrap gap-1">
                 {status !== "disponivel" && !(status === "empenhada" && ocs.some(occurrence => occurrence.id === item?.occurrence_id && occurrence.status === "em_atendimento")) && <button disabled={savingVehicle === vehicle} onClick={() => void setVehicleStatus(vehicle, "disponivel")} className="rounded bg-success/15 px-2 py-1 text-[10px] font-semibold text-success disabled:opacity-50">Liberar</button>}
-                {status !== "indisponivel" && status !== "empenhada" && <button disabled={savingVehicle === vehicle} onClick={() => { setVehicleNote(""); setVehicleDialog({ vehicle, status: "indisponivel" }); }} className="rounded bg-secondary px-2 py-1 text-[10px] font-semibold disabled:opacity-50">Indisponível</button>}
-                {status === "disponivel" && <button disabled={savingVehicle === vehicle} onClick={() => { setVehicleNote(""); setVehicleDialog({ vehicle, status: "em_retorno" }); }} className="rounded bg-amber-400/15 px-2 py-1 text-[10px] font-semibold text-amber-500 disabled:opacity-50">Em retorno</button>}
+                {status !== "indisponivel" && status !== "empenhada" && <button disabled={savingVehicle === vehicle} onClick={() => { setVehicleNote(""); setVehicleDialog({ vehicle }); }} className="rounded bg-secondary px-2 py-1 text-[10px] font-semibold disabled:opacity-50">Indisponível</button>}
                 {status === "empenhada" && <span className="rounded bg-destructive/10 px-2 py-1 text-[10px] font-semibold text-destructive">Em ocorrência</span>}
               </div>
             </div>;
@@ -890,26 +889,26 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           onMouseDown={(event) => { if (event.target === event.currentTarget && !savingVehicle) setVehicleDialog(null); }}>
           <section role="dialog" aria-modal="true" aria-labelledby="vehicle-dialog-title" className="w-full max-w-md rounded-2xl border border-white/10 bg-card p-5 text-card-foreground shadow-2xl sm:p-6">
             <div className="mb-4 flex items-start gap-3">
-              <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${vehicleDialog.status === "indisponivel" ? "bg-destructive/10 text-destructive" : "bg-amber-400/15 text-amber-500"}`}>
-                {vehicleDialog.status === "indisponivel" ? <XCircle className="h-5 w-5" /> : <Clock className="h-5 w-5" />}
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
+                <XCircle className="h-5 w-5" />
               </div>
               <div className="min-w-0 flex-1">
-                <h2 id="vehicle-dialog-title" className="text-lg font-bold">{vehicleDialog.status === "indisponivel" ? "Registrar indisponibilidade" : "Registrar retorno da equipe"}</h2>
+                <h2 id="vehicle-dialog-title" className="text-lg font-bold">Registrar indisponibilidade</h2>
                 <p className="mt-1 text-sm text-muted-foreground">Viatura: <span className="font-semibold text-foreground">{vehicleDialog.vehicle}</span></p>
               </div>
               <button type="button" disabled={Boolean(savingVehicle)} onClick={() => setVehicleDialog(null)} className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary disabled:opacity-50" aria-label="Fechar janela"><XCircle className="h-5 w-5" /></button>
             </div>
-            {vehicleDialog.status === "indisponivel" && <p className="mb-3 text-sm text-muted-foreground">Informe o motivo para manter o registro operacional atualizado.</p>}
-            <label htmlFor="vehicle-status-note" className="mb-2 block text-sm font-semibold">{vehicleDialog.status === "indisponivel" ? "Motivo da indisponibilidade" : "Observação do retorno (opcional)"}</label>
+            <p className="mb-3 text-sm text-muted-foreground">Informe o motivo para manter o registro operacional atualizado.</p>
+            <label htmlFor="vehicle-status-note" className="mb-2 block text-sm font-semibold">Motivo da indisponibilidade</label>
             <textarea id="vehicle-status-note" autoFocus value={vehicleNote} onChange={(event) => setVehicleNote(event.target.value)} maxLength={300} rows={3}
-              placeholder={vehicleDialog.status === "indisponivel" ? "Ex.: manutenção, problema mecânico ou ausência de equipe" : "Ex.: equipe retornando à base"}
+              placeholder="Ex.: manutenção, problema mecânico ou ausência de equipe"
               className="w-full resize-y rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" />
-            {vehicleDialog.status === "indisponivel" && !vehicleNote.trim() && <p className="mt-1 text-xs text-amber-600">O motivo é obrigatório.</p>}
+            {!vehicleNote.trim() && <p className="mt-1 text-xs text-amber-600">O motivo é obrigatório.</p>}
             <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <button type="button" disabled={Boolean(savingVehicle)} onClick={() => setVehicleDialog(null)} className="rounded-xl border border-border px-4 py-2.5 text-sm font-semibold hover:bg-secondary disabled:opacity-50">Cancelar</button>
-              <button type="button" disabled={Boolean(savingVehicle) || (vehicleDialog.status === "indisponivel" && !vehicleNote.trim())}
-                onClick={async () => { const { vehicle, status } = vehicleDialog; await setVehicleStatus(vehicle, status, null, vehicleNote.trim()); setVehicleDialog(null); setVehicleNote(""); }}
-                className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50 ${vehicleDialog.status === "indisponivel" ? "bg-destructive hover:bg-destructive/90" : "bg-amber-500 hover:bg-amber-600"}`}>
+              <button type="button" disabled={Boolean(savingVehicle) || !vehicleNote.trim()}
+                onClick={async () => { const { vehicle } = vehicleDialog; await setVehicleStatus(vehicle, "indisponivel", null, vehicleNote.trim()); setVehicleDialog(null); setVehicleNote(""); }}
+                className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50 bg-destructive hover:bg-destructive/90`}>
                 {savingVehicle ? "Salvando..." : "Confirmar"}
               </button>
             </div>
