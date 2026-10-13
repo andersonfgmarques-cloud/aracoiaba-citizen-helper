@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Phone, RotateCcw, Send, AlertTriangle, CheckCircle2, LayoutDashboard, Mic, MicOff, Paperclip, FileText, X, ShieldAlert, Landmark, CarFront, Trees, Volume2, Pill, CloudRain, Search, CircleHelp, Siren, ChevronRight } from "lucide-react";
+import { Phone, RotateCcw, Send, AlertTriangle, CheckCircle2, Mic, MicOff, Paperclip, FileText, X, ShieldAlert, Landmark, CarFront, Trees, Volume2, Pill, CloudRain, Search, CircleHelp, Siren, ChevronRight } from "lucide-react";
 import { TREE, CONTACTS, type Contact } from "@/lib/triage";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -405,9 +405,6 @@ function Index() {
           <header className="bg-header flex items-center gap-3 border-b px-4 py-4 shadow-lg">
             <img src={`/aracoiaba-citizen-helper/android-chrome-192x192.png`} alt="Emblema da Guarda Civil Municipal" className="h-11 w-11 shrink-0 rounded-full object-contain" />
             <div className="min-w-0 flex-1"><h1 className="text-base font-bold">GCM Araçoiaba da Serra</h1><p className="text-xs text-muted-foreground">Atendimento ao cidadão</p></div>
-            <Link to="/operador" aria-label="Acessar painel CAD do operador" title="Acesso do operador CAD" className="gcm-cad-link flex shrink-0 items-center gap-1.5 rounded-full border border-primary/50 bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20">
-              <LayoutDashboard className="h-4 w-4" /> CAD
-            </Link>
           </header>
           <main className="flex flex-1 items-center px-4 py-6">
             <div className="w-full rounded-2xl border bg-card p-5 shadow-sm">
@@ -431,9 +428,6 @@ function Index() {
           <header className="bg-header flex items-center gap-3 border-b px-4 py-4 shadow-lg">
             <img src={`/aracoiaba-citizen-helper/android-chrome-192x192.png`} alt="Emblema da Guarda Civil Municipal" className="h-11 w-11 shrink-0 rounded-full object-contain" />
             <div className="min-w-0 flex-1"><h1 className="text-base font-bold">GCM Araçoiaba da Serra</h1><p className="text-xs text-muted-foreground">Atendimento ao cidadão</p></div>
-            <Link to="/operador" aria-label="Acessar painel CAD do operador" title="Acesso do operador CAD" className="flex shrink-0 items-center gap-1.5 rounded-full border border-primary/50 bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20">
-              <LayoutDashboard className="h-4 w-4" /> CAD
-            </Link>
           </header>
           <main className="flex flex-1 items-center px-4 py-6">
             <form onSubmit={(e) => {
@@ -482,9 +476,6 @@ function Index() {
 
           <img src={`/aracoiaba-citizen-helper/android-chrome-192x192.png`} alt="Emblema da Guarda Civil Municipal" className="h-11 w-11 shrink-0 rounded-full object-contain" />
           <div className="min-w-0 flex-1"><h1 className="text-base font-bold">GCM Araçoiaba da Serra</h1><p className="text-xs text-muted-foreground">Atendimento ao cidadão</p></div>
-            <Link to="/operador" aria-label="Acessar painel CAD do operador" title="Acesso do operador CAD" className="flex shrink-0 items-center gap-1.5 rounded-full border border-primary/50 bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20">
-              <LayoutDashboard className="h-4 w-4" /> CAD
-            </Link>
         </header>
         <main className="gcm-term-main flex flex-1 items-center">
           <div className="gcm-term-card w-full rounded-2xl border bg-card p-5 shadow-sm">
