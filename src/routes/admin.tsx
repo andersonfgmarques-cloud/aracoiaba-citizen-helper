@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft, ShieldCheck, Users, ClipboardList, History, RefreshCw, BellRing, Volume2, VolumeX,
-  LogOut, CheckCircle2, Ban, Trash2, AlertTriangle, LockKeyhole, Eye, FileDown, X, Pencil, Save,
+  LogOut, CheckCircle2, Ban, Trash2, AlertTriangle, LockKeyhole, Eye, FileDown, X, Pencil, Save, Search,
 } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
@@ -148,6 +148,9 @@ function AdminPage() {
   const [tab, setTab] = useState<AdminTab>("usuarios");
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [occurrences, setOccurrences] = useState<AdminOccurrence[]>([]);
+  const [protocolSearch, setProtocolSearch] = useState("");
+  const [protocolSearchActive, setProtocolSearchActive] = useState(false);
+  const [searchingProtocol, setSearchingProtocol] = useState(false);
   const [audit, setAudit] = useState<AuditEntry[]>([]);
   const [selectedAudit, setSelectedAudit] = useState<AuditEntry | null>(null);
   const [message, setMessage] = useState("");
@@ -545,6 +548,44 @@ function AdminPage() {
     printWindow.document.close();
   };
 
+  const searchOccurrencesByProtocol = async (event?: React.FormEvent) => {
+    event?.preventDefault();
+    const term = protocolSearch.trim();
+    if (term.length < 3) {
+      setError("Digite pelo menos 3 caracteres do protocolo para pesquisar.");
+      return;
+    }
+    setSearchingProtocol(true);
+    setError("");
+    setMessage("");
+    const { data, error: searchError } = await adminSupabase.rpc("admin_search_occurrences", { _protocol: term });
+    setSearchingProtocol(false);
+    if (searchError) {
+      setError("Não foi possível pesquisar o protocolo: " + searchError.message);
+      return;
+    }
+    setOccurrences((data ?? []) as AdminOccurrence[]);
+    setProtocolSearchActive(true);
+    setMessage((data?.length ?? 0) === 0
+      ? "Nenhuma ocorrência encontrada para esse protocolo."
+      : `${data?.length ?? 0} ocorrência(s) encontrada(s).`);
+  };
+
+  const clearProtocolSearch = async () => {
+    setProtocolSearch("");
+    setProtocolSearchActive(false);
+    setSearchingProtocol(true);
+    setError("");
+    setMessage("");
+    const { data, error: listError } = await adminSupabase.rpc("admin_list_occurrences");
+    setSearchingProtocol(false);
+    if (listError) {
+      setError("Não foi possível carregar a lista de ocorrências: " + listError.message);
+      return;
+    }
+    setOccurrences((data ?? []) as AdminOccurrence[]);
+  };
+
   const deleteOccurrence = async () => {
     if (!selectedOccurrence || deleteReason.trim().length < 5) {
       setError("Informe o motivo da exclusão com pelo menos 5 caracteres.");
@@ -647,6 +688,18 @@ function AdminPage() {
         </section>}
         {allowed && tab === "ocorrencias" && <section className="overflow-hidden rounded-2xl border border-border bg-card">
           <div className="border-b border-border p-4"><h2 className="font-bold">Gestão de ocorrências</h2><p className="mt-1 text-sm text-muted-foreground">A exclusão é definitiva, exige justificativa e fica registrada na auditoria administrativa. Prefira manter a ocorrência e alterar seu status quando possível.</p></div>
+          <form onSubmit={(event) => void searchOccurrencesByProtocol(event)} className="m-4 space-y-2 rounded-xl border border-border bg-background/50 p-3">
+            <label htmlFor="admin-protocol-search" className="block text-sm font-semibold">Buscar ocorrência por protocolo</label>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <div className="relative min-w-0 flex-1">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input id="admin-protocol-search" value={protocolSearch} onChange={(event) => setProtocolSearch(event.target.value)} placeholder="Ex.: GCM-2026-649200 ou 649200" autoComplete="off" className="w-full rounded-lg border border-border bg-card py-2.5 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-primary" />
+              </div>
+              <button type="submit" disabled={searchingProtocol || protocolSearch.trim().length < 3} className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"><Search className="h-4 w-4" />{searchingProtocol ? "Pesquisando..." : "Buscar"}</button>
+              {protocolSearchActive && <button type="button" onClick={() => void clearProtocolSearch()} disabled={searchingProtocol} className="inline-flex items-center justify-center gap-2 rounded-lg bg-secondary px-4 py-2.5 text-sm font-semibold disabled:opacity-50"><X className="h-4 w-4" /> Limpar</button>}
+            </div>
+            <p className="text-xs text-muted-foreground">{protocolSearchActive ? `Exibindo resultados para “${protocolSearch.trim()}”.` : "Pesquise pelo protocolo completo ou por parte dele. São aceitos pelo menos 3 caracteres."}</p>
+          </form>
           {selectedOccurrence && <div className="m-4 space-y-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4"><div className="flex items-start gap-2"><AlertTriangle className="mt-0.5 h-5 w-5 text-destructive" /><div><p className="font-semibold">Confirmar exclusão: {selectedOccurrence.protocolo}</p><p className="text-sm text-muted-foreground">{selectedOccurrence.categoria} · Status: {selectedOccurrence.status}</p></div></div><label className="block space-y-1 text-sm"><span>Motivo obrigatório</span><textarea value={deleteReason} onChange={(event) => setDeleteReason(event.target.value)} rows={2} className="w-full rounded-lg border border-border bg-background p-3" placeholder="Informe a justificativa administrativa..." /></label><div className="flex flex-wrap gap-2"><button disabled={busyId === selectedOccurrence.id || deleteReason.trim().length < 5} onClick={() => void deleteOccurrence()} className="inline-flex items-center gap-2 rounded-lg bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground disabled:opacity-50"><Trash2 className="h-4 w-4" /> Confirmar exclusão</button><button onClick={() => { setSelectedOccurrence(null); setDeleteReason(""); }} className="rounded-lg bg-secondary px-4 py-2 text-sm font-semibold">Cancelar</button></div></div>}
           <div className="overflow-x-auto"><table className="w-full min-w-[760px] text-left text-sm"><thead className="bg-secondary/60 text-xs uppercase text-muted-foreground"><tr><th className="p-3">Protocolo</th><th className="p-3">Categoria</th><th className="p-3">Status</th><th className="p-3">Registro</th><th className="p-3">Ação administrativa</th></tr></thead><tbody>{occurrences.map((occurrence) => <tr key={occurrence.id} className="border-t border-border"><td className="p-3 font-semibold">{occurrence.protocolo}</td><td className="p-3">{occurrence.categoria}</td><td className="p-3">{occurrence.status}</td><td className="p-3">{formatDate(occurrence.created_at)}</td><td className="p-3"><div className="flex flex-wrap gap-2"><button onClick={() => void viewOccurrence(occurrence)} className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-2 text-xs font-semibold text-primary"><Eye className="h-3.5 w-3.5" /> Visualizar</button><button onClick={() => { setSelectedOccurrence(occurrence); setDeleteReason(""); }} className="inline-flex items-center gap-1.5 rounded-lg bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive"><Trash2 className="h-3.5 w-3.5" /> Excluir</button></div></td></tr>)}</tbody></table></div>
         </section>}
