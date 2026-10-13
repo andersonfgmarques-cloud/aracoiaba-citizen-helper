@@ -18,6 +18,8 @@ import {
   Volume2,
   VolumeX,
   AlertTriangle,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
@@ -267,6 +269,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
   const [vehicleStatusError, setVehicleStatusError] = useState("");
   const [vehicleDialog, setVehicleDialog] = useState<{ vehicle: string } | null>(null);
   const [vehicleNote, setVehicleNote] = useState("");
+  const [vehiclePanelVisible, setVehiclePanelVisible] = useState(true);
   const audioContextRef = useRef<AudioContext | null>(null);
   const soundEnabledRef = useRef(false);
   // Mantém o contador de novas ocorrências definido a partir dos IDs recebidos.
@@ -765,6 +768,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
       <section className="shrink-0 border-b bg-background/95 px-3 py-3 sm:px-4" aria-label="Disponibilidade operacional das viaturas">
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
           <div><h2 className="text-sm font-bold">Disponibilidade operacional</h2><p className="text-xs text-muted-foreground">O despacho empenha a viatura automaticamente. Marque indisponibilidade quando necessário.</p></div>
+          <button type="button" onClick={() => setVehiclePanelVisible(value => !value)} aria-expanded={vehiclePanelVisible} aria-controls="vehicle-availability-list" className="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold hover:bg-accent">{vehiclePanelVisible ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}{vehiclePanelVisible ? "Ocultar viaturas" : "Exibir viaturas"}</button>
           <span className={"rounded-full px-2.5 py-1 text-xs font-bold " + (activeVehicles.length > 0 && activeVehicles.every(vehicle => vehicleStatuses.find(v => v.vehicle === vehicle)?.status !== "disponivel") ? "bg-destructive/15 text-destructive" : "bg-success/15 text-success")}>
             {activeVehicles.length > 0 && activeVehicles.every(vehicle => vehicleStatuses.find(v => v.vehicle === vehicle)?.status !== "disponivel")
               ? "Todas indisponíveis"
@@ -772,7 +776,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           </span>
         </div>
         {vehicleStatusError && <p className="mb-2 rounded-lg bg-destructive/10 p-2 text-xs text-destructive">{vehicleStatusError}</p>}
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+        {vehiclePanelVisible && <div id="vehicle-availability-list" className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
           {(activeVehicles ?? []).map(vehicle => {
             const item = vehicleStatuses.find(v => v.vehicle === vehicle);
             const status = item?.status ?? "disponivel";
@@ -789,7 +793,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
               </div>
             </div>;
           })}
-        </div>
+        </div>}
       </section>
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">
         <aside className="flex min-h-0 w-full flex-1 flex-col border-r md:flex-none md:w-[420px]">
