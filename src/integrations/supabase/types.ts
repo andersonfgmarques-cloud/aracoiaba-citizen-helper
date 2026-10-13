@@ -14,6 +14,12 @@ export type Database = {
   }
   public: {
     Tables: {
+      gcm_vehicles: {
+        Row: { vehicle: string; active: boolean; created_at: string; created_by: string | null }
+        Insert: { vehicle: string; active?: boolean; created_at?: string; created_by?: string | null }
+        Update: { vehicle?: string; active?: boolean; created_at?: string; created_by?: string | null }
+        Relationships: []
+      }
       gcm_vehicle_status: {
         Row: { vehicle: string; status: string; occurrence_id: string | null; note: string | null; updated_by: string | null; updated_at: string }
         Insert: { vehicle: string; status?: string; occurrence_id?: string | null; note?: string | null; updated_by?: string | null; updated_at?: string }
