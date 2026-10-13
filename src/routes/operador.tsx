@@ -895,16 +895,18 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
   const triagemAgressor = o.descricao.match(/\[TRIAGEM_VIOLENCIA_DOMESTICA: POSSIVEL_AGRESSOR=([^\]\n]*)\]/);
   const triagemMedida = o.descricao.match(/\[TRIAGEM_MEDIDA_PROTETIVA: ([^\]\n]*)\]/);
   const anexoMedidaFalhou = /\[ANEXO_MEDIDA_PROTETIVA: ENVIO_FALHOU; DOCUMENTO_NAO_RECEBIDO\]/.test(o.descricao);
+  const anexoMedidaPendente = /\[ANEXO_MEDIDA_PROTETIVA: PENDENTE; ARQUIVO_SELECIONADO\]/.test(o.descricao);
   const descricaoLimpa = o.descricao
     .replace(/\n?\[REGISTRO_TERMO_ART340: ACEITO_EM=[^\]\n]+\]/, "")
     .replace(/\n?\[REGISTRO_TERMO_VERACIDADE: VERSAO=[^;]+; ACEITO_EM=[^\]\n]+\]/, "")
     .replace(/\n?\[ANEXO_MEDIDA_PROTETIVA: path=[^\]\n]+\]/, "")
     .replace(/\n?\[ANEXO_MEDIDA_PROTETIVA: ENVIO_FALHOU; DOCUMENTO_NAO_RECEBIDO\]/, "")
+    .replace(/\n?\[ANEXO_MEDIDA_PROTETIVA: PENDENTE; ARQUIVO_SELECIONADO\]/, "")
     .replace(/\n?\[TRIAGEM_VIOLENCIA_DOMESTICA: POSSIVEL_AGRESSOR=[^\]\n]*\]/, "")
     .replace(/\n?\[TRIAGEM_MEDIDA_PROTETIVA: [^\]\n]*\]/, "")
     .trim();
-  const triagemHtml = triagemAgressor || triagemMedida || anexoMedidaFalhou
-    ? `<h2>Informações específicas da triagem</h2><div class="description">${triagemAgressor ? `Possível agressor no local / ameaça / aproximação: ${escapeHtml(triagemAgressor[1] || "Não informado")}\n` : ""}${triagemMedida ? `Medida protetiva: ${escapeHtml(triagemMedida[1] || "Não informado")}\n` : ""}${anexoMedidaFalhou ? "ATENÇÃO: o arquivo da medida protetiva não foi recebido pelo sistema.\n" : ""}</div>`
+  const triagemHtml = triagemAgressor || triagemMedida || anexoMedidaFalhou || anexoMedidaPendente
+    ? `<h2>Informações específicas da triagem</h2><div class="description">${triagemAgressor ? `Possível agressor no local / ameaça / aproximação: ${escapeHtml(triagemAgressor[1] || "Não informado")}\n` : ""}${triagemMedida ? `Medida protetiva: ${escapeHtml(triagemMedida[1] || "Não informado")}\n` : ""}${anexoMedidaFalhou ? "ATENÇÃO: o arquivo da medida protetiva não foi recebido pelo sistema.\n" : ""}${anexoMedidaPendente ? "ATENÇÃO: o solicitante selecionou um arquivo, mas o sistema ainda não confirmou o vínculo. Verifique a pendência antes de encerrar a ocorrência.\n" : ""}</div>`
     : "";
   const [vtr, setVtr] = useState(o.viatura ?? "");
   // O campo é para a próxima ação, não para reapresentar a observação já gravada na ocorrência.
