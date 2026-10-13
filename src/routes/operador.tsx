@@ -1329,6 +1329,7 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
               onClick={async () => {
                 const sucesso = await update(o.id, { status: "encerrada", observacao: obs.trim() }, "Atendimento encerrado — desfecho registrado");
                 if (sucesso) {
+                  if (o.viatura) await setVehicleStatus(o.viatura, "disponivel");
                   setObs("");
                   setHistoricoRevision((revision) => revision + 1);
                 }
@@ -1344,6 +1345,7 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
             onClick={async () => {
               const sucesso = await update(o.id, { status: "cancelada", observacao: obs.trim() || o.observacao, despachado_por: o.despachado_por ?? session!.user.id }, "Ocorrência cancelada");
               if (sucesso) {
+                if (o.status === "em_atendimento" && o.viatura) await setVehicleStatus(o.viatura, "disponivel");
                 setObs("");
                 setHistoricoRevision((revision) => revision + 1);
               }
