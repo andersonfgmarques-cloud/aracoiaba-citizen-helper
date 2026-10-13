@@ -315,10 +315,23 @@ export const TREE: Record<string, Node> = {
     contacts: [CONTACTS.pm, CONTACTS.gcm],
   },
   g_maus_tratos: {
-    kind: "gcm",
-    category: "Denúncia de possível maus-tratos contra animais",
-    text: "A denúncia de possível maus-tratos pode ser registrada para avaliação e encaminhamento aos órgãos competentes, conforme os fatos informados. Não confronte o possível responsável. Se houver risco imediato ou crime em andamento, ligue 153 ou 190.",
-    contacts: [CONTACTS.gcm, CONTACTS.pm, CONTACTS.ambiental],
+    kind: "ask",
+    text: "Os possíveis maus-tratos estão acontecendo neste momento? Essa resposta ajuda a encaminhar o caso corretamente. Se o animal estiver em perigo imediato, não espere concluir a triagem.",
+    options: [
+      { label: "Sim, está acontecendo agora", next: "r_maus_tratos_agora" },
+      { label: "Não, aconteceu antes / não é emergência", next: "r_depa_maus_tratos" },
+    ],
+  },
+  r_maus_tratos_agora: {
+    kind: "route",
+    urgent: true,
+    text: "Se os maus-tratos estão acontecendo agora ou o animal corre perigo imediato, ligue 190 (Polícia Militar) imediatamente. Você também pode acionar a GCM pelo 153 para solicitar apoio municipal. Não confronte o possível responsável e não se coloque em risco. Não use o formulário online da DEPA para uma emergência.",
+    contacts: [CONTACTS.pm, CONTACTS.gcm],
+  },
+  r_depa_maus_tratos: {
+    kind: "route",
+    text: "Para denunciar maus-tratos que não estejam acontecendo neste momento, utilize o canal oficial da Delegacia Eletrônica de Proteção Animal (DEPA), da Polícia Civil de São Paulo. Será necessário informar o endereço da ocorrência. Preencha somente informações verdadeiras e guarde o número do protocolo e a senha para acompanhar a denúncia. Se o crime começar a acontecer ou houver perigo imediato, ligue 190.",
+    contacts: [],
   },
   g_violencia_domestica: {
     kind: "gcm",
