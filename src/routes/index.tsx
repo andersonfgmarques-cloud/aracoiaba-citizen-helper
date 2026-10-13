@@ -107,6 +107,24 @@ function Index() {
   const [buscaCategoria, setBuscaCategoria] = useState("");
   const [medidaFile, setMedidaFile] = useState<File | null>(null);
   const [uploadingMedida, setUploadingMedida] = useState(false);
+  const navigationHistoryRef = useRef<Array<{
+    msgs: Msg[]; node: string; form: typeof form; input: string;
+    preData: typeof preData; preStep: typeof preStep; ciencia: typeof ciencia;
+    termoAceitoEm: string | null; veracidadeAceitaEm: string | null; medidaFile: File | null;
+  }>>([]);
+  const saveNavigationPoint = () => {
+    navigationHistoryRef.current.push({ msgs, node, form, input, preData, preStep, ciencia, termoAceitoEm, veracidadeAceitaEm, medidaFile });
+    if (navigationHistoryRef.current.length > 80) navigationHistoryRef.current.shift();
+  };
+  const goBack = () => {
+    const previous = navigationHistoryRef.current.pop();
+    if (!previous) return;
+    setMsgs(previous.msgs); setNode(previous.node); setForm(previous.form); setInput(previous.input);
+    setPreData(previous.preData); setPreStep(previous.preStep); setCiencia(previous.ciencia);
+    setTermoAceitoEm(previous.termoAceitoEm); setVeracidadeAceitaEm(previous.veracidadeAceitaEm); setMedidaFile(previous.medidaFile);
+    setSpeechError("");
+    if (isListening) { recognitionRef.current?.stop(); setIsListening(false); }
+  };
   const toggleVoiceInput = () => {
     if (isListening) {
       recognitionRef.current?.stop();
@@ -216,6 +234,7 @@ function Index() {
   }, [msgs]);
 
   const reset = () => {
+    navigationHistoryRef.current = [];
     setMsgs([]);
     setForm(null);
     setPreData({ nome: "", cpf: "", endereco_solicitante: "" });
@@ -268,6 +287,7 @@ function Index() {
         return;
       }
     }
+    saveNavigationPoint();
     const data = { ...form.data, [f.key]: value };
     setInput("");
     const next = form.step + 1;
@@ -275,6 +295,7 @@ function Index() {
       setForm({ ...form, step: next, data });
       setMsgs((m) => [...m, { from: "user", text: value }, { from: "bot", text: activeFields[next]!.q }]);
     } else {
+      navigationHistoryRef.current.pop();
       const protocol = `GCM-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
       const prioridade = ["Atitude suspeita", "Perturbação do sossego", "Violência doméstica", "Descumprimento de medida protetiva de urgência", "Furto / roubo em andamento", "Ameaça / agressão em andamento", "Dano / vandalismo em andamento", "Outra ocorrência policial em andamento"].includes(form.category)
         ? "alta"
@@ -429,7 +450,7 @@ function Index() {
               <p>Estou ciente de que a apresentação de informações falsas ou a inserção de declarações inverídicas em documentos poderá acarretar responsabilização civil, administrativa e/ou criminal, conforme a legislação aplicável, especialmente o artigo 299 do Código Penal Brasileiro, quando presentes os requisitos legais para sua configuração.</p>
               <p>Declaro, ainda, estar ciente de que o fornecimento de informações corretas é essencial para o adequado registro, análise e encaminhamento da solicitação à Guarda Civil Municipal.</p>
               <p className="gcm-term-note font-semibold">Ao marcar a opção de aceite, confirmo que li, compreendi e concordo com os termos desta declaração, estando ciente de que o aceite é obrigatório para prosseguir com o atendimento eletrônico.</p>
-            </div><div className="mt-5 grid gap-2"><button onClick={aceitarVeracidade} className="gcm-accept-button w-full rounded-full bg-primary py-3 font-semibold text-primary-foreground">Li e concordo — Prosseguir</button><button onClick={() => setCiencia("recusada")} className="gcm-refuse-button w-full rounded-full border border-destructive/60 py-3 font-semibold text-destructive">Recuso-me a aceitar a declaração</button></div>
+            </div><div className="mt-5 grid gap-2"><button onClick={() => { saveNavigationPoint(); aceitarVeracidade(); }} className="gcm-accept-button w-full rounded-full bg-primary py-3 font-semibold text-primary-foreground">Li e concordo — Prosseguir</button><button onClick={() => setCiencia("recusada")} className="gcm-refuse-button w-full rounded-full border border-destructive/60 py-3 font-semibold text-destructive">Recuso-me a aceitar a declaração</button></div>
           </div></main>
         </div>
       );
@@ -458,7 +479,7 @@ function Index() {
               <p className="gcm-term-note font-semibold">A aceitação deste termo é obrigatória para continuar utilizando o serviço.</p>
             </div>
             <div className="mt-5 grid gap-2">
-              <button onClick={aceitarTermo} className="gcm-accept-button w-full rounded-full bg-primary py-3 font-semibold text-primary-foreground">Li e estou ciente — Continuar</button>
+              <button onClick={() => { saveNavigationPoint(); aceitarTermo(); }} className="gcm-accept-button w-full rounded-full bg-primary py-3 font-semibold text-primary-foreground">Li e estou ciente — Continuar</button>
               <button onClick={() => setCiencia("recusada")} className="gcm-refuse-button w-full rounded-full border border-destructive/60 py-3 font-semibold text-destructive">Recuso-me a tomar ciência</button>
             </div>
           </div>
@@ -491,8 +512,24 @@ function Index() {
           CAD
         </Link>
         <button
-          onClick={reset}
-          aria-label="Reiniciar"
+          type="button"
+          onClick={goBack}
+          aria-label="Voltar uma etapa"
+          title="Voltar uma etapa"
+          className="rounded-full p-2 text-muted-foreground hover:bg-secondary"
+        >
+          <ChevronRight className="h-5 w-5 rotate-180" />
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            if (window.confirm("Deseja reiniciar o atendimento? As respostas ainda não enviadas serão descartadas.")) {
+              navigationHistoryRef.current = [];
+              reset();
+            }
+          }}
+          aria-label="Reiniciar atendimento"
+          title="Reiniciar atendimento"
           className="rounded-full p-2 text-muted-foreground hover:bg-secondary"
         >
           <RotateCcw className="h-5 w-5" />
@@ -906,7 +943,7 @@ function Index() {
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {items.map((item) => {
                     const Icon = item.icon;
-                    return <button key={item.label} type="button" onClick={() => { setMsgs((m) => [...m, { from: "user", text: item.label }]); setBuscaCategoria(""); say(item.next); }} className="group flex min-h-[62px] items-center gap-3 rounded-xl border border-primary/25 bg-slate-900/70 px-3 py-3 text-left text-sm font-medium text-foreground shadow-sm transition hover:border-primary/70 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.99]">
+                    return <button key={item.label} type="button" onClick={() => { saveNavigationPoint(); setMsgs((m) => [...m, { from: "user", text: item.label }]); setBuscaCategoria(""); say(item.next); }} className="group flex min-h-[62px] items-center gap-3 rounded-xl border border-primary/25 bg-slate-900/70 px-3 py-3 text-left text-sm font-medium text-foreground shadow-sm transition hover:border-primary/70 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.99]">
                       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary"><Icon className="h-5 w-5" /></span>
                       <span className="min-w-0 flex-1">{item.label}</span><ChevronRight className="h-4 w-4 shrink-0 text-primary/70 transition group-hover:translate-x-0.5" />
                     </button>;
@@ -917,14 +954,14 @@ function Index() {
             {buscaCategoria.trim() && ![
               "Crimes e ocorrências policiais", "Segurança / perturbação", "Suspeita de tráfico de drogas", "Patrimônio público / escolas / praças", "Trânsito", "Fiscalização (som, obras, comércio)", "Meio ambiente / animais", "Saúde", "Chuva / árvore / risco estrutural"
             ].some((label) => label.toLocaleLowerCase("pt-BR").includes(buscaCategoria.trim().toLocaleLowerCase("pt-BR"))) && <p className="rounded-lg border border-white/10 bg-slate-900/50 p-3 text-xs text-muted-foreground">Nenhuma categoria encontrada. Você pode selecionar “Outra situação”.</p>}
-            <button type="button" onClick={() => { setMsgs((m) => [...m, { from: "user", text: "Outra situação" }]); setBuscaCategoria(""); say("g_outra_situacao"); }} className="flex min-h-[54px] w-full items-center gap-3 rounded-xl border border-dashed border-primary/40 px-3 py-3 text-left text-sm font-semibold text-primary transition hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+            <button type="button" onClick={() => { saveNavigationPoint(); setMsgs((m) => [...m, { from: "user", text: "Outra situação" }]); setBuscaCategoria(""); say("g_outra_situacao"); }} className="flex min-h-[54px] w-full items-center gap-3 rounded-xl border border-dashed border-primary/40 px-3 py-3 text-left text-sm font-semibold text-primary transition hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
               <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10"><CircleHelp className="h-5 w-5" /></span><span className="flex-1">Outra situação</span><ChevronRight className="h-4 w-4" />
             </button>
           </section>
         ) : current?.kind === "ask" ? (
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {current.options.map((o) => (
-              <button key={o.label} onClick={() => { setMsgs((m) => [...m, { from: "user", text: o.label }]); say(o.next); }} className="group flex min-h-[66px] w-full items-center gap-3 rounded-[20px] border border-primary/40 bg-slate-900/75 px-4 py-3 text-left text-sm font-semibold leading-snug text-primary shadow-sm transition hover:border-primary/75 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.99]">
+              <button key={o.label} onClick={() => { saveNavigationPoint(); setMsgs((m) => [...m, { from: "user", text: o.label }]); say(o.next); }} className="group flex min-h-[66px] w-full items-center gap-3 rounded-[20px] border border-primary/40 bg-slate-900/75 px-4 py-3 text-left text-sm font-semibold leading-snug text-primary shadow-sm transition hover:border-primary/75 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.99]">
                 <span className="min-w-0 flex-1">{o.label}</span>
                 <ChevronRight className="h-4 w-4 shrink-0 text-primary/80 transition group-hover:translate-x-0.5" />
               </button>
