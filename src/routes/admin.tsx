@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ArrowLeft, ShieldCheck, Users, ClipboardList, History, RefreshCw,
+  ArrowLeft, ShieldCheck, Users, ClipboardList, History, RefreshCw, BellRing, Volume2, VolumeX,
   LogOut, CheckCircle2, Ban, Trash2, AlertTriangle, LockKeyhole, Eye, FileDown, X, Pencil, Save,
 } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
@@ -162,6 +162,12 @@ function AdminPage() {
   const [userDeleteReason, setUserDeleteReason] = useState("");
   const [editingProfile, setEditingProfile] = useState<AdminUser | null>(null);
   const [profileForm, setProfileForm] = useState({ nome_completo: "", matricula: "", cargo: "", lotacao: "" });
+  const [adminSoundEnabled, setAdminSoundEnabled] = useState(false);
+  const [newAdminOccurrenceCount, setNewAdminOccurrenceCount] = useState(0);
+  const [liveConnection, setLiveConnection] = useState<"connecting" | "connected" | "disconnected">("connecting");
+  const adminAudioRef = useRef<AudioContext | null>(null);
+  const adminSoundEnabledRef = useRef(false);
+  const notifiedAdminOccurrenceIds = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const { data } = adminSupabase.auth.onAuthStateChange((_event, nextSession) => {
@@ -247,6 +253,103 @@ function AdminPage() {
       setAudit([]);
     }
   }, [session, load]);
+
+  const toggleAdminSound = async () => {
+    try {
+      if (adminSoundEnabledRef.current) {
+        adminSoundEnabledRef.current = false;
+        setAdminSoundEnabled(false);
+        return;
+      }
+      const AudioContextConstructor = window.AudioContext;
+      if (!AudioContextConstructor) {
+        window.alert("Este navegador não oferece suporte ao alerta sonoro.");
+        return;
+      }
+      if (!adminAudioRef.current) adminAudioRef.current = new AudioContextConstructor();
+      await adminAudioRef.current.resume();
+      adminSoundEnabledRef.current = true;
+      setAdminSoundEnabled(true);
+      const oscillator = adminAudioRef.current.createOscillator();
+      const gain = adminAudioRef.current.createGain();
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(880, adminAudioRef.current.currentTime);
+      gain.gain.setValueAtTime(0.0001, adminAudioRef.current.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.12, adminAudioRef.current.currentTime + 0.025);
+      gain.gain.exponentialRampToValueAtTime(0.0001, adminAudioRef.current.currentTime + 0.25);
+      oscillator.connect(gain);
+      gain.connect(adminAudioRef.current.destination);
+      oscillator.start();
+      oscillator.stop(adminAudioRef.current.currentTime + 0.27);
+      if ("Notification" in window && Notification.permission === "default") {
+        void Notification.requestPermission().catch(() => undefined);
+      }
+    } catch {
+      window.alert("Não foi possível ativar o som. Verifique as permissões de áudio do navegador.");
+    }
+  };
+
+  useEffect(() => {
+    if (!session || !allowed) {
+      setLiveConnection("connecting");
+      return;
+    }
+    let active = true;
+    const channel = adminSupabase
+      .channel("admin-occurrence-notifications")
+      .on("postgres_changes", { event: "*", schema: "public", table: "ocorrencias" }, (payload) => {
+        if (!active) return;
+        if (payload.eventType === "INSERT") {
+          const occurrence = payload.new as AdminOccurrence;
+          if (occurrence.status === "pendente" && !notifiedAdminOccurrenceIds.current.has(occurrence.id)) {
+            notifiedAdminOccurrenceIds.current.add(occurrence.id);
+            setNewAdminOccurrenceCount((count) => count + 1);
+            setMessage((current) => current ? current : `Nova ocorrência pendente recebida: ${occurrence.protocolo || "protocolo não informado"}.`);
+            if (adminSoundEnabledRef.current && adminAudioRef.current) {
+              try {
+                const context = adminAudioRef.current;
+                const oscillator = context.createOscillator();
+                const gain = context.createGain();
+                oscillator.type = "sine";
+                oscillator.frequency.setValueAtTime(880, context.currentTime);
+                oscillator.frequency.setValueAtTime(660, context.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.0001, context.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.14, context.currentTime + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.38);
+                oscillator.connect(gain);
+                gain.connect(context.destination);
+                oscillator.start();
+                oscillator.stop(context.currentTime + 0.4);
+              } catch (error) {
+                console.warn("Falha no alerta sonoro administrativo:", error);
+              }
+            }
+            if ("Notification" in window && Notification.permission === "granted" && document.visibilityState !== "visible") {
+              try {
+                new Notification("Nova ocorrência pendente — Administração CAD", {
+                  body: `Protocolo: ${occurrence.protocolo || "não informado"}`,
+                  icon: "/aracoiaba-citizen-helper/android-chrome-192x192.png",
+                  tag: `admin-occurrence-${occurrence.id}`,
+                });
+              } catch (error) {
+                console.warn("Falha na notificação do navegador:", error);
+              }
+            }
+          }
+        }
+        void load();
+      })
+      .subscribe((status) => {
+        if (!active) return;
+        if (status === "SUBSCRIBED") setLiveConnection("connected");
+        else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") setLiveConnection("disconnected");
+        else setLiveConnection("connecting");
+      });
+    return () => {
+      active = false;
+      void adminSupabase.removeChannel(channel);
+    };
+  }, [session, allowed, load]);
 
   const login = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -512,7 +615,9 @@ function AdminPage() {
         <div className="mx-auto flex max-w-7xl items-center gap-3">
           <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full"><img src="/aracoiaba-citizen-helper/android-chrome-192x192.png" alt="Emblema oficial da Guarda Civil Municipal" className="h-full w-full rounded-full object-cover" /></div>
           <div className="min-w-0 flex-1"><p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">GCM · Araçoiaba da Serra</p><h1 className="text-xl font-bold md:text-2xl">Painel Administrativo</h1><p className="text-xs text-muted-foreground">{session.user.email}</p></div>
-          <button onClick={() => void load()} disabled={loading} className="rounded-lg bg-secondary p-2.5" title="Atualizar dados"><RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /></button>
+          <div className={`flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold ${liveConnection === "connected" ? "bg-success/10 text-success" : liveConnection === "disconnected" ? "bg-destructive/10 text-destructive" : "bg-secondary text-muted-foreground"}`} role="status" aria-live="polite" title={liveConnection === "connected" ? "Notificações em tempo real conectadas" : liveConnection === "disconnected" ? "Conexão de notificações interrompida" : "Conectando notificações"}><span className={`h-2 w-2 rounded-full ${liveConnection === "connected" ? "bg-success" : liveConnection === "disconnected" ? "bg-destructive" : "bg-amber-500 animate-pulse"}`} />{liveConnection === "connected" ? "Ao vivo" : liveConnection === "disconnected" ? "Sem conexão" : "Conectando"}</div>
+          <button onClick={toggleAdminSound} className={`rounded-lg p-2.5 ${adminSoundEnabled ? "bg-primary/15 text-primary" : "bg-secondary"}`} title={adminSoundEnabled ? "Desativar alertas sonoros" : "Ativar alertas sonoros"} aria-pressed={adminSoundEnabled}>{adminSoundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}</button>
+          <button onClick={() => { setNewAdminOccurrenceCount(0); setMessage(""); void load(); }} disabled={loading} className="relative rounded-lg bg-secondary p-2.5" title="Atualizar dados"><RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />{newAdminOccurrenceCount > 0 && <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">{newAdminOccurrenceCount > 99 ? "99+" : newAdminOccurrenceCount}</span>}</button>
           <button onClick={signOut} className="rounded-lg bg-secondary p-2.5" title="Sair"><LogOut className="h-4 w-4" /></button>
         </div>
       </header>
@@ -520,6 +625,7 @@ function AdminPage() {
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <Link to="/operador" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" /> Voltar à Central de Despacho</Link>
           <span className="rounded-full border border-success/30 bg-success/10 px-3 py-1 text-xs font-semibold text-success">Conta administrativa</span>
+          {newAdminOccurrenceCount > 0 && <button onClick={() => { setTab("ocorrencias"); setNewAdminOccurrenceCount(0); }} className="inline-flex animate-pulse items-center gap-2 rounded-full border border-destructive/40 bg-destructive/10 px-3 py-1.5 text-xs font-bold text-destructive" aria-live="polite"><BellRing className="h-4 w-4" />{newAdminOccurrenceCount} nova(s) ocorrência(s)</button>}
         </div>
         <div className="mb-5 grid gap-3 sm:grid-cols-3">
           <div className="rounded-2xl border border-border bg-card p-4"><Users className="mb-2 h-5 w-5 text-primary" /><p className="text-2xl font-bold">{users.length}</p><p className="text-sm text-muted-foreground">Contas cadastradas</p></div>
