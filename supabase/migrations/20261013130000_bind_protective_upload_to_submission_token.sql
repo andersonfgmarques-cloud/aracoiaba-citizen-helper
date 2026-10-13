@@ -32,7 +32,6 @@ with check (
   bucket_id = 'gcm-medidas-protetivas'
   and (storage.foldername(name))[1] ~ '^GCM-[0-9]{4}-[0-9]{6}$'
   and (storage.foldername(name))[2] ~ '^[a-f0-9]{32}$'
-  and (storage.foldername(name))[3] = ''
   and public.can_upload_protective_measure(
     (storage.foldername(name))[1],
     (storage.foldername(name))[2]
