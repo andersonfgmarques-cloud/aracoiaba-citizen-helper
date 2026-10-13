@@ -270,6 +270,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
   const [vehicleDialog, setVehicleDialog] = useState<{ vehicle: string } | null>(null);
   const [vehicleNote, setVehicleNote] = useState("");
   const [vehiclePanelVisible, setVehiclePanelVisible] = useState(true);
+  const [statsPanelVisible, setStatsPanelVisible] = useState(true);
   const audioContextRef = useRef<AudioContext | null>(null);
   const soundEnabledRef = useRef(false);
   // Mantém o contador de novas ocorrências definido a partir dos IDs recebidos.
@@ -734,7 +735,15 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
         </div>
       </header>
 
-      <div className="grid shrink-0 grid-cols-2 gap-2 border-b p-2 sm:gap-3 sm:p-4 md:grid-cols-4">
+      <section className="shrink-0 border-b px-3 py-2 sm:px-4" aria-label="Resumo das ocorrências">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs font-semibold text-muted-foreground">Resumo das ocorrências</span>
+          <button type="button" onClick={() => setStatsPanelVisible(value => !value)} aria-expanded={statsPanelVisible} aria-controls="occurrence-stats" className="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold hover:bg-accent">
+            {statsPanelVisible ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+            {statsPanelVisible ? "Ocultar resumo" : "Exibir resumo"}
+          </button>
+        </div>
+        {statsPanelVisible && <div id="occurrence-stats" className="grid shrink-0 grid-cols-2 gap-2 pt-2 sm:gap-3 md:grid-cols-4">
         {[
           ["pendente", Siren],
           ["despachada", Radio],
@@ -752,7 +761,8 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
             </div>
           );
         })}
-      </div>
+        </div>}
+      </section>
 
       {activeVehicles.length > 0 && activeVehicles.every(vehicle => vehicleStatuses.find(v => v.vehicle === vehicle)?.status !== "disponivel") && (
         <section role="alert" className="shrink-0 border-b border-destructive/40 bg-destructive/10 px-4 py-3">
