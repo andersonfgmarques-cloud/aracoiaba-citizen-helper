@@ -881,6 +881,37 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           <Detalhe key={atual.id} o={atual} update={update} saving={savingIds.includes(atual.id)} session={session} perfilOperador={perfilOperador} perfilFuncionalUserId={perfilFuncionalUserId} />
         </div>
       )}
+      {vehicleDialog && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-sm" role="presentation"
+          onMouseDown={(event) => { if (event.target === event.currentTarget && !savingVehicle) setVehicleDialog(null); }}>
+          <section role="dialog" aria-modal="true" aria-labelledby="vehicle-dialog-title" className="w-full max-w-md rounded-2xl border border-white/10 bg-card p-5 text-card-foreground shadow-2xl sm:p-6">
+            <div className="mb-4 flex items-start gap-3">
+              <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${vehicleDialog.status === "indisponivel" ? "bg-destructive/10 text-destructive" : "bg-amber-400/15 text-amber-500"}`}>
+                {vehicleDialog.status === "indisponivel" ? <XCircle className="h-5 w-5" /> : <Clock className="h-5 w-5" />}
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 id="vehicle-dialog-title" className="text-lg font-bold">{vehicleDialog.status === "indisponivel" ? "Registrar indisponibilidade" : "Registrar retorno da equipe"}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Viatura: <span className="font-semibold text-foreground">{vehicleDialog.vehicle}</span></p>
+              </div>
+              <button type="button" disabled={Boolean(savingVehicle)} onClick={() => setVehicleDialog(null)} className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary disabled:opacity-50" aria-label="Fechar janela"><XCircle className="h-5 w-5" /></button>
+            </div>
+            {vehicleDialog.status === "indisponivel" && <p className="mb-3 text-sm text-muted-foreground">Informe o motivo para manter o registro operacional atualizado.</p>}
+            <label htmlFor="vehicle-status-note" className="mb-2 block text-sm font-semibold">{vehicleDialog.status === "indisponivel" ? "Motivo da indisponibilidade" : "Observação do retorno (opcional)"}</label>
+            <textarea id="vehicle-status-note" autoFocus value={vehicleNote} onChange={(event) => setVehicleNote(event.target.value)} maxLength={300} rows={3}
+              placeholder={vehicleDialog.status === "indisponivel" ? "Ex.: manutenção, problema mecânico ou ausência de equipe" : "Ex.: equipe retornando à base"}
+              className="w-full resize-y rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" />
+            {vehicleDialog.status === "indisponivel" && !vehicleNote.trim() && <p className="mt-1 text-xs text-amber-600">O motivo é obrigatório.</p>}
+            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button type="button" disabled={Boolean(savingVehicle)} onClick={() => setVehicleDialog(null)} className="rounded-xl border border-border px-4 py-2.5 text-sm font-semibold hover:bg-secondary disabled:opacity-50">Cancelar</button>
+              <button type="button" disabled={Boolean(savingVehicle) || (vehicleDialog.status === "indisponivel" && !vehicleNote.trim())}
+                onClick={async () => { const { vehicle, status } = vehicleDialog; await setVehicleStatus(vehicle, status, null, vehicleNote.trim()); setVehicleDialog(null); setVehicleNote(""); }}
+                className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50 ${vehicleDialog.status === "indisponivel" ? "bg-destructive hover:bg-destructive/90" : "bg-amber-500 hover:bg-amber-600"}`}>
+                {savingVehicle ? "Salvando..." : "Confirmar"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }
@@ -1319,36 +1350,6 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
         </div>
       </div>
     </div>
-      {vehicleDialog && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-sm" role="presentation"
-          onMouseDown={(event) => { if (event.target === event.currentTarget && !savingVehicle) setVehicleDialog(null); }}>
-          <section role="dialog" aria-modal="true" aria-labelledby="vehicle-dialog-title" className="w-full max-w-md rounded-2xl border border-white/10 bg-card p-5 text-card-foreground shadow-2xl sm:p-6">
-            <div className="mb-4 flex items-start gap-3">
-              <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${vehicleDialog.status === "indisponivel" ? "bg-destructive/10 text-destructive" : "bg-amber-400/15 text-amber-500"}`}>
-                {vehicleDialog.status === "indisponivel" ? <XCircle className="h-5 w-5" /> : <Clock className="h-5 w-5" />}
-              </div>
-              <div className="min-w-0 flex-1">
-                <h2 id="vehicle-dialog-title" className="text-lg font-bold">{vehicleDialog.status === "indisponivel" ? "Registrar indisponibilidade" : "Registrar retorno da equipe"}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Viatura: <span className="font-semibold text-foreground">{vehicleDialog.vehicle}</span></p>
-              </div>
-              <button type="button" disabled={Boolean(savingVehicle)} onClick={() => setVehicleDialog(null)} className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary disabled:opacity-50" aria-label="Fechar janela"><XCircle className="h-5 w-5" /></button>
-            </div>
-            {vehicleDialog.status === "indisponivel" && <p className="mb-3 text-sm text-muted-foreground">Informe o motivo para manter o registro operacional atualizado.</p>}
-            <label htmlFor="vehicle-status-note" className="mb-2 block text-sm font-semibold">{vehicleDialog.status === "indisponivel" ? "Motivo da indisponibilidade" : "Observação do retorno (opcional)"}</label>
-            <textarea id="vehicle-status-note" autoFocus value={vehicleNote} onChange={(event) => setVehicleNote(event.target.value)} maxLength={300} rows={3}
-              placeholder={vehicleDialog.status === "indisponivel" ? "Ex.: manutenção, problema mecânico ou ausência de equipe" : "Ex.: equipe retornando à base"}
-              className="w-full resize-y rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" />
-            {vehicleDialog.status === "indisponivel" && !vehicleNote.trim() && <p className="mt-1 text-xs text-amber-600">O motivo é obrigatório.</p>}
-            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-              <button type="button" disabled={Boolean(savingVehicle)} onClick={() => setVehicleDialog(null)} className="rounded-xl border border-border px-4 py-2.5 text-sm font-semibold hover:bg-secondary disabled:opacity-50">Cancelar</button>
-              <button type="button" disabled={Boolean(savingVehicle) || (vehicleDialog.status === "indisponivel" && !vehicleNote.trim())}
-                onClick={async () => { const { vehicle, status } = vehicleDialog; await setVehicleStatus(vehicle, status, null, vehicleNote.trim()); setVehicleDialog(null); setVehicleNote(""); }}
-                className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50 ${vehicleDialog.status === "indisponivel" ? "bg-destructive hover:bg-destructive/90" : "bg-amber-500 hover:bg-amber-600"}`}>
-                {savingVehicle ? "Salvando..." : "Confirmar"}
-              </button>
-            </div>
-          </section>
-        </div>
-      )}
+
   );
 }
