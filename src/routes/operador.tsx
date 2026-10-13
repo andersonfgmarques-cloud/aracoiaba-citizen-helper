@@ -1007,18 +1007,23 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
 
   return (
     <div className="mx-auto max-w-2xl space-y-5">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs text-muted-foreground">
-            {o.protocolo} · {new Date(o.created_at).toLocaleString("pt-BR")}
-          </p>
-          <h2 className="text-2xl font-bold">{o.categoria}</h2>
+      <div className="rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-md sm:p-5">
+        <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 flex-1 space-y-2">
+            <p className="break-words text-xs font-semibold tracking-wide text-muted-foreground">
+              Protocolo: {o.protocolo}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Registrada em {new Date(o.created_at).toLocaleString("pt-BR")}
+            </p>
+            <h2 className="break-words text-xl font-bold leading-snug text-foreground sm:text-2xl">{o.categoria}</h2>
+          </div>
+          <span
+            className={`inline-flex max-w-full shrink-0 items-center rounded-full border border-current/20 px-3 py-1.5 text-xs font-bold uppercase leading-tight ${STATUS[o.status]?.cls}`}
+          >
+            {STATUS[o.status]?.label}
+          </span>
         </div>
-        <span
-          className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold uppercase ${STATUS[o.status]?.cls}`}
-        >
-          {STATUS[o.status]?.label}
-        </span>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-xl border border-primary/30 bg-card p-3">
