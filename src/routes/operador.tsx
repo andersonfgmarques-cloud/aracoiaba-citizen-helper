@@ -352,6 +352,36 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
     setLoadingOcs(false);
   };
 
+  // Mantém o CAD sincronizado mesmo se o navegador suspender ou perder eventos Realtime.
+  // A atualização periódica é uma rede de segurança; o canal continua sendo a via imediata.
+  useEffect(() => {
+    if (autorizado !== true) return;
+
+    const handleOnline = () => {
+      setConnectionStatus("connecting");
+      setConnectionAttempt((attempt) => attempt + 1);
+      void load();
+    };
+    const handleOffline = () => setConnectionStatus("disconnected");
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") void load();
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    document.addEventListener("visibilitychange", handleVisibility);
+    const syncInterval = window.setInterval(() => {
+      if (navigator.onLine) void load();
+    }, 30000);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.clearInterval(syncInterval);
+    };
+  }, [autorizado]);
+
   useEffect(() => {
     let active = true;
     let channel: ReturnType<typeof supabase.channel> | null = null;
