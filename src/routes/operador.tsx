@@ -766,7 +766,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
               <p className="mt-1 text-xs text-muted-foreground">{labels[status]}</p>
               {item?.note && <p className="mt-1 truncate text-[10px] text-muted-foreground" title={item.note}>{item.note}</p>}
               <div className="mt-2 flex flex-wrap gap-1">
-                {status !== "disponivel" && status !== "empenhada" && <button disabled={savingVehicle === vehicle} onClick={() => void setVehicleStatus(vehicle, "disponivel")} className="rounded bg-success/15 px-2 py-1 text-[10px] font-semibold text-success disabled:opacity-50">Liberar</button>}
+                {status !== "disponivel" && !(status === "empenhada" && ocs.some(occurrence => occurrence.id === item?.occurrence_id && occurrence.status === "em_atendimento")) && <button disabled={savingVehicle === vehicle} onClick={() => void setVehicleStatus(vehicle, "disponivel")} className="rounded bg-success/15 px-2 py-1 text-[10px] font-semibold text-success disabled:opacity-50">Liberar</button>}
                 {status !== "indisponivel" && status !== "empenhada" && <button disabled={savingVehicle === vehicle} onClick={() => void setVehicleStatus(vehicle, "indisponivel")} className="rounded bg-secondary px-2 py-1 text-[10px] font-semibold disabled:opacity-50">Indisponível</button>}
                 {status === "disponivel" && <button disabled={savingVehicle === vehicle} onClick={() => void setVehicleStatus(vehicle, "em_retorno")} className="rounded bg-amber-400/15 px-2 py-1 text-[10px] font-semibold text-amber-500 disabled:opacity-50">Em retorno</button>}
                 {status === "empenhada" && <span className="rounded bg-destructive/10 px-2 py-1 text-[10px] font-semibold text-destructive">Em ocorrência</span>}
@@ -1255,7 +1255,7 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
         <div className="flex flex-wrap gap-2">
           {o.status !== "em_atendimento" && o.status !== "encerrada" && o.status !== "cancelada" && (
             <button
-              disabled={saving || !vtr || !ev.trim() || !condutor.trim() || !obs.trim()}
+              disabled={saving || !vtr || vehicleStatuses.find(item => item.vehicle === vtr)?.status !== "disponivel" || !ev.trim() || !condutor.trim() || !obs.trim()}
               onClick={async () => {
                 const equipe = [
                   "[EQUIPE EMPENHADA]",
