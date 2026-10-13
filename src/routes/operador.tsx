@@ -56,6 +56,7 @@ const STATUS: Record<string, { label: string; cls: string }> = {
   cancelada: { label: "Cancelada", cls: "bg-muted text-muted-foreground" },
 };
 const VIATURAS = ["VTR-01", "VTR-02", "VTR-03", "MOTO-01", "MOTO-02", "Ambiental-01"];
+type VehicleStatus = { vehicle: string; status: "disponivel" | "empenhada" | "indisponivel" | "em_retorno"; occurrence_id: string | null; note: string | null; updated_at: string };
 
 function escapeHtml(value: unknown): string {
   return String(value ?? "—").replace(/[&<>"']/g, (char) => ({
@@ -260,6 +261,9 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
   const [connectionAttempt, setConnectionAttempt] = useState(0);
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [savingIds, setSavingIds] = useState<string[]>([]);
+  const [vehicleStatuses, setVehicleStatuses] = useState<VehicleStatus[]>([]);
+  const [savingVehicle, setSavingVehicle] = useState<string | null>(null);
+  const [vehicleStatusError, setVehicleStatusError] = useState("");
   const audioContextRef = useRef<AudioContext | null>(null);
   const soundEnabledRef = useRef(false);
   // Mantém o contador de novas ocorrências definido a partir dos IDs recebidos.
@@ -334,6 +338,46 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
       window.alert("Não foi possível ativar o som. Verifique as permissões de áudio do navegador.");
     }
   };
+
+  const loadVehicleStatuses = async () => {
+    const { data, error } = await supabase.from("gcm_vehicle_status").select("*").order("vehicle");
+    if (error) { setVehicleStatusError("Não foi possível carregar a disponibilidade das viaturas."); return; }
+    setVehicleStatusError("");
+    setVehicleStatuses((data ?? []) as VehicleStatus[]);
+  };
+
+  const setVehicleStatus = async (vehicle: string, status: VehicleStatus["status"], occurrenceId: string | null = null) => {
+    setSavingVehicle(vehicle);
+    setVehicleStatusError("");
+    let note = "";
+    if (status === "indisponivel") {
+      const answer = window.prompt("Informe o motivo da indisponibilidade (ex.: manutenção, sem equipe):");
+      if (answer === null) { setSavingVehicle(null); return; }
+      note = answer;
+    } else if (status === "em_retorno") {
+      note = window.prompt("Observação sobre o retorno da equipe (opcional):") ?? "";
+    }
+    const { error } = await supabase.rpc("set_gcm_vehicle_status", {
+      _vehicle: vehicle, _status: status, _occurrence_id: occurrenceId, _note: note,
+    });
+    setSavingVehicle(null);
+    if (error) {
+      toast.error(error.message.includes("ocorrência em atendimento")
+        ? "A viatura ainda possui ocorrência em atendimento. Encerre-a antes de liberá-la."
+        : "Não foi possível atualizar a viatura: " + error.message);
+      return;
+    }
+    const labels: Record<string, string> = { disponivel: "Disponível", empenhada: "Empenhada", indisponivel: "Indisponível", em_retorno: "Em retorno" };
+    toast.success(vehicle + " atualizada: " + labels[status]);
+    await loadVehicleStatuses();
+  };
+
+  useEffect(() => {
+    if (autorizado !== true) return;
+    void loadVehicleStatuses();
+    const timer = window.setInterval(() => void loadVehicleStatuses(), 15000);
+    return () => window.clearInterval(timer);
+  }, [autorizado]);
 
   const load = async () => {
     setLoadingOcs(true);
@@ -703,6 +747,34 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
         })}
       </div>
 
+      <section className="shrink-0 border-b bg-background/95 px-3 py-3 sm:px-4" aria-label="Disponibilidade operacional das viaturas">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <div><h2 className="text-sm font-bold">Disponibilidade operacional</h2><p className="text-xs text-muted-foreground">O despacho empenha a viatura automaticamente. Marque indisponibilidade quando necessário.</p></div>
+          <span className={"rounded-full px-2.5 py-1 text-xs font-bold " + (vehicleStatuses.length > 0 && vehicleStatuses.every(v => v.status !== "disponivel") ? "bg-destructive/15 text-destructive" : "bg-success/15 text-success")}>
+            {vehicleStatuses.length > 0 && vehicleStatuses.every(v => v.status !== "disponivel") ? "Todas indisponíveis" : vehicleStatuses.filter(v => v.status === "disponivel").length + " disponível(is)"}
+          </span>
+        </div>
+        {vehicleStatusError && <p className="mb-2 rounded-lg bg-destructive/10 p-2 text-xs text-destructive">{vehicleStatusError}</p>}
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+          {VIATURAS.map(vehicle => {
+            const item = vehicleStatuses.find(v => v.vehicle === vehicle);
+            const status = item?.status ?? "disponivel";
+            const labels: Record<string, string> = { disponivel: "Disponível", empenhada: "Empenhada", indisponivel: "Indisponível", em_retorno: "Em retorno" };
+            const dot = status === "disponivel" ? "bg-success" : status === "empenhada" ? "bg-destructive" : status === "em_retorno" ? "bg-amber-400" : "bg-muted-foreground";
+            return <div key={vehicle} className="min-w-0 rounded-xl border bg-card p-2.5">
+              <div className="flex items-center justify-between gap-1"><span className="truncate text-xs font-bold">{vehicle}</span><span className={"h-2.5 w-2.5 shrink-0 rounded-full " + dot} /></div>
+              <p className="mt-1 text-xs text-muted-foreground">{labels[status]}</p>
+              {item?.note && <p className="mt-1 truncate text-[10px] text-muted-foreground" title={item.note}>{item.note}</p>}
+              <div className="mt-2 flex flex-wrap gap-1">
+                {status !== "disponivel" && status !== "empenhada" && <button disabled={savingVehicle === vehicle} onClick={() => void setVehicleStatus(vehicle, "disponivel")} className="rounded bg-success/15 px-2 py-1 text-[10px] font-semibold text-success disabled:opacity-50">Liberar</button>}
+                {status !== "indisponivel" && status !== "empenhada" && <button disabled={savingVehicle === vehicle} onClick={() => void setVehicleStatus(vehicle, "indisponivel")} className="rounded bg-secondary px-2 py-1 text-[10px] font-semibold disabled:opacity-50">Indisponível</button>}
+                {status === "disponivel" && <button disabled={savingVehicle === vehicle} onClick={() => void setVehicleStatus(vehicle, "em_retorno")} className="rounded bg-amber-400/15 px-2 py-1 text-[10px] font-semibold text-amber-500 disabled:opacity-50">Em retorno</button>}
+                {status === "empenhada" && <span className="rounded bg-destructive/10 px-2 py-1 text-[10px] font-semibold text-destructive">Em ocorrência</span>}
+              </div>
+            </div>;
+          })}
+        </div>
+      </section>
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">
         <aside className="flex min-h-0 w-full flex-1 flex-col border-r md:flex-none md:w-[420px]">
           <div className="flex shrink-0 flex-wrap items-center gap-1.5 border-b px-2 py-2 sm:gap-2 sm:px-3 sm:py-2.5">
@@ -1201,6 +1273,7 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
                   "Despacho realizado — equipe acionada e atendimento iniciado",
                 );
                 if (sucesso) {
+                  await setVehicleStatus(vtr, "empenhada", o.id);
                   setObs("");
                   setEv("");
                   setCondutor("");
