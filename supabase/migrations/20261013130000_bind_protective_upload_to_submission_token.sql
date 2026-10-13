@@ -14,7 +14,7 @@ as $$
     from public.ocorrencias o
     where o.protocolo = _protocol
       and o.categoria in ('Violência doméstica', 'Descumprimento de medida protetiva de urgência')
-      and o.anexo_token_hash = encode(digest(_token, 'sha256'), 'hex')
+      and o.anexo_token_hash = encode(extensions.digest(_token, 'sha256'), 'hex')
       and _token ~ '^[a-f0-9]{32}$'
   );
 $$;
