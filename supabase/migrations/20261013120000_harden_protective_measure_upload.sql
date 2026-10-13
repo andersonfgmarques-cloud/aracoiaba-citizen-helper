@@ -54,7 +54,7 @@ begin
 
   update public.ocorrencias
   set descricao = concat(
-    rtrim(descricao),
+    rtrim(replace(descricao, '[ANEXO_MEDIDA_PROTETIVA: PENDENTE; ARQUIVO_SELECIONADO]', '')),
     E'\n[ANEXO_MEDIDA_PROTETIVA: path=', _path, ']'
   )
   where protocolo = _protocol
