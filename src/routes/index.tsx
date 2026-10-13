@@ -327,8 +327,15 @@ function Index() {
         (data["tutor_conhecido"] || form.category === "Animal agressivo / responsável identificado") ? `\n[TRIAGEM_ANIMAL: TUTOR_CONHECIDO=${data["tutor_conhecido"] || "SIM"}; NOME=${data["tutor_nome"] || "não informado"}; ENDERECO_TUTOR=${data["tutor_endereco"] || "não informado"}; TELEFONE_TUTOR=${data["tutor_telefone"] || "não informado"}]` : "",
         medidaFile && ["Violência doméstica", "Descumprimento de medida protetiva de urgência"].includes(form.category) ? "\n[ANEXO_MEDIDA_PROTETIVA: PENDENTE; ARQUIVO_SELECIONADO]" : "",
       ].join("");
+      const medidaToken = medidaFile && ["Violência doméstica", "Descumprimento de medida protetiva de urgência"].includes(form.category)
+        ? crypto.randomUUID().replace(/-/g, "")
+        : null;
+      const medidaTokenHash = medidaToken
+        ? Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(medidaToken))), (b) => b.toString(16).padStart(2, "0")).join("")
+        : null;
       const payload = {
         protocolo: protocol,
+        ...(medidaTokenHash ? { anexo_token_hash: medidaTokenHash } : {}),
         categoria: form.category,
         prioridade,
         nome: data["nome"]!,
@@ -354,18 +361,21 @@ function Index() {
             anexoFalhou = true;
           } else {
             const safeName = medidaFile.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-100) || "documento";
-            const { data: uploaded, error: uploadError } = await supabase.storage
-              .from("gcm-medidas-protetivas")
-              .upload(`${protocol}/${crypto.randomUUID()}-${safeName}`, medidaFile, { contentType: medidaFile.type, upsert: false });
-            if (uploadError || !uploaded?.path) {
+            if (!medidaToken) {
               anexoFalhou = true;
             } else {
-              const { error: attachError } = await supabase.rpc("attach_protective_measure_document", {
-                _protocol: protocol,
-                _path: uploaded.path,
-              });
-              if (attachError) anexoFalhou = true;
-              else anexoPath = uploaded.path;
+              const { data: uploaded, error: uploadError } = await supabase.storage
+                .from("gcm-medidas-protetivas")
+                .upload(`${protocol}/${medidaToken}/${crypto.randomUUID()}-${safeName}`, medidaFile, { contentType: medidaFile.type, upsert: false });
+              if (uploadError || !uploaded?.path) {
+                anexoFalhou = true;
+              } else {
+                const { data: attached, error: attachError } = await supabase.functions.invoke("attach-protective-measure-document", {
+                  body: { protocol, path: uploaded.path, token: medidaToken },
+                });
+                if (attachError || !attached?.ok) anexoFalhou = true;
+                else anexoPath = uploaded.path;
+              }
             }
           }
         } catch {
