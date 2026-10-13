@@ -895,7 +895,7 @@ function Index() {
               <input value={buscaCategoria} onChange={(e) => setBuscaCategoria(e.target.value)} placeholder="Buscar tipo de ocorrência..." aria-label="Buscar tipo de ocorrência" className="min-h-11 w-full rounded-xl border border-primary/25 bg-slate-950/60 py-3 pl-10 pr-3 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20" />
             </label>
             {[
-              { title: "Segurança e ordem pública", items: [{ label: "Segurança / perturbação", next: "seg", icon: ShieldAlert }, { label: "Suspeita de tráfico em área pública", next: "g_trafico_area_publica", icon: Siren }] },
+              { title: "Segurança e ordem pública", items: [{ label: "Segurança / perturbação", next: "seg", icon: ShieldAlert }, { label: "Suspeita de tráfico de drogas", next: "r_trafico", icon: Siren }] },
               { title: "Trânsito e espaços públicos", items: [{ label: "Patrimônio público / escolas / praças", next: "g_patr", icon: Landmark }, { label: "Trânsito", next: "trans", icon: CarFront }, { label: "Fiscalização (som, obras, comércio)", next: "fisc", icon: Volume2 }] },
               { title: "Meio ambiente e bem-estar", items: [{ label: "Meio ambiente / animais", next: "amb", icon: Trees }, { label: "Saúde", next: "r_samu_nu", icon: Pill }, { label: "Chuva / árvore / risco estrutural", next: "r_defesa", icon: CloudRain }] },
             ].map((group) => {
@@ -915,7 +915,7 @@ function Index() {
               </div>;
             })}
             {buscaCategoria.trim() && ![
-              "Segurança / perturbação", "Suspeita de tráfico em área pública", "Patrimônio público / escolas / praças", "Trânsito", "Fiscalização (som, obras, comércio)", "Meio ambiente / animais", "Saúde", "Chuva / árvore / risco estrutural"
+              "Segurança / perturbação", "Suspeita de tráfico de drogas", "Patrimônio público / escolas / praças", "Trânsito", "Fiscalização (som, obras, comércio)", "Meio ambiente / animais", "Saúde", "Chuva / árvore / risco estrutural"
             ].some((label) => label.toLocaleLowerCase("pt-BR").includes(buscaCategoria.trim().toLocaleLowerCase("pt-BR"))) && <p className="rounded-lg border border-white/10 bg-slate-900/50 p-3 text-xs text-muted-foreground">Nenhuma categoria encontrada. Você pode selecionar “Outra situação”.</p>}
             <button type="button" onClick={() => { setMsgs((m) => [...m, { from: "user", text: "Outra situação" }]); setBuscaCategoria(""); say("g_outra_situacao"); }} className="flex min-h-[54px] w-full items-center gap-3 rounded-xl border border-dashed border-primary/40 px-3 py-3 text-left text-sm font-semibold text-primary transition hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
               <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10"><CircleHelp className="h-5 w-5" /></span><span className="flex-1">Outra situação</span><ChevronRight className="h-4 w-4" />
