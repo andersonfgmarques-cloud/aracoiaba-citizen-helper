@@ -61,7 +61,7 @@ const FIELDS = [
 const fieldsForCategory = (category: string, data: Record<string, string> = {}) => {
   if (category === "Animal agressivo / ataque em andamento" || category === "Animal agressivo / responsável identificado") {
     const tutorJaIdentificado = category === "Animal agressivo / responsável identificado";
-    const tutorConhecido = tutorJaIdentificado || /^sim\\b/i.test((data["tutor_conhecido"] ?? "").trim());
+    const tutorConhecido = tutorJaIdentificado || /^sim\b/i.test((data["tutor_conhecido"] ?? "").trim());
     return [
       ...FIELDS.slice(0, 5),
       ...(tutorJaIdentificado
