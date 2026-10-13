@@ -25,7 +25,7 @@ export const Route = createFileRoute("/")({
 });
 
 type Msg =
-  | { from: "bot"; text: string; contacts?: Contact[]; urgent?: boolean; digitalDelegacia?: boolean }
+  | { from: "bot"; text: string; contacts?: Contact[]; urgent?: boolean; digitalDelegacia?: boolean; depaUrl?: string }
   | { from: "user"; text: string }
   | { from: "done"; protocol: string; category: string };
 
@@ -213,7 +213,7 @@ function Index() {
     if (n.kind === "route")
       setMsgs((m) => [
         ...m,
-        { from: "bot", text: n.text, contacts: n.contacts, urgent: !!n.urgent, digitalDelegacia: key === "r_civil" || key === "r_transito_sem_vitima" },
+        { from: "bot", text: n.text, contacts: n.contacts, urgent: !!n.urgent, digitalDelegacia: key === "r_civil" || key === "r_transito_sem_vitima", depaUrl: key === "r_depa_maus_tratos" ? "https://www.webdenuncia.sp.gov.br/depa/captcha" : undefined },
       ]);
     else if (n.kind === "ask") setMsgs((m) => [...m, { from: "bot", text: n.text }]);
     else {
@@ -666,6 +666,20 @@ function Index() {
                 </div>
               )}
               <p className="leading-relaxed">{m.text}</p>
+              {m.depaUrl && (
+                <div className="mt-3 rounded-xl border border-primary/40 bg-secondary p-3">
+                  <p className="mb-2 font-semibold">Denúncia de maus-tratos contra animais — DEPA/SP</p>
+                  <p className="mb-3 text-sm">Abra o portal oficial para registrar a denúncia. O formulário exige o endereço da ocorrência; ao finalizar, guarde o protocolo e a senha para acompanhamento.</p>
+                  <a
+                    href={m.depaUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 py-2 font-semibold text-primary-foreground"
+                  >
+                    Registrar denúncia na DEPA <ChevronRight className="ml-2 h-4 w-4" />
+                  </a>
+                </div>
+              )}
               {m.digitalDelegacia && (
                 <div className="mt-3 rounded-xl border border-primary/40 bg-secondary p-3">
                   <p className="mb-2 font-semibold">Delegacia Digital — Polícia Civil do Estado de São Paulo</p>
