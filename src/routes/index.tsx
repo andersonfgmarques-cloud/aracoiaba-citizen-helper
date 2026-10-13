@@ -58,7 +58,22 @@ const FIELDS = [
   { key: "descricao", q: "Descreva rapidamente o que está acontecendo." },
 ] as const;
 
-const fieldsForCategory = (category: string) => {
+const fieldsForCategory = (category: string, data: Record<string, string> = {}) => {
+  if (category === "Animal agressivo / ataque em andamento" || category === "Animal agressivo / responsável identificado") {
+    const tutorConhecido = /^sim\\b/i.test((data["tutor_conhecido"] ?? "").trim());
+    return [
+      ...FIELDS.slice(0, 5),
+      { key: "tutor_conhecido", q: "Você conhece o tutor ou responsável pelo animal? Responda SIM ou NÃO. Se não souber, responda NÃO." },
+      ...(tutorConhecido
+        ? [
+            { key: "tutor_nome", q: "Qual é o nome completo do tutor ou responsável pelo animal, se souber?" },
+            { key: "tutor_endereco", q: "Informe o endereço COMPLETO do tutor ou responsável (rua, número, bairro e complemento, se houver)." },
+            { key: "tutor_telefone", q: "Informe o telefone do tutor ou responsável, se souber. Se não souber, escreva NÃO SEI." },
+          ]
+        : []),
+      FIELDS[5],
+    ];
+  }
   if (category !== "Violência doméstica" && category !== "Descumprimento de medida protetiva de urgência") return FIELDS;
   return [
     ...FIELDS.slice(0, 5),
@@ -273,7 +288,7 @@ function Index() {
       }
       value = d;
     }
-    if (f.key === "endereco" || f.key === "endereco_solicitante") {
+    if (f.key === "endereco" || f.key === "endereco_solicitante" || f.key === "tutor_endereco") {
       if (!validaEndereco(value)) {
         setMsgs((m) => [
           ...m,
@@ -290,10 +305,11 @@ function Index() {
     saveNavigationPoint();
     const data = { ...form.data, [f.key]: value };
     setInput("");
+    const nextFields = fieldsForCategory(form.category, data);
     const next = form.step + 1;
-    if (next < activeFields.length) {
+    if (next < nextFields.length) {
       setForm({ ...form, step: next, data });
-      setMsgs((m) => [...m, { from: "user", text: value }, { from: "bot", text: activeFields[next]!.q }]);
+      setMsgs((m) => [...m, { from: "user", text: value }, { from: "bot", text: nextFields[next]!.q }]);
     } else {
       navigationHistoryRef.current.pop();
       const protocol = `GCM-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
@@ -323,6 +339,7 @@ function Index() {
       const dadosTriagem = [
         data["agressor_local"] ? `\n\n[TRIAGEM_VIOLENCIA_DOMESTICA: POSSIVEL_AGRESSOR=${data["agressor_local"]}]` : "",
         data["medida_protetiva"] ? `\n[TRIAGEM_MEDIDA_PROTETIVA: ${data["medida_protetiva"]}]` : "",
+        data["tutor_conhecido"] ? `\n[TRIAGEM_ANIMAL: TUTOR_CONHECIDO=${data["tutor_conhecido"]}; NOME=${data["tutor_nome"] || "não informado"}; ENDERECO_TUTOR=${data["tutor_endereco"] || "não informado"}; TELEFONE_TUTOR=${data["tutor_telefone"] || "não informado"}]` : "",
         anexoPath ? `\n[ANEXO_MEDIDA_PROTETIVA: path=${anexoPath}]` : "",
         anexoFalhou ? "\n[ANEXO_MEDIDA_PROTETIVA: ENVIO_FALHOU; DOCUMENTO_NAO_RECEBIDO]" : "",
       ].join("");
