@@ -60,13 +60,16 @@ const FIELDS = [
 
 const fieldsForCategory = (category: string, data: Record<string, string> = {}) => {
   if (category === "Animal agressivo / ataque em andamento" || category === "Animal agressivo / responsável identificado") {
-    const tutorConhecido = /^sim\\b/i.test((data["tutor_conhecido"] ?? "").trim());
+    const tutorJaIdentificado = category === "Animal agressivo / responsável identificado";
+    const tutorConhecido = tutorJaIdentificado || /^sim\\b/i.test((data["tutor_conhecido"] ?? "").trim());
     return [
       ...FIELDS.slice(0, 5),
-      { key: "tutor_conhecido", q: "Você conhece o tutor ou responsável pelo animal? Responda SIM ou NÃO. Se não souber, responda NÃO." },
+      ...(tutorJaIdentificado
+        ? []
+        : [{ key: "tutor_conhecido", q: "Você conhece o tutor ou responsável pelo animal? Responda SIM ou NÃO. Se não souber, responda NÃO." }]),
       ...(tutorConhecido
         ? [
-            { key: "tutor_nome", q: "Qual é o nome completo do tutor ou responsável pelo animal, se souber?" },
+            { key: "tutor_nome", q: "Qual é o nome completo do tutor ou responsável pelo animal, se souber? Se não souber, escreva NÃO SEI." },
             { key: "tutor_endereco", q: "Informe o endereço COMPLETO do tutor ou responsável (rua, número, bairro e complemento, se houver)." },
             { key: "tutor_telefone", q: "Informe o telefone do tutor ou responsável, se souber. Se não souber, escreva NÃO SEI." },
           ]
@@ -339,7 +342,7 @@ function Index() {
       const dadosTriagem = [
         data["agressor_local"] ? `\n\n[TRIAGEM_VIOLENCIA_DOMESTICA: POSSIVEL_AGRESSOR=${data["agressor_local"]}]` : "",
         data["medida_protetiva"] ? `\n[TRIAGEM_MEDIDA_PROTETIVA: ${data["medida_protetiva"]}]` : "",
-        data["tutor_conhecido"] ? `\n[TRIAGEM_ANIMAL: TUTOR_CONHECIDO=${data["tutor_conhecido"]}; NOME=${data["tutor_nome"] || "não informado"}; ENDERECO_TUTOR=${data["tutor_endereco"] || "não informado"}; TELEFONE_TUTOR=${data["tutor_telefone"] || "não informado"}]` : "",
+        (data["tutor_conhecido"] || form.category === "Animal agressivo / responsável identificado") ? `\n[TRIAGEM_ANIMAL: TUTOR_CONHECIDO=${data["tutor_conhecido"] || "SIM"}; NOME=${data["tutor_nome"] || "não informado"}; ENDERECO_TUTOR=${data["tutor_endereco"] || "não informado"}; TELEFONE_TUTOR=${data["tutor_telefone"] || "não informado"}]` : "",
         anexoPath ? `\n[ANEXO_MEDIDA_PROTETIVA: path=${anexoPath}]` : "",
         anexoFalhou ? "\n[ANEXO_MEDIDA_PROTETIVA: ENVIO_FALHOU; DOCUMENTO_NAO_RECEBIDO]" : "",
       ].join("");
