@@ -51,7 +51,7 @@ export const TREE: Record<string, Node> = {
       { label: "Trânsito", next: "trans" },
       { label: "Meio ambiente / animais", next: "amb" },
       { label: "Fiscalização (som, obras, comércio)", next: "fisc" },
-      { label: "Denúncia de tráfico de drogas", next: "r_trafico" },
+      { label: "Suspeita de tráfico de drogas", next: "r_trafico" },
       { label: "Saúde", next: "r_samu_nu" },
       { label: "Chuva / árvore / risco estrutural", next: "r_defesa" },
     ],
@@ -141,9 +141,17 @@ export const TREE: Record<string, Node> = {
     contacts: [CONTACTS.defesa, CONTACTS.bombeiros],
   },
   r_trafico: {
+    kind: "ask",
+    text: "A suspeita de tráfico de drogas ocorre nas proximidades de um próprio público, como praça, escola, parque ou outro espaço municipal?",
+    options: [
+      { label: "Sim, próximo a próprio público", next: "g_trafico_area_publica" },
+      { label: "Não, em outro local", next: "r_trafico_outro_local" },
+    ],
+  },
+  r_trafico_outro_local: {
     kind: "route",
-    text: "Denúncias de tráfico devem ser feitas de forma ANÔNIMA pelo Disque Denúncia 181. Nunca se exponha nem fotografe suspeitos. Em flagrante com risco, ligue 190.",
-    contacts: [CONTACTS.denuncia, CONTACTS.pm],
+    text: "Para suspeitas de tráfico de drogas em outros locais, comunique a Polícia Militar pelo telefone 190 quando o fato estiver acontecendo ou houver risco imediato. Também é possível realizar denúncia anônima pelo Disque Denúncia 181. Não se aproxime, não confronte os envolvidos e não tente obter provas colocando-se em risco.",
+    contacts: [CONTACTS.pm, CONTACTS.denuncia],
   },
   r_civil: {
     kind: "route",
