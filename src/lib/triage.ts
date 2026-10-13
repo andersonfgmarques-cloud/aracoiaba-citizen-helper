@@ -304,10 +304,38 @@ export const TREE: Record<string, Node> = {
     contacts: [CONTACTS.prefeitura],
   },
   r_animal_risco: {
-    kind: "route",
+    kind: "ask",
+    text: "Mantenha distância do animal e não tente capturá-lo nem encurralá-lo. Vamos identificar a situação para encaminhar corretamente.",
+    options: [
+      { label: "Está atacando alguém agora", next: "g_animal_risco_agora" },
+      { label: "Não está atacando, mas oferece risco", next: "g_animal_risco_avaliar" },
+    ],
+  },
+  g_animal_risco_agora: {
+    kind: "gcm",
     urgent: true,
-    text: "Mantenha distância, não tente capturar nem encurralar o animal e afaste crianças e outras pessoas, se for seguro. Para solicitar orientação sobre recolhimento, acione o serviço municipal responsável por animais/zoonoses ou a Prefeitura. Se houver ataque em andamento, pessoa ferida ou risco imediato, ligue 153 (GCM) ou 190 (Polícia Militar); se houver ferido, acione também o serviço de emergência médica.",
-    contacts: [CONTACTS.gcm, CONTACTS.pm, CONTACTS.samu],
+    category: "Animal agressivo / ataque em andamento",
+    text: "Vamos registrar a solicitação para avaliação da GCM. Se houver ataque em andamento ou perigo imediato, ligue também para 190; não espere o envio do formulário. Afaste-se, proteja crianças e outras pessoas se for seguro e não tente capturar o animal. A GCM não realiza captura ou recolhimento de animais.",
+    contacts: [CONTACTS.gcm, CONTACTS.pm],
+  },
+  g_animal_risco_avaliar: {
+    kind: "ask",
+    text: "Você conhece o tutor ou responsável pelo animal? Se souber quem é, o aplicativo poderá registrar os dados e o endereço para avaliação da GCM. A corporação não realiza captura ou recolhimento do animal.",
+    options: [
+      { label: "Sim, conheço o responsável", next: "g_animal_risco_tutor" },
+      { label: "Não conheço o responsável", next: "r_animal_sem_tutor" },
+    ],
+  },
+  g_animal_risco_tutor: {
+    kind: "gcm",
+    category: "Animal agressivo / responsável identificado",
+    text: "Vamos registrar os dados para avaliação da GCM. Se possível, informe os dados e o endereço completo do tutor ou responsável. A equipe poderá orientar o responsável a manter o animal sob controle e providenciar o recolhimento adequado, conforme as circunstâncias e as medidas cabíveis. A GCM não realiza captura ou recolhimento de animais.",
+    contacts: [CONTACTS.gcm],
+  },
+  r_animal_sem_tutor: {
+    kind: "route",
+    text: "Como o tutor ou responsável não foi identificado, procure a Prefeitura ou o setor municipal responsável por animais/zoonoses para orientação sobre as medidas disponíveis. A GCM não realiza captura ou recolhimento de animais. Se surgir perigo imediato ou houver ataque em andamento, ligue 190 ou 153.",
+    contacts: [CONTACTS.prefeitura, CONTACTS.gcm, CONTACTS.pm],
   },
   r_orientacao_geral: {
     kind: "route",
