@@ -380,15 +380,24 @@ function AdminPage() {
     const dispatchText = (dispatchEntry?.observacao || o.observacao || "").replace(/\\n/g, "\n");
     const teamValue = (field: string) => dispatchText.match(new RegExp(`(?:^|\\n)${field}:\\s*(.*)`, "i"))?.[1]?.trim() || "Não informado";
     const team = [
-      ["EV — Encarregado", teamValue("EV")],
+      ["Encarregado", teamValue("Encarregado") !== "Não informado" ? teamValue("Encarregado") : teamValue("EV")],
       ["Condutor", teamValue("Condutor")],
       ["AUX (1)", teamValue("AUX \\(1\\)")],
       ["AUX (2)", teamValue("AUX \\(2\\)")],
     ];
     const teamHtml = team.map(([label, value]) => row(label, value)).join("");
+    const metadata = parseOccurrenceMetadata(o.descricao);
     const art340 = o.descricao.match(/\[REGISTRO_TERMO_ART340: ACEITO_EM=([^\]\n]+)\]/);
     const veracidade = o.descricao.match(/\[REGISTRO_TERMO_VERACIDADE: VERSAO=([^;]+); ACEITO_EM=([^\]\n]+)\]/);
-    const descricaoLimpa = o.descricao.replace(/\n?\[REGISTRO_TERMO_ART340: ACEITO_EM=[^\]\n]+\]/, "").replace(/\n?\[REGISTRO_TERMO_VERACIDADE: VERSAO=[^;]+; ACEITO_EM=[^\]\n]+\]/, "").trim();
+    const descricaoLimpa = metadata.cleanDescription;
+    const triageHtml = metadata.aggressor || metadata.measure || metadata.attachmentPath || metadata.attachmentFailed
+      ? "<h2>Informações da triagem de violência doméstica</h2><div class=\"grid\">" +
+        (metadata.aggressor ? row("Agressor, ameaça ou aproximação", metadata.aggressor) : "") +
+        (metadata.measure ? row("Medida protetiva", metadata.measure) : "") +
+        (metadata.attachmentPath ? row("Documento da medida protetiva", "Anexo registrado no sistema; consulte o documento pelo CAD.") : "") +
+        (metadata.attachmentFailed ? row("Atenção", "O documento não foi recebido pelo sistema. O atendimento não deve ser condicionado ao envio do arquivo.") : "") +
+        "</div>"
+      : "";
     const consentHtml = "<h2>Termo de ciência — art. 340 do Código Penal</h2><div class=\"field\"><p>O art. 340 do Código Penal trata de provocar a ação de autoridade comunicando ocorrência de crime ou contravenção que se sabe não ter ocorrido. Pena prevista: detenção, de 1 a 6 meses, ou multa.</p><p><strong>Registro de aceite:</strong> " + (art340 ? "ACEITO em " + escapeHtml(formatDate(art340[1]!)) : "Sem registro de aceite") + "</p></div>" +
       "<h2>Declaração de Veracidade das Informações</h2><div class=\"field\"><p>Declaro, para os devidos fins, que as informações prestadas e os documentos apresentados neste atendimento são verdadeiros e correspondem à realidade, assumindo responsabilidade pela veracidade dos dados informados.</p>" +
       "<p>Estou ciente de que a apresentação de informações falsas ou a inserção de declarações inverídicas em documentos poderá acarretar responsabilização civil, administrativa e/ou criminal, conforme a legislação aplicável, especialmente o artigo 299 do Código Penal Brasileiro, quando presentes os requisitos legais para sua configuração.</p>" +
@@ -414,7 +423,8 @@ function AdminPage() {
     <div class="protocol">Protocolo: ${escapeHtml(o.protocolo)} · Status: ${escapeHtml(o.status)}</div>
     <h2>Identificação e registro</h2><div class="grid">${row("Natureza / categoria",o.categoria)}${row("Prioridade",o.prioridade)}${row("Data do registro",formatDate(o.created_at))}${row("Última atualização",formatDate(o.updated_at))}${row("Solicitante",o.nome)}${row("Telefone",o.telefone)}${row("CPF",o.cpf)}${row("Endereço da ocorrência",o.endereco)}${row("Endereço do solicitante",o.endereco_solicitante)}${row("Viatura",o.viatura)}</div>
     <h2>Integrantes da equipe empenhada</h2><div class="grid">${teamHtml}</div>
-    <h2>Descrição da ocorrência</h2><div class="field"><p>${escapeHtml(descricaoLimpa)}</p></div>
+    ${triageHtml}
+    <h2>Descrição da ocorrência</h2><div class="field"><p>${escapeHtml(descricaoLimpa || "Sem descrição registrada.")}</p></div>
      ${consentHtml}
     <h2>Providências / observações</h2><div class="field"><p>${escapeHtml(o.observacao)}</p></div>
     <h2>Histórico operacional</h2><table><thead><tr><th>Data e hora</th><th>Ação</th><th>Operador responsável</th><th>Alteração de status</th><th>Viatura</th><th>Observação</th></tr></thead><tbody>${history}</tbody></table>
