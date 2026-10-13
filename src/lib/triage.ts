@@ -160,6 +160,12 @@ export const TREE: Record<string, Node> = {
     text: "Tratando-se de sinistro de trânsito sem vítima, não é necessário aguardar viatura no local. Retirem os veículos da via (se possível e seguro), troquem os dados e façam registros fotográficos. O solicitante pode registrar o Boletim de Ocorrência online pela Delegacia Digital da Polícia Civil de São Paulo; o boletim é importante para o seguro.",
     contacts: [],
   },
+  g_trafico_area_publica: {
+    kind: "gcm",
+    category: "Suspeita de tráfico de drogas em área pública",
+    text: "Você pode registrar uma suspeita de tráfico de drogas ocorrendo nas proximidades de próprio público, como praça, escola ou outro espaço municipal. A GCM receberá as informações para avaliação e encaminhamento dentro de suas atribuições, podendo atuar em articulação com a Polícia Militar. Não se aproxime nem confronte os envolvidos. Se o fato estiver acontecendo neste momento ou houver ameaça, arma ou risco imediato, ligue 190 (Polícia Militar) ou 153 (GCM).",
+    contacts: [CONTACTS.gcm, CONTACTS.pm, CONTACTS.denuncia],
+  },
   g_outra_situacao: {
     kind: "gcm",
     category: "Outra situação",
