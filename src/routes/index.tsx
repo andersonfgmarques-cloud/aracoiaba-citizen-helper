@@ -927,25 +927,43 @@ function Index() {
           </form>
         ) : current?.kind === "ask" && node === "menu" ? (
           <section className="space-y-4" aria-label="Categorias de ocorrência">
-            <label className="relative block">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <input value={buscaCategoria} onChange={(e) => setBuscaCategoria(e.target.value)} placeholder="Buscar tipo de ocorrência..." aria-label="Buscar tipo de ocorrência" className="min-h-11 w-full rounded-xl border border-primary/25 bg-slate-950/60 py-3 pl-10 pr-3 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20" />
-            </label>
+            <div className="space-y-2">
+              <label className="relative block">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input value={buscaCategoria} onChange={(e) => setBuscaCategoria(e.target.value)} placeholder="Ex.: cachorro, barulho, ameaça..." aria-label="Buscar tipo de ocorrência" className="min-h-12 w-full rounded-xl border border-primary/30 bg-slate-950/70 py-3 pl-10 pr-3 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20" />
+              </label>
+              <p className="px-1 text-xs leading-relaxed text-muted-foreground">Escolha o assunto que mais se aproxima do que está acontecendo. Em emergência, não aguarde o preenchimento: ligue 153 ou 190.</p>
+            </div>
             {[
-              { title: "Segurança e ordem pública", items: [{ label: "Crimes e ocorrências policiais", next: "crimes", icon: ShieldAlert }, { label: "Segurança / perturbação", next: "seg", icon: ShieldAlert }, { label: "Suspeita de tráfico de drogas", next: "r_trafico", icon: Siren }] },
-              { title: "Trânsito e espaços públicos", items: [{ label: "Patrimônio público / escolas / praças", next: "g_patr", icon: Landmark }, { label: "Trânsito", next: "trans", icon: CarFront }, { label: "Fiscalização (som, obras, comércio)", next: "fisc", icon: Volume2 }] },
-              { title: "Meio ambiente e bem-estar", items: [{ label: "Meio ambiente / animais", next: "amb", icon: Trees }, { label: "Saúde", next: "r_samu_nu", icon: Pill }, { label: "Chuva / árvore / risco estrutural", next: "r_defesa", icon: CloudRain }] },
+              { title: "Segurança e ordem pública", items: [
+                { label: "Crimes e ocorrências policiais", next: "crimes", icon: ShieldAlert, keywords: "furto roubo ameaça agressão violência dano vandalismo crime invasão" },
+                { label: "Segurança / perturbação", next: "seg", icon: ShieldAlert, keywords: "barulho som alto perturbação sossego briga pessoa suspeita" },
+                { label: "Suspeita de tráfico de drogas", next: "r_trafico", icon: Siren, keywords: "drogas entorpecente venda tráfico" },
+              ] },
+              { title: "Trânsito e espaços públicos", items: [
+                { label: "Patrimônio público / escolas / praças", next: "g_patr", icon: Landmark, keywords: "escola praça prédio público vandalismo patrimônio" },
+                { label: "Trânsito", next: "trans", icon: CarFront, keywords: "acidente colisão veículo carro moto trânsito bloqueio" },
+                { label: "Fiscalização (som, obras, comércio)", next: "fisc", icon: Volume2, keywords: "barulho som obra construção comércio estabelecimento alvará postura" },
+              ] },
+              { title: "Meio ambiente e bem-estar", items: [
+                { label: "Meio ambiente / animais", next: "amb", icon: Trees, keywords: "cachorro cão gato animal solto mordida maus tratos árvore abelha cobra ambiental" },
+                { label: "Saúde", next: "r_samu_nu", icon: Pill, keywords: "mal estar desmaio ferido machucado saúde samu emergência médica" },
+                { label: "Chuva / árvore / risco estrutural", next: "r_defesa", icon: CloudRain, keywords: "enchente alagamento inundação deslizamento queda muro árvore poste temporal desabamento" },
+              ] },
             ].map((group) => {
-              const items = group.items.filter((item) => item.label.toLocaleLowerCase("pt-BR").includes(buscaCategoria.trim().toLocaleLowerCase("pt-BR")));
+              const query = buscaCategoria.trim().toLocaleLowerCase("pt-BR");
+              const items = group.items.filter((item) => `${item.label} ${item.keywords}`.toLocaleLowerCase("pt-BR").includes(query));
               if (!items.length) return null;
-              return <div key={group.title} className="space-y-2">
-                <h3 className="px-1 text-[11px] font-bold uppercase tracking-[0.14em] text-primary">{group.title}</h3>
+              return <div key={group.title} className="space-y-2.5">
+                <h3 className="flex items-center gap-2 px-1 text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
+                  <span className="h-px flex-1 bg-primary/20" />{group.title}<span className="h-px flex-1 bg-primary/20" />
+                </h3>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {items.map((item) => {
                     const Icon = item.icon;
-                    return <button key={item.label} type="button" onClick={() => { saveNavigationPoint(); setMsgs((m) => [...m, { from: "user", text: item.label }]); setBuscaCategoria(""); say(item.next); }} className="group flex min-h-[62px] items-center gap-3 rounded-xl border border-primary/25 bg-slate-900/70 px-3 py-3 text-left text-sm font-medium text-foreground shadow-sm transition hover:border-primary/70 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.99]">
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary"><Icon className="h-5 w-5" /></span>
-                      <span className="min-w-0 flex-1">{item.label}</span><ChevronRight className="h-4 w-4 shrink-0 text-primary/70 transition group-hover:translate-x-0.5" />
+                    return <button key={item.label} type="button" onClick={() => { saveNavigationPoint(); setMsgs((m) => [...m, { from: "user", text: item.label }]); setBuscaCategoria(""); say(item.next); }} className="group flex min-h-[68px] items-center gap-3 rounded-2xl border border-primary/25 bg-slate-900/75 px-3.5 py-3 text-left text-sm font-medium leading-snug text-foreground shadow-sm transition duration-150 hover:border-primary/70 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.99]">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-primary/25 bg-primary/10 text-primary"><Icon className="h-5 w-5" /></span>
+                      <span className="min-w-0 flex-1">{item.label}</span><ChevronRight className="h-4 w-4 shrink-0 text-primary/80 transition group-hover:translate-x-0.5" />
                     </button>;
                   })}
                 </div>
@@ -953,9 +971,25 @@ function Index() {
             })}
             {buscaCategoria.trim() && ![
               "Crimes e ocorrências policiais", "Segurança / perturbação", "Suspeita de tráfico de drogas", "Patrimônio público / escolas / praças", "Trânsito", "Fiscalização (som, obras, comércio)", "Meio ambiente / animais", "Saúde", "Chuva / árvore / risco estrutural"
-            ].some((label) => label.toLocaleLowerCase("pt-BR").includes(buscaCategoria.trim().toLocaleLowerCase("pt-BR"))) && <p className="rounded-lg border border-white/10 bg-slate-900/50 p-3 text-xs text-muted-foreground">Nenhuma categoria encontrada. Você pode selecionar “Outra situação”.</p>}
-            <button type="button" onClick={() => { saveNavigationPoint(); setMsgs((m) => [...m, { from: "user", text: "Outra situação" }]); setBuscaCategoria(""); say("g_outra_situacao"); }} className="flex min-h-[54px] w-full items-center gap-3 rounded-xl border border-dashed border-primary/40 px-3 py-3 text-left text-sm font-semibold text-primary transition hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10"><CircleHelp className="h-5 w-5" /></span><span className="flex-1">Outra situação</span><ChevronRight className="h-4 w-4" />
+            ].some((label) => label.toLocaleLowerCase("pt-BR").includes(buscaCategoria.trim().toLocaleLowerCase("pt-BR"))) &&
+              ![
+                "furto roubo ameaça agressão violência dano vandalismo crime invasão",
+                "barulho som alto perturbação sossego briga pessoa suspeita",
+                "drogas entorpecente venda tráfico",
+                "escola praça prédio público vandalismo patrimônio",
+                "acidente colisão veículo carro moto trânsito bloqueio",
+                "barulho som obra construção comércio estabelecimento alvará postura",
+                "cachorro cão gato animal solto mordida maus tratos árvore abelha cobra ambiental",
+                "mal estar desmaio ferido machucado saúde samu emergência médica",
+                "enchente alagamento inundação deslizamento queda muro árvore poste temporal desabamento"
+              ].some((keywords) => keywords.includes(buscaCategoria.trim().toLocaleLowerCase("pt-BR"))) &&
+              <div className="rounded-xl border border-white/10 bg-slate-900/50 p-3.5 text-sm text-muted-foreground">
+                <p className="font-semibold text-foreground">Não encontramos essa categoria.</p>
+                <p className="mt-1 text-xs leading-relaxed">Tente outra palavra ou use “Outra situação” para receber orientação e identificar o órgão responsável.</p>
+              </div>}
+            <button type="button" onClick={() => { saveNavigationPoint(); setMsgs((m) => [...m, { from: "user", text: "Outra situação" }]); setBuscaCategoria(""); say("g_outra_situacao"); }} className="flex min-h-[58px] w-full items-center gap-3 rounded-2xl border border-dashed border-primary/50 bg-primary/[0.04] px-3.5 py-3 text-left text-sm font-semibold text-primary transition hover:border-primary/80 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-primary/20 bg-primary/10"><CircleHelp className="h-5 w-5" /></span>
+              <span className="flex-1"><span className="block">Outra situação</span><span className="mt-0.5 block text-xs font-normal text-muted-foreground">Ajuda para identificar o assunto e o órgão responsável</span></span><ChevronRight className="h-4 w-4" />
             </button>
           </section>
         ) : current?.kind === "ask" ? (
