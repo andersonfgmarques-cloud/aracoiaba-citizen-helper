@@ -57,6 +57,12 @@ const STATUS: Record<string, { label: string; cls: string }> = {
 };
 const VIATURAS = ["VTR-01", "VTR-02", "VTR-03", "MOTO-01", "MOTO-02", "Ambiental-01"];
 
+function escapeHtml(value: unknown): string {
+  return String(value ?? "—").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  })[char]!);
+}
+
 function Operador() {
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
@@ -874,10 +880,6 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
   })();
 
   const imprimirRelatorio = () => {
-    const escapeHtml = (value: unknown) =>
-      String(value ?? "—").replace(/[&<>"']/g, (char) => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
-      })[char]!);
     const dataHora = (value: string) => new Date(value).toLocaleString("pt-BR");
     const historicoHtml = historico.length
       ? historico.map((h) => `
