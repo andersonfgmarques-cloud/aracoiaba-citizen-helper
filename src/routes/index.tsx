@@ -768,6 +768,18 @@ function Index() {
                           <span>(15) 99767-3839</span>
                         </a>
                       </div>
+                    ) : c.name === "Polícia Civil" ? (
+                      <div key={c.name} className="space-y-2">
+                        <a href="tel:197" className="flex items-center justify-between rounded-xl border border-primary/40 bg-secondary px-3 py-2.5 font-semibold">
+                          <span>Polícia Civil — telefone</span>
+                          <span>197</span>
+                        </a>
+                        <a href="https://delegaciadigital.policia-civil.sp.gov.br/pagina-inicial" target="_blank" rel="noreferrer" className="flex items-center justify-between gap-3 rounded-xl bg-primary px-3 py-3 font-semibold text-primary-foreground">
+                          <span>Registrar Boletim de Ocorrência online</span>
+                          <ExternalLink className="h-4 w-4 shrink-0" />
+                        </a>
+                        <p className="text-xs leading-relaxed text-muted-foreground">Se preferir, procure uma unidade da Polícia Civil presencialmente. A disponibilidade do registro online depende do tipo de ocorrência.</p>
+                      </div>
                     ) : c.name === "Defesa Civil" ? (
                       <div key={c.name} className="space-y-2">
                         <a
