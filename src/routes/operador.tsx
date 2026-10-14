@@ -273,40 +273,41 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
   const [statsPanelVisible, setStatsPanelVisible] = useState(true);
   const audioContextRef = useRef<AudioContext | null>(null);
   const soundEnabledRef = useRef(false);
+  const speechQueueRef = useRef<SpeechSynthesisUtterance[]>([]);
   const knownOccurrenceIdsRef = useRef<Set<string>>(new Set());
   const occurrenceBaselineReadyRef = useRef(false);
   const alertedIdsRef = useRef<Set<string>>(new Set());
   // Mantém o contador de novas ocorrências definido a partir dos IDs recebidos.
   const novasPendentes = novasPendentesIds.length;
 
-  const playAlert = (urgent = false) => {
-    if (!soundEnabledRef.current || !audioContextRef.current) return;
+  const playAlert = (urgent = false, occurrence?: Oc) => {
+    if (!soundEnabledRef.current || typeof window === "undefined" || !("speechSynthesis" in window)) return;
     try {
-      const context = audioContextRef.current;
-      const playTone = (frequency: number, startAt: number, duration: number) => {
-        const oscillator = context.createOscillator();
-        const gain = context.createGain();
-        oscillator.type = urgent ? "square" : "sine";
-        oscillator.frequency.setValueAtTime(frequency, startAt);
-        gain.gain.setValueAtTime(0.0001, startAt);
-        gain.gain.exponentialRampToValueAtTime(urgent ? 0.13 : 0.10, startAt + 0.025);
-        gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
-        oscillator.connect(gain);
-        gain.connect(context.destination);
-        oscillator.start(startAt);
-        oscillator.stop(startAt + duration + 0.02);
+      const speech = window.speechSynthesis;
+      const message = urgent
+        ? "Atenção, operador. Nova ocorrência urgente recebida. Verifique o painel de despacho."
+        : "Atenção, operador. Nova ocorrência aguardando despacho.";
+      const utterance = new SpeechSynthesisUtterance(message);
+      utterance.lang = "pt-BR";
+      utterance.rate = 0.92;
+      utterance.pitch = 1.12;
+      utterance.volume = 1;
+      const voices = speech.getVoices();
+      const portugueseVoices = voices.filter((voice) => voice.lang.toLowerCase().startsWith("pt-br"));
+      const femaleVoice = portugueseVoices.find((voice) =>
+        /female|feminina|francisca|luciana|maria|helena|camila|fernanda|brasil.*f/i.test(voice.name)
+      );
+      utterance.voice = femaleVoice || portugueseVoices[0] || voices.find((voice) => voice.lang.toLowerCase().startsWith("pt")) || null;
+      utterance.onend = () => {
+        speechQueueRef.current = speechQueueRef.current.filter((item) => item !== utterance);
       };
-      const now = context.currentTime;
-      if (urgent) {
-        playTone(980, now, 0.22);
-        playTone(740, now + 0.27, 0.22);
-        playTone(980, now + 0.54, 0.22);
-      } else {
-        playTone(880, now, 0.16);
-        playTone(660, now + 0.2, 0.18);
-      }
+      utterance.onerror = () => {
+        speechQueueRef.current = speechQueueRef.current.filter((item) => item !== utterance);
+      };
+      speechQueueRef.current.push(utterance);
+      speech.speak(utterance);
     } catch (error) {
-      console.warn("Não foi possível reproduzir o alerta sonoro do CAD:", error);
+      console.warn("Não foi possível reproduzir o alerta por voz do CAD:", error);
     }
   };
 
@@ -346,9 +347,9 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
       await audioContextRef.current.resume();
       soundEnabledRef.current = true;
       setSoundEnabled(true);
-      playAlert();
+      playAlert(false);
 
-      // Solicita permissão dentro do clique do operador para permitir alertas do navegador.
+      // Solicita permissão dentro del clique do operador para permitir alertas do navegador.
       if ("Notification" in window && Notification.permission === "default") {
         try {
           const permission = await Notification.requestPermission();
@@ -441,13 +442,13 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
 
   // Repete o alerta em intervalos moderados até o operador abrir/reconhecer a ocorrência.
   useEffect(() => {
-    if (!novasPendentesIds.length || !soundEnabled || !audioContextRef.current) return;
+    if (!novasPendentesIds.length || !soundEnabled) return;
     const pending = ocs.filter((occurrence) => novasPendentesIds.includes(occurrence.id));
     if (!pending.length) return;
     const urgent = pending.some((occurrence) => ["alta", "urgente"].includes((occurrence.prioridade || "").toLowerCase()));
     const interval = window.setInterval(() => {
       if (document.visibilityState === "visible") playAlert(urgent);
-    }, urgent ? 7000 : 12000);
+    }, urgent ? 20000 : 30000);
     return () => window.clearInterval(interval);
   }, [novasPendentesIds, soundEnabled, ocs]);
 
@@ -740,11 +741,11 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           <button
             onClick={toggleSound}
             className={`flex items-center gap-1.5 rounded-lg px-2.5 py-2 font-semibold ${soundEnabled ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"} sm:px-3`}
-            title={soundEnabled ? "Desativar alertas sonoros" : "Ativar alertas sonoros para novas ocorrências"}
+            title={soundEnabled ? "Desativar alertas por voz" : "Ativar alertas por voz para novas ocorrências"}
             aria-pressed={soundEnabled}
           >
             {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-            {soundEnabled ? "Som ativado" : "Ativar som"}
+            {soundEnabled ? "Voz ativada" : "Ativar voz"}
           </button>
           {session?.user.email?.toLowerCase() === "andersonf.g.marques@gmail.com" && (
             <Link to="/admin" className="rounded-lg bg-primary/15 px-3 py-2 font-semibold text-primary hover:bg-primary/25">
