@@ -262,6 +262,8 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
   const [connectionStatus, setConnectionStatus] = useState<"connecting" | "connected" | "disconnected">("connecting");
   const [connectionAttempt, setConnectionAttempt] = useState(0);
   const [soundEnabled, setSoundEnabled] = useState(false);
+  const [availableSpeechVoices, setAvailableSpeechVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [selectedSpeechVoice, setSelectedSpeechVoice] = useState("");
   const [savingIds, setSavingIds] = useState<string[]>([]);
   const [vehicleStatuses, setVehicleStatuses] = useState<VehicleStatus[]>([]);
   const [activeVehicles, setActiveVehicles] = useState<string[]>([]);
@@ -274,11 +276,31 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
   const audioContextRef = useRef<AudioContext | null>(null);
   const soundEnabledRef = useRef(false);
   const speechQueueRef = useRef<SpeechSynthesisUtterance[]>([]);
+  const selectedSpeechVoiceRef = useRef("");
   const knownOccurrenceIdsRef = useRef<Set<string>>(new Set());
   const occurrenceBaselineReadyRef = useRef(false);
   const alertedIdsRef = useRef<Set<string>>(new Set());
   // Mantém o contador de novas ocorrências definido a partir dos IDs recebidos.
   const novasPendentes = novasPendentesIds.length;
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    const refreshVoices = () => {
+      const voices = window.speechSynthesis.getVoices().filter((voice) => voice.lang.toLowerCase().startsWith("pt"));
+      setAvailableSpeechVoices(voices);
+      setSelectedSpeechVoice((current) => {
+        if (current && voices.some((voice) => voice.name === current)) return current;
+        const preferred = voices.find((voice) => voice.lang.toLowerCase().startsWith("pt-br") && /female|feminina|francisca|luciana|maria|helena|camila|fernanda|brasil.*f/i.test(voice.name))
+          || voices.find((voice) => voice.lang.toLowerCase().startsWith("pt-br"))
+          || voices[0];
+        selectedSpeechVoiceRef.current = preferred?.name || "";
+        return preferred?.name || "";
+      });
+    };
+    refreshVoices();
+    window.speechSynthesis.addEventListener("voiceschanged", refreshVoices);
+    return () => window.speechSynthesis.removeEventListener("voiceschanged", refreshVoices);
+  }, []);
 
   const playAlert = (urgent = false) => {
     if (!soundEnabledRef.current || typeof window === "undefined" || !("speechSynthesis" in window)) return;
@@ -292,12 +314,11 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
       utterance.rate = 0.92;
       utterance.pitch = 1.12;
       utterance.volume = 1;
-      const voices = speech.getVoices();
-      const portugueseVoices = voices.filter((voice) => voice.lang.toLowerCase().startsWith("pt-br"));
-      const femaleVoice = portugueseVoices.find((voice) =>
-        /female|feminina|francisca|luciana|maria|helena|camila|fernanda|brasil.*f/i.test(voice.name)
-      );
-      utterance.voice = femaleVoice || portugueseVoices[0] || voices.find((voice) => voice.lang.toLowerCase().startsWith("pt")) || null;
+      const voices = speech.getVoices().filter((voice) => voice.lang.toLowerCase().startsWith("pt"));
+      utterance.voice = voices.find((voice) => voice.name === selectedSpeechVoiceRef.current)
+        || voices.find((voice) => voice.lang.toLowerCase().startsWith("pt-br"))
+        || voices[0]
+        || null;
       utterance.onend = () => {
         speechQueueRef.current = speechQueueRef.current.filter((item) => item !== utterance);
       };
@@ -336,6 +357,8 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
       if (soundEnabledRef.current) {
         soundEnabledRef.current = false;
         setSoundEnabled(false);
+        if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+        speechQueueRef.current = [];
         return;
       }
       const AudioContextConstructor = window.AudioContext;
@@ -351,9 +374,11 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
       testVoice.lang = "pt-BR";
       testVoice.rate = 0.92;
       testVoice.pitch = 1.12;
-      const availableVoices = window.speechSynthesis.getVoices();
-      const brazilianVoices = availableVoices.filter((voice) => voice.lang.toLowerCase().startsWith("pt-br"));
-      testVoice.voice = brazilianVoices.find((voice) => /female|feminina|francisca|luciana|maria|helena|camila|fernanda|brasil.*f/i.test(voice.name)) || brazilianVoices[0] || null;
+      const availableVoices = window.speechSynthesis.getVoices().filter((voice) => voice.lang.toLowerCase().startsWith("pt"));
+      testVoice.voice = availableVoices.find((voice) => voice.name === selectedSpeechVoiceRef.current)
+        || availableVoices.find((voice) => voice.lang.toLowerCase().startsWith("pt-br"))
+        || availableVoices[0]
+        || null;
       window.speechSynthesis.speak(testVoice);
 
       // Solicita permissão dentro do clique do operador para permitir alertas do navegador.
@@ -455,9 +480,9 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
     const urgent = pending.some((occurrence) => ["alta", "urgente"].includes((occurrence.prioridade || "").toLowerCase()));
     const interval = window.setInterval(() => {
       if (document.visibilityState === "visible") playAlert(urgent);
-    }, urgent ? 20000 : 30000);
+    }, 60000);
     return () => window.clearInterval(interval);
-  }, [novasPendentesIds, soundEnabled, ocs]);
+  }, [novasPendentesIds, soundEnabled, ocs, selectedSpeechVoice]);
 
   // Mantém o CAD sincronizado mesmo se o navegador suspender ou perder eventos Realtime.
   // A atualização periódica é uma rede de segurança; o canal continua sendo a via imediata.
@@ -754,6 +779,32 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
             {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
             {soundEnabled ? "Voz ativada" : "Ativar voz"}
           </button>
+          <label className="flex items-center gap-1.5 rounded-lg bg-secondary px-2 py-2 text-foreground sm:px-3">
+            <span className="whitespace-nowrap">Voz:</span>
+            <select
+              aria-label="Escolher voz dos alertas do CAD"
+              className="max-w-[135px] bg-transparent text-xs outline-none"
+              value={selectedSpeechVoice}
+              onChange={(event) => {
+                selectedSpeechVoiceRef.current = event.target.value;
+                setSelectedSpeechVoice(event.target.value);
+              }}
+              disabled={availableSpeechVoices.length === 0}
+              title="Selecionar voz para os alertas do CAD"
+            >
+              {availableSpeechVoices.length === 0 ? <option value="">Voz do sistema</option> : availableSpeechVoices.map((voice) => <option key={voice.name} value={voice.name}>{voice.name} ({voice.lang})</option>)}
+            </select>
+            <button type="button" className="rounded bg-primary/15 px-2 py-1 font-semibold text-primary" onClick={() => {
+              if (!("speechSynthesis" in window)) return;
+              const sample = new SpeechSynthesisUtterance("Atenção, operador. Este é um teste da voz selecionada.");
+              sample.lang = "pt-BR";
+              sample.rate = 0.92;
+              sample.pitch = 1.12;
+              sample.voice = window.speechSynthesis.getVoices().find((voice) => voice.name === selectedSpeechVoiceRef.current) || null;
+              window.speechSynthesis.cancel();
+              window.speechSynthesis.speak(sample);
+            }}>Testar</button>
+          </label>
           {session?.user.email?.toLowerCase() === "andersonf.g.marques@gmail.com" && (
             <Link to="/admin" className="rounded-lg bg-primary/15 px-3 py-2 font-semibold text-primary hover:bg-primary/25">
               Administração
