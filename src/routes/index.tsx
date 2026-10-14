@@ -243,7 +243,7 @@ function Index() {
     if (n.kind === "route")
       setMsgs((m) => [
         ...m,
-        { from: "bot", text: n.text, contacts: n.contacts, urgent: !!n.urgent, digitalDelegacia: key === "r_civil" || key === "r_transito_sem_vitima", depaUrl: key === "r_depa_maus_tratos" ? "https://www.webdenuncia.sp.gov.br/depa/captcha" : undefined },
+        { from: "bot", text: n.text, contacts: n.contacts, urgent: !!n.urgent, digitalDelegacia: key === "r_civil" || key === "r_transito_sem_vitima" || key === "g_furto_roubo_passado", depaUrl: key === "r_depa_maus_tratos" ? "https://www.webdenuncia.sp.gov.br/depa/captcha" : undefined },
       ]);
     else if (n.kind === "ask") setMsgs((m) => [...m, { from: "bot", text: n.text }]);
     else {
