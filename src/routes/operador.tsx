@@ -783,7 +783,8 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
             <span className="whitespace-nowrap">Voz:</span>
             <select
               aria-label="Escolher voz dos alertas do CAD"
-              className="max-w-[135px] bg-transparent text-xs outline-none"
+              className="max-w-[180px] rounded border border-white/20 bg-[#07182c] px-2 py-1.5 text-xs text-white outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+              style={{ colorScheme: "dark" }}
               value={selectedSpeechVoice}
               onChange={(event) => {
                 selectedSpeechVoiceRef.current = event.target.value;
@@ -792,7 +793,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
               disabled={availableSpeechVoices.length === 0}
               title="Selecionar voz para os alertas do CAD"
             >
-              {availableSpeechVoices.length === 0 ? <option value="">Voz do sistema</option> : availableSpeechVoices.map((voice) => <option key={voice.name} value={voice.name}>{voice.name} ({voice.lang})</option>)}
+              {availableSpeechVoices.length === 0 ? <option value="" style={{ backgroundColor: "#07182c", color: "#f8fafc" }}>Voz do sistema</option> : availableSpeechVoices.map((voice) => <option key={voice.name} value={voice.name} style={{ backgroundColor: "#07182c", color: "#f8fafc" }}>{voice.name} ({voice.lang})</option>)}
             </select>
             <button type="button" className="rounded bg-primary/15 px-2 py-1 font-semibold text-primary" onClick={() => {
               if (!("speechSynthesis" in window)) return;
