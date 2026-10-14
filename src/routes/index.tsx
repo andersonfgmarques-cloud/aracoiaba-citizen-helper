@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Phone, RotateCcw, Send, AlertTriangle, CheckCircle2, Mic, MicOff, Paperclip, FileText, X, ShieldAlert, Landmark, CarFront, Trees, Volume2, Pill, CloudRain, Search, CircleHelp, Siren, ChevronRight } from "lucide-react";
+import { Phone, RotateCcw, Send, AlertTriangle, CheckCircle2, Mic, MicOff, Paperclip, FileText, X, ShieldAlert, Landmark, CarFront, Trees, Volume2, Pill, CloudRain, Search, CircleHelp, Siren, ChevronRight, ExternalLink } from "lucide-react";
 import { TREE, CONTACTS, type Contact } from "@/lib/triage";
 import { supabase } from "@/integrations/supabase/client";
 
