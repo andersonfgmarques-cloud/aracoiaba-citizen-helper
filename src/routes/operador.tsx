@@ -1387,9 +1387,10 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
                   "Despacho realizado — equipe acionada e atendimento iniciado",
                 );
                 if (sucesso) {
-                  await setVehicleStatus(vtr, "empenhada", o.id);
+                  // Limpa imediatamente após confirmar o despacho, sem aguardar a atualização da viatura.
                   limparCamposComando();
                   setHistoricoRevision((revision) => revision + 1);
+                  await setVehicleStatus(vtr, "empenhada", o.id);
                 }
               }}
               className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-40"
@@ -1404,9 +1405,10 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
               onClick={async () => {
                 const sucesso = await update(o.id, { status: "encerrada", observacao: obs.trim() }, "Atendimento encerrado — desfecho registrado");
                 if (sucesso) {
-                  if (o.viatura) await setVehicleStatus(o.viatura, "disponivel");
+                  // Limpa o campo de desfecho assim que o encerramento for confirmado.
                   limparCamposComando();
                   setHistoricoRevision((revision) => revision + 1);
+                  if (o.viatura) await setVehicleStatus(o.viatura, "disponivel");
                 }
               }}
               className="flex items-center gap-2 rounded-xl bg-success px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-40"
