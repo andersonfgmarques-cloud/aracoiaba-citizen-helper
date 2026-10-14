@@ -732,7 +732,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
     );
 
   return (
-    <div className="flex h-[100dvh] min-h-[100dvh] flex-col overflow-hidden">
+    <div className="flex h-[100dvh] min-h-[100dvh] flex-col overflow-x-hidden overflow-y-auto overscroll-y-contain md:overflow-hidden">
       <header className="bg-header flex shrink-0 flex-wrap items-center gap-x-2 gap-y-2 border-b px-3 py-2 sm:flex-nowrap sm:gap-x-3 sm:px-5 sm:py-3">
         <img
           src={`/aracoiaba-citizen-helper/android-chrome-192x192.png`}
@@ -913,7 +913,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           })}
         </div>}
       </section>
-      <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+      <div className="flex min-h-[55vh] flex-none flex-col md:min-h-0 md:flex-1 md:flex-row">
         <aside className="flex min-h-0 w-full flex-1 flex-col border-r md:flex-none md:w-[420px]">
           {novasPendentesIds.length > 0 && (() => {
             const alertOccurrence = ocs.find((occurrence) => novasPendentesIds.includes(occurrence.id));
