@@ -1028,7 +1028,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           <button onClick={() => setSel(null)} className="mb-3 text-sm text-primary">
             ← Voltar
           </button>
-          <Detalhe key={atual.id} o={atual} update={update} saving={savingIds.includes(atual.id)} session={session} perfilOperador={perfilOperador} perfilFuncionalUserId={perfilFuncionalUserId} />
+          <Detalhe key={atual.id} o={atual} update={update} saving={savingIds.includes(atual.id)} session={session} perfilOperador={perfilOperador} perfilFuncionalUserId={perfilFuncionalUserId} activeVehicles={activeVehicles} vehicleStatuses={vehicleStatuses} />
         </div>
       )}
       {vehicleDialog && (
