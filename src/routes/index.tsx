@@ -845,22 +845,6 @@ function Index() {
                           </span>
                           <span className="font-display text-lg">193</span>
                         </a>
-                        <a
-                          href="tel:+551532814041"
-                          className="flex items-center justify-between rounded-xl border border-primary/40 bg-secondary px-3 py-2.5 font-semibold"
-                        >
-                          <span>Defesa Civil municipal</span>
-                          <span>(15) 3281-4041</span>
-                        </a>
-                        <a
-                          href="https://wa.me/5515981090984"
-                          target="_blank"
-                          rel="noreferrer"
-                          className="flex items-center justify-between rounded-xl border border-primary/40 bg-secondary px-3 py-2.5 font-semibold"
-                        >
-                          <span>WhatsApp da Defesa Civil</span>
-                          <span>(15) 98109-0984</span>
-                        </a>
                       </div>
                     ) : (
                       <a
