@@ -275,25 +275,36 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
   const soundEnabledRef = useRef(false);
   const knownOccurrenceIdsRef = useRef<Set<string>>(new Set());
   const occurrenceBaselineReadyRef = useRef(false);
+  const alertedIdsRef = useRef<Set<string>>(new Set());
   // Mantém o contador de novas ocorrências definido a partir dos IDs recebidos.
   const novasPendentes = novasPendentesIds.length;
 
-  const playAlert = () => {
+  const playAlert = (urgent = false) => {
     if (!soundEnabledRef.current || !audioContextRef.current) return;
     try {
       const context = audioContextRef.current;
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
-      oscillator.type = "sine";
-      oscillator.frequency.setValueAtTime(880, context.currentTime);
-      oscillator.frequency.setValueAtTime(660, context.currentTime + 0.16);
-      gain.gain.setValueAtTime(0.0001, context.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.18, context.currentTime + 0.025);
-      gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.42);
-      oscillator.connect(gain);
-      gain.connect(context.destination);
-      oscillator.start();
-      oscillator.stop(context.currentTime + 0.44);
+      const playTone = (frequency: number, startAt: number, duration: number) => {
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+        oscillator.type = urgent ? "square" : "sine";
+        oscillator.frequency.setValueAtTime(frequency, startAt);
+        gain.gain.setValueAtTime(0.0001, startAt);
+        gain.gain.exponentialRampToValueAtTime(urgent ? 0.13 : 0.10, startAt + 0.025);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
+        oscillator.connect(gain);
+        gain.connect(context.destination);
+        oscillator.start(startAt);
+        oscillator.stop(startAt + duration + 0.02);
+      };
+      const now = context.currentTime;
+      if (urgent) {
+        playTone(980, now, 0.22);
+        playTone(740, now + 0.27, 0.22);
+        playTone(980, now + 0.54, 0.22);
+      } else {
+        playTone(880, now, 0.16);
+        playTone(660, now + 0.2, 0.18);
+      }
     } catch (error) {
       console.warn("Não foi possível reproduzir o alerta sonoro do CAD:", error);
     }
@@ -417,7 +428,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
       if (newlyPending.length > 0) {
         setNovasPendentesIds((current) => [...new Set([...current, ...newlyPending.map((item) => item.id)])]);
         for (const occurrence of newlyPending) {
-          playAlert();
+          playAlert(["alta", "urgente"].includes((occurrence.prioridade || "").toLowerCase()));
           notifyNewOccurrence(occurrence);
         }
       }
@@ -427,6 +438,18 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
     setOcs(incoming);
     setLoadingOcs(false);
   };
+
+  // Repete o alerta em intervalos moderados até o operador abrir/reconhecer a ocorrência.
+  useEffect(() => {
+    if (!novasPendentesIds.length || !soundEnabled || !audioContextRef.current) return;
+    const pending = ocs.filter((occurrence) => novasPendentesIds.includes(occurrence.id));
+    if (!pending.length) return;
+    const urgent = pending.some((occurrence) => ["alta", "urgente"].includes((occurrence.prioridade || "").toLowerCase()));
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === "visible") playAlert(urgent);
+    }, urgent ? 7000 : 12000);
+    return () => window.clearInterval(interval);
+  }, [novasPendentesIds, soundEnabled, ocs]);
 
   // Mantém o CAD sincronizado mesmo se o navegador suspender ou perder eventos Realtime.
   // A atualização periódica é uma rede de segurança; o canal continua sendo a via imediata.
@@ -534,7 +557,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
               setNovasPendentesIds((ids) => ids.includes(novaOcorrencia.id)
                 ? ids
                 : [...ids, novaOcorrencia.id]);
-              playAlert();
+              playAlert(["alta", "urgente"].includes((novaOcorrencia.prioridade || "").toLowerCase()));
               notifyNewOccurrence(novaOcorrencia);
             }
           } else if (payload.eventType === "UPDATE") {
@@ -832,6 +855,16 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
       </section>
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">
         <aside className="flex min-h-0 w-full flex-1 flex-col border-r md:flex-none md:w-[420px]">
+          {novasPendentesIds.length > 0 && (() => {
+            const alertOccurrence = ocs.find((occurrence) => novasPendentesIds.includes(occurrence.id));
+            if (!alertOccurrence) return null;
+            const urgentAlert = ["alta", "urgente"].includes((alertOccurrence.prioridade || "").toLowerCase());
+            return <button type="button" onClick={() => { setSel(alertOccurrence.id); setNovasPendentesIds((ids) => ids.filter((id) => id !== alertOccurrence.id)); }} className={`mx-2 mt-2 flex shrink-0 items-center gap-3 rounded-xl border-2 p-3 text-left shadow-lg sm:mx-3 ${urgentAlert ? "animate-pulse border-destructive bg-destructive/20 text-destructive" : "border-amber-400 bg-amber-400/15 text-amber-100"}`}>
+              <span className="relative flex h-3 w-3 shrink-0"><span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${urgentAlert ? "bg-destructive" : "bg-amber-400"}`}/><span className={`relative inline-flex h-3 w-3 rounded-full ${urgentAlert ? "bg-destructive" : "bg-amber-400"}`}/></span>
+              <span className="min-w-0 flex-1"><span className="block text-xs font-extrabold tracking-wide">{urgentAlert ? "⚠ NOVA OCORRÊNCIA URGENTE" : "NOVA OCORRÊNCIA"}</span><span className="block truncate text-sm font-bold">{alertOccurrence.categoria}</span><span className="block text-xs opacity-80">{alertOccurrence.protocolo} · toque para reconhecer e abrir</span></span>
+              <BellRing className="h-5 w-5 shrink-0"/>
+            </button>;
+          })()}
           <div className="flex shrink-0 flex-wrap items-center gap-1.5 border-b px-2 py-2 sm:gap-2 sm:px-3 sm:py-2.5">
             {["ativas", "pendente", "despachada", "em_atendimento", "encerrada", "cancelada", "todas"].map(
               (f) => (
@@ -878,8 +911,8 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
               return (
                 <button
                   key={o.id}
-                  onClick={() => setSel(o.id)}
-                  className={`w-full rounded-xl border p-3 text-left transition ${sel === o.id ? "border-primary bg-secondary" : "bg-card hover:bg-secondary"} ${o.status === "pendente" ? pendenciaCritica ? "border-l-4 border-l-destructive bg-destructive/10" : pendenciaProlongada ? "border-l-4 border-l-amber-400" : "border-l-4 border-l-primary" : ""} ${destaque ? "ring-1 ring-destructive/60" : ""}`}
+                  onClick={() => { setSel(o.id); setNovasPendentesIds((ids) => ids.filter((pendingId) => pendingId !== o.id)); }}
+                  className={`w-full rounded-xl border p-3 text-left transition ${sel === o.id ? "border-primary bg-secondary" : "bg-card hover:bg-secondary"} ${novasPendentesIds.includes(o.id) ? prioridadeUrgente ? "animate-pulse border-2 border-destructive bg-destructive/20 shadow-[0_0_18px_rgba(239,68,68,0.35)]" : "animate-pulse border-2 border-amber-400 bg-amber-400/10 shadow-[0_0_14px_rgba(251,191,36,0.25)]" : o.status === "pendente" ? pendenciaCritica ? "border-l-4 border-l-destructive bg-destructive/10" : pendenciaProlongada ? "border-l-4 border-l-amber-400" : "border-l-4 border-l-primary" : ""} ${destaque ? "ring-1 ring-destructive/60" : ""}`}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-sm font-bold">{o.categoria}</span>
