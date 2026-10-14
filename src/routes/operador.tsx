@@ -733,7 +733,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
 
   return (
     <div className="flex h-[100dvh] min-h-[100dvh] flex-col overflow-hidden">
-      <header className="bg-header flex flex-wrap items-center gap-x-3 gap-y-2 border-b px-3 py-2 sm:flex-nowrap sm:px-5 sm:py-3">
+      <header className="bg-header flex shrink-0 flex-wrap items-center gap-x-2 gap-y-2 border-b px-3 py-2 sm:flex-nowrap sm:gap-x-3 sm:px-5 sm:py-3">
         <img
           src={`/aracoiaba-citizen-helper/android-chrome-192x192.png`}
           alt="Emblema da Guarda Civil Municipal"
@@ -760,11 +760,11 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
         <div className="w-full truncate text-[10px] text-muted-foreground sm:hidden">
           {perfilOperador ? `${perfilOperador.cargo} ${perfilOperador.nome_completo} · RM-${perfilOperador.matricula.replace(/^RM-/i, "").trim()}` : "Perfil funcional não carregado"}
         </div>
-        <div className="ml-auto flex w-full flex-wrap items-center justify-end gap-2 text-xs text-muted-foreground sm:w-auto sm:flex-nowrap sm:gap-3">
+        <div className="ml-0 grid w-full grid-cols-2 items-stretch gap-2 text-xs text-muted-foreground sm:ml-auto sm:flex sm:w-auto sm:flex-nowrap sm:items-center sm:justify-end sm:gap-3">
           <button
             onClick={load}
             disabled={loadingOcs}
-            className="flex items-center gap-1.5 rounded-lg bg-secondary px-2.5 py-2 font-semibold text-foreground disabled:opacity-50 sm:px-3"
+            className="flex min-w-0 items-center justify-center gap-1.5 rounded-lg bg-secondary px-2 py-2 font-semibold text-foreground disabled:opacity-50 sm:px-3"
             title="Atualizar ocorrências"
           >
             <RefreshCw className={`h-4 w-4 ${loadingOcs ? "animate-spin" : ""}`} />
@@ -772,18 +772,18 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           </button>
           <button
             onClick={toggleSound}
-            className={`flex items-center gap-1.5 rounded-lg px-2.5 py-2 font-semibold ${soundEnabled ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"} sm:px-3`}
+            className={`flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 font-semibold ${soundEnabled ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"} sm:px-3`}
             title={soundEnabled ? "Desativar alertas por voz" : "Ativar alertas por voz para novas ocorrências"}
             aria-pressed={soundEnabled}
           >
             {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
             {soundEnabled ? "Voz ativada" : "Ativar voz"}
           </button>
-          <label className="flex items-center gap-1.5 rounded-lg bg-secondary px-2 py-2 text-foreground sm:px-3">
+          <label className="col-span-2 flex min-w-0 items-center gap-2 rounded-lg bg-secondary px-2 py-2 text-foreground sm:col-span-1 sm:px-3">
             <span className="whitespace-nowrap">Voz:</span>
             <select
               aria-label="Escolher voz dos alertas do CAD"
-              className="max-w-[180px] rounded border border-white/20 bg-[#07182c] px-2 py-1.5 text-xs text-white outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+              className="min-w-0 flex-1 rounded border border-white/20 bg-[#07182c] px-2 py-1.5 text-xs text-white outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 sm:max-w-[180px]"
               style={{ colorScheme: "dark" }}
               value={selectedSpeechVoice}
               onChange={(event) => {
@@ -851,7 +851,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
             {statsPanelVisible ? "Ocultar resumo" : "Exibir resumo"}
           </button>
         </div>
-        {statsPanelVisible && <div id="occurrence-stats" className="grid shrink-0 grid-cols-2 gap-2 pt-2 sm:gap-3 md:grid-cols-4">
+        {statsPanelVisible && <div id="occurrence-stats" className="grid shrink-0 grid-cols-2 gap-1.5 pt-2 sm:gap-3 md:grid-cols-4">
         {[
           ["pendente", Siren],
           ["despachada", Radio],
@@ -860,7 +860,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
         ].map(([s, Icon]) => {
           const I = Icon as typeof Siren;
           return (
-            <div key={s as string} className="flex min-w-0 items-center gap-2 rounded-xl bg-card p-2.5 sm:gap-3 sm:p-3">
+            <div key={s as string} className="flex min-w-0 items-center gap-2 rounded-xl bg-card p-2 sm:gap-3 sm:p-3">
               <I className="h-5 w-5 text-primary" />
               <div>
                 <p className="font-display text-2xl font-bold">{cont(s as string)}</p>
@@ -894,7 +894,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           </span>
         </div>
         {vehicleStatusError && <p className="mb-2 rounded-lg bg-destructive/10 p-2 text-xs text-destructive">{vehicleStatusError}</p>}
-        {vehiclePanelVisible && <div id="vehicle-availability-list" className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+        {vehiclePanelVisible && <div id="vehicle-availability-list" className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
           {(activeVehicles ?? []).map(vehicle => {
             const item = vehicleStatuses.find(v => v.vehicle === vehicle);
             const status = item?.status ?? "disponivel";
@@ -1024,7 +1024,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
         </section>
       </div>
       {atual && (
-        <div className="fixed inset-0 z-10 overflow-y-auto bg-background p-4 md:hidden">
+        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-background p-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] sm:p-4 md:hidden">
           <button onClick={() => setSel(null)} className="mb-3 text-sm text-primary">
             ← Voltar
           </button>
@@ -1308,7 +1308,7 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
       >
         <Printer className="h-4 w-4" /> Imprimir ocorrência / Salvar em PDF
       </button>
-      <div className="space-y-3 rounded-2xl bg-card p-5">
+      <div className="space-y-3 rounded-2xl bg-card p-3 sm:p-5">
         <div className="rounded-xl border border-success/40 bg-success/10 p-3">
           <div className="flex items-center gap-2 text-sm font-semibold text-success">
             <CheckCircle2 className="h-4 w-4" /> Termo de ciência do art. 340: {termoAceite ? "ACEITO" : "SEM REGISTRO DE ACEITE"}
