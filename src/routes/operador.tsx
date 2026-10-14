@@ -273,6 +273,8 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
   const [statsPanelVisible, setStatsPanelVisible] = useState(true);
   const audioContextRef = useRef<AudioContext | null>(null);
   const soundEnabledRef = useRef(false);
+  const knownOccurrenceIdsRef = useRef<Set<string>>(new Set());
+  const occurrenceBaselineReadyRef = useRef(false);
   // Mantém o contador de novas ocorrências definido a partir dos IDs recebidos.
   const novasPendentes = novasPendentesIds.length;
 
@@ -335,11 +337,18 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
       setSoundEnabled(true);
       playAlert();
 
-      // A notificação é opcional; o alerta sonoro funciona mesmo sem essa permissão.
+      // Solicita permissão dentro do clique do operador para permitir alertas do navegador.
       if ("Notification" in window && Notification.permission === "default") {
-        void Notification.requestPermission().catch((error) => {
+        try {
+          const permission = await Notification.requestPermission();
+          if (permission !== "granted") {
+            toast.info("Som ativado. Para receber notificações do navegador, permita as notificações nas configurações do site.");
+          }
+        } catch (error) {
           console.warn("Não foi possível solicitar permissão de notificações:", error);
-        });
+        }
+      } else if ("Notification" in window && Notification.permission === "denied") {
+        toast.info("Som ativado. As notificações do navegador estão bloqueadas nas configurações do site.");
       }
     } catch {
       window.alert("Não foi possível ativar o som. Verifique as permissões de áudio do navegador.");
@@ -388,7 +397,6 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
   }, [autorizado]);
 
   const load = async () => {
-    setLoadingOcs(true);
     setLoadError(null);
     const { data, error } = await supabase
       .from("ocorrencias")
@@ -397,10 +405,26 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
       .limit(300);
     if (error) {
       setLoadError(error.message);
-      setOcs([]);
-    } else {
-      setOcs(data ?? []);
+      setLoadingOcs(false);
+      return;
     }
+    const incoming = data ?? [];
+    const knownIds = knownOccurrenceIdsRef.current;
+    if (occurrenceBaselineReadyRef.current) {
+      const newlyPending = incoming.filter((occurrence) =>
+        occurrence.status === "pendente" && !knownIds.has(occurrence.id)
+      );
+      if (newlyPending.length > 0) {
+        setNovasPendentesIds((current) => [...new Set([...current, ...newlyPending.map((item) => item.id)])]);
+        for (const occurrence of newlyPending) {
+          playAlert();
+          notifyNewOccurrence(occurrence);
+        }
+      }
+    }
+    knownOccurrenceIdsRef.current = new Set(incoming.map((occurrence) => occurrence.id));
+    occurrenceBaselineReadyRef.current = true;
+    setOcs(incoming);
     setLoadingOcs(false);
   };
 
@@ -505,6 +529,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
             setOcs((current) => current.some((item) => item.id === novaOcorrencia.id)
               ? current
               : [novaOcorrencia, ...current]);
+            knownOccurrenceIdsRef.current.add(novaOcorrencia.id);
             if (novaOcorrencia.status === "pendente") {
               setNovasPendentesIds((ids) => ids.includes(novaOcorrencia.id)
                 ? ids
