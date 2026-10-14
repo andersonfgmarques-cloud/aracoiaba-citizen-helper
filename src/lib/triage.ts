@@ -78,7 +78,7 @@ export const TREE: Record<string, Node> = {
   },
   crimes_passado: {
     kind: "ask",
-    text: "Como o furto ou roubo já aconteceu, este atendimento deve ser realizado pela Polícia Civil. Não é necessário continuar o cadastro de solicitação à GCM por este fluxo. Registre o Boletim de Ocorrência presencialmente em uma unidade policial ou online pela Delegacia Digital de São Paulo. Telefones: 197 ou (15) 3281-1133.",
+    text: "Como o furto ou roubo já aconteceu, este atendimento deve ser realizado pela Polícia Civil. Não é necessário continuar o cadastro de solicitação à GCM por este fluxo. Registre o Boletim de Ocorrência presencialmente em uma unidade policial ou online pela Delegacia Digital de São Paulo: https://delegaciadigital.policia-civil.sp.gov.br/pagina-inicial. Telefones: 197 ou (15) 3281-1133.",
     options: [
       { label: "Furto ou roubo já ocorrido", next: "g_furto_roubo_passado" },
       { label: "Ameaça ou agressão", next: "g_ameaca_agressao_passado" },
