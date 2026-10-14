@@ -211,7 +211,7 @@ export const TREE: Record<string, Node> = {
   g_furto_roubo_passado: {
     kind: "gcm",
     category: "Furto / roubo já ocorrido",
-    text: "A GCM receberá as informações para avaliação dentro de suas atribuições. Para formalizar o boletim e eventual investigação, procure também a Polícia Civil pelo 197 ou pela Delegacia Eletrônica de São Paulo.",
+    text: "Em caso de furto ou roubo já ocorrido, registre o Boletim de Ocorrência na Polícia Civil, presencialmente em uma unidade policial ou online pela Delegacia Digital de São Paulo. A solicitação enviada à GCM será avaliada dentro de suas atribuições e não substitui o Boletim de Ocorrência.",
     contacts: [CONTACTS.gcm, CONTACTS.civil],
   },
   g_ameaca_agressao_agora: {
