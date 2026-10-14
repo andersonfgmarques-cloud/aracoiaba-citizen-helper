@@ -774,6 +774,10 @@ function Index() {
                           <span>Polícia Civil — telefone</span>
                           <span>197</span>
                         </a>
+                        <a href="tel:+551532811133" className="flex items-center justify-between rounded-xl border border-primary/40 bg-secondary px-3 py-2.5 font-semibold">
+                          <span>Polícia Civil — telefone municipal</span>
+                          <span>(15) 3281-1133</span>
+                        </a>
                         <a href="https://delegaciadigital.policia-civil.sp.gov.br/pagina-inicial" target="_blank" rel="noreferrer" className="flex items-center justify-between gap-3 rounded-xl bg-primary px-3 py-3 font-semibold text-primary-foreground">
                           <span>Registrar Boletim de Ocorrência online</span>
                           <ExternalLink className="h-4 w-4 shrink-0" />
