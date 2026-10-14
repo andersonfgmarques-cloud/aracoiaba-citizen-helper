@@ -894,17 +894,17 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           </span>
         </div>
         {vehicleStatusError && <p className="mb-2 rounded-lg bg-destructive/10 p-2 text-xs text-destructive">{vehicleStatusError}</p>}
-        {vehiclePanelVisible && <div id="vehicle-availability-list" className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+        {vehiclePanelVisible && <div id="vehicle-availability-list" className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-6">
           {(activeVehicles ?? []).map(vehicle => {
             const item = vehicleStatuses.find(v => v.vehicle === vehicle);
             const status = item?.status ?? "disponivel";
             const labels: Record<string, string> = { disponivel: "Disponível", empenhada: "Empenhada", indisponivel: "Indisponível" };
             const dot = status === "disponivel" ? "bg-success" : status === "empenhada" ? "bg-destructive" : "bg-muted-foreground";
-            return <div key={vehicle} className="min-w-0 rounded-xl border bg-card p-2.5">
+            return <div key={vehicle} className="min-w-0 rounded-xl border bg-card p-2 sm:p-2.5">
               <div className="flex items-center justify-between gap-1"><span className="truncate text-xs font-bold">{vehicle}</span><span className={"h-2.5 w-2.5 shrink-0 rounded-full " + dot} /></div>
-              <p className="mt-1 text-xs text-muted-foreground">{labels[status]}</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground sm:mt-1 sm:text-xs">{labels[status]}</p>
               {item?.note && <p className="mt-1 truncate text-[10px] text-muted-foreground" title={item.note}>{item.note}</p>}
-              <div className="mt-2 flex flex-wrap gap-1">
+              <div className="mt-1.5 flex flex-wrap gap-1 sm:mt-2">
                 {status !== "disponivel" && !(status === "empenhada" && ocs.some(occurrence => occurrence.id === item?.occurrence_id && occurrence.status === "em_atendimento")) && <button disabled={savingVehicle === vehicle} onClick={() => void setVehicleStatus(vehicle, "disponivel")} className="rounded bg-success/15 px-2 py-1 text-[10px] font-semibold text-success disabled:opacity-50">Liberar</button>}
                 {status !== "indisponivel" && status !== "empenhada" && <button disabled={savingVehicle === vehicle} onClick={() => { setVehicleNote(""); setVehicleDialog({ vehicle }); }} className="rounded bg-secondary px-2 py-1 text-[10px] font-semibold disabled:opacity-50">Indisponível</button>}
                 {status === "empenhada" && <span className="rounded bg-destructive/10 px-2 py-1 text-[10px] font-semibold text-destructive">Em ocorrência</span>}
