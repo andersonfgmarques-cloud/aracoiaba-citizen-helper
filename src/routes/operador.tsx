@@ -280,7 +280,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
   // Mantém o contador de novas ocorrências definido a partir dos IDs recebidos.
   const novasPendentes = novasPendentesIds.length;
 
-  const playAlert = (urgent = false, occurrence?: Oc) => {
+  const playAlert = (urgent = false) => {
     if (!soundEnabledRef.current || typeof window === "undefined" || !("speechSynthesis" in window)) return;
     try {
       const speech = window.speechSynthesis;
@@ -347,9 +347,16 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
       await audioContextRef.current.resume();
       soundEnabledRef.current = true;
       setSoundEnabled(true);
-      playAlert(false);
+      const testVoice = new SpeechSynthesisUtterance("Alertas por voz ativados.");
+      testVoice.lang = "pt-BR";
+      testVoice.rate = 0.92;
+      testVoice.pitch = 1.12;
+      const availableVoices = window.speechSynthesis.getVoices();
+      const brazilianVoices = availableVoices.filter((voice) => voice.lang.toLowerCase().startsWith("pt-br"));
+      testVoice.voice = brazilianVoices.find((voice) => /female|feminina|francisca|luciana|maria|helena|camila|fernanda|brasil.*f/i.test(voice.name)) || brazilianVoices[0] || null;
+      window.speechSynthesis.speak(testVoice);
 
-      // Solicita permissão dentro del clique do operador para permitir alertas do navegador.
+      // Solicita permissão dentro do clique do operador para permitir alertas do navegador.
       if ("Notification" in window && Notification.permission === "default") {
         try {
           const permission = await Notification.requestPermission();
