@@ -36,9 +36,9 @@ export const Route = createFileRoute("/acompanhar")({
   }),
   head: () => ({
     meta: [
-      { title: "Acompanhar solicitação | GCM Araçoiaba da Serra" },
+      { title: "Acompanhar solicitação | GCM Integrativa" },
       { name: "robots", content: "noindex, nofollow" },
-      { name: "description", content: "Consulta privada do status de uma solicitação da GCM Araçoiaba da Serra." },
+      { name: "description", content: "Consulta privada do status de uma solicitação da GCM Integrativa de Araçoiaba da Serra." },
     ],
   }),
   component: AcompanharPage,
@@ -90,7 +90,7 @@ function AcompanharPage() {
         <header className="mb-6 flex items-center gap-3 border-b pb-5">
           <img src="/aracoiaba-citizen-helper/BrasaoOfc.png" alt="Brasão da GCM Araçoiaba da Serra" className="h-14 w-14 object-contain" />
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-primary">Guarda Civil Municipal</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-primary">GCM Integrativa · Araçoiaba da Serra</p>
             <h1 className="text-xl font-black sm:text-2xl">Acompanhamento de solicitação</h1>
           </div>
         </header>
