@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import {
-  ArrowLeft, ShieldCheck, Users, ClipboardList, History, RefreshCw, BellRing, Volume2, VolumeX, CarFront, Plus,
+  ArrowLeft, ShieldCheck, Users, ClipboardList, History, RefreshCw, BellRing, Volume2, VolumeX, CarFront, Plus, ExternalLink,
   LogOut, CheckCircle2, Ban, Trash2, AlertTriangle, LockKeyhole, Eye, FileDown, X, Pencil, Save, Search,
 } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
@@ -715,6 +715,7 @@ function AdminPage() {
       <div className="mx-auto max-w-7xl px-4 py-6 md:px-8">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <Link to="/operador" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" /> Voltar à Central de Despacho</Link>
+          <Link to="/divulgar" className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"><ExternalLink className="h-4 w-4" /> QR Code / Divulgação</Link>
           <span className="rounded-full border border-success/30 bg-success/10 px-3 py-1 text-xs font-semibold text-success">Conta administrativa</span>
           {newAdminOccurrenceCount > 0 && <button onClick={() => { setTab("ocorrencias"); setNewAdminOccurrenceCount(0); }} className="inline-flex animate-pulse items-center gap-2 rounded-full border border-destructive/40 bg-destructive/10 px-3 py-1.5 text-xs font-bold text-destructive" aria-live="polite"><BellRing className="h-4 w-4" />{newAdminOccurrenceCount} nova(s) ocorrência(s)</button>}
         </div>
