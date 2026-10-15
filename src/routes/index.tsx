@@ -27,7 +27,7 @@ export const Route = createFileRoute("/")({
 type Msg =
   | { from: "bot"; text: string; contacts?: Contact[]; urgent?: boolean; digitalDelegacia?: boolean; depaUrl?: string }
   | { from: "user"; text: string }
-  | { from: "done"; protocol: string; category: string };
+  | { from: "done"; protocol: string; category: string; trackingUrl: string };
 
 type SpeechRecognitionResultLike = { transcript: string; isFinal: boolean };
 type SpeechRecognitionEventLike = {
@@ -328,6 +328,10 @@ function Index() {
     } else {
       navigationHistoryRef.current.pop();
       const protocol = `GCM-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+      const trackingBytes = crypto.getRandomValues(new Uint8Array(32));
+      const trackingToken = Array.from(trackingBytes, (b) => b.toString(16).padStart(2, "0")).join("");
+      const trackingTokenHash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(trackingToken))), (b) => b.toString(16).padStart(2, "0")).join("");
+      const trackingUrl = `https://andersonfgmarques-cloud.github.io/aracoiaba-citizen-helper/acompanhar?token=${trackingToken}`;
       const prioridade = ["Atitude suspeita", "Perturbação do sossego", "Violência doméstica", "Descumprimento de medida protetiva de urgência", "Furto / roubo em andamento", "Ameaça / agressão em andamento", "Dano / vandalismo em andamento", "Outra ocorrência policial em andamento"].includes(form.category)
         ? "alta"
         : "media";
@@ -347,6 +351,7 @@ function Index() {
         : null;
       const payload = {
         protocolo: protocol,
+        public_tracking_token_hash: trackingTokenHash,
         ...(medidaTokenHash ? { anexo_token_hash: medidaTokenHash } : {}),
         categoria: form.category,
         prioridade,
@@ -414,7 +419,7 @@ function Index() {
       setMsgs((m) => [
         ...m,
         { from: "user", text: input.trim() },
-        { from: "done", protocol, category: form.category },
+        { from: "done", protocol, category: form.category, trackingUrl },
         ...(anexoFalhou ? [{ from: "bot" as const, text: "A ocorrência foi registrada, mas o documento não pôde ser anexado ou vinculado. A falta do arquivo não invalida a solicitação; a equipe do CAD foi alertada para essa pendência. Se houver risco imediato, ligue 190 ou 153." }] : []),
       ]);
     }
@@ -686,6 +691,12 @@ function Index() {
               </div>
               <p className="mt-2 text-sm text-muted-foreground">Categoria: {m.category}</p>
               <p className="mt-1 font-display text-xl font-bold text-primary">{m.protocol}</p>
+              <div className="mt-4 rounded-xl border border-primary/30 bg-secondary/70 p-3 text-center">
+                <p className="mb-2 text-sm font-semibold">Acompanhe esta solicitação pelo QR Code</p>
+                <img className="mx-auto h-40 w-40 rounded-lg bg-white p-2" loading="eager" alt={`QR Code de acompanhamento do protocolo ${m.protocol}`} src={`https://api.qrserver.com/v1/create-qr-code/?size=360x360&margin=12&data=${encodeURIComponent(m.trackingUrl)}`} />
+                <a className="mt-3 inline-flex min-h-10 items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground" href={m.trackingUrl} target="_blank" rel="noreferrer">Abrir acompanhamento</a>
+                <p className="mt-2 text-xs text-muted-foreground">O desfecho ficará disponível após o encerramento pelo CAD. Guarde este QR Code e não o compartilhe: ele permite consultar esta solicitação.</p>
+              </div>
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                 Sua solicitação foi registrada com sucesso. O atendimento será avaliado e
                 encaminhado conforme o grau de prioridade da ocorrência, considerando a urgência dos
