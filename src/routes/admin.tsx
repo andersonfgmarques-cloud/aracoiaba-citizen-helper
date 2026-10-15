@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import {
-  ArrowLeft, ShieldCheck, Users, ClipboardList, History, RefreshCw, BellRing, Volume2, VolumeX, CarFront, Plus, ExternalLink,
+  ArrowLeft, ShieldCheck, Users, ClipboardList, History, RefreshCw, BellRing, Volume2, VolumeX, CarFront, Plus, ExternalLink, BarChart3,
   LogOut, CheckCircle2, Ban, Trash2, AlertTriangle, LockKeyhole, Eye, FileDown, X, Pencil, Save, Search,
 } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
@@ -9,7 +9,7 @@ import { adminSupabase } from "@/integrations/supabase/adminClient";
 import type { Json } from "@/integrations/supabase/types";
 
 const ADMIN_EMAIL = "andersonf.g.marques@gmail.com";
-type AdminTab = "usuarios" | "ocorrencias" | "viaturas" | "equipes" | "auditoria";
+type AdminTab = "usuarios" | "ocorrencias" | "viaturas" | "equipes" | "estatisticas" | "auditoria";
 type AdminVehicle = { vehicle: string; active: boolean; created_at: string; created_by: string | null };
 type AdminMember = { id: string; nome: string; matricula: string; cargo: string; equipe: "Alpha" | "Bravo" | "Charlie" | "Delta"; ativo: boolean; created_at: string; created_by: string | null };
 type AdminUser = {
@@ -31,6 +31,7 @@ type AdminOccurrence = {
   created_at: string;
   viatura: string | null;
 };
+type StatsOccurrence = { created_at: string; categoria: string; status: string; prioridade: string; viatura: string | null };
 type OccurrenceDetails = AdminOccurrence & {
   prioridade: string;
   nome: string;
@@ -157,6 +158,11 @@ function AdminPage() {
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [savingMember, setSavingMember] = useState(false);
   const [occurrences, setOccurrences] = useState<AdminOccurrence[]>([]);
+  const [statsStart, setStatsStart] = useState(`${new Date().getFullYear()}-01-01`);
+  const [statsEnd, setStatsEnd] = useState(new Date().toISOString().slice(0, 10));
+  const [statsRows, setStatsRows] = useState<StatsOccurrence[]>([]);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsLoaded, setStatsLoaded] = useState(false);
   const [protocolSearch, setProtocolSearch] = useState("");
   const [protocolSearchActive, setProtocolSearchActive] = useState(false);
   const [searchingProtocol, setSearchingProtocol] = useState(false);
@@ -276,6 +282,30 @@ function AdminPage() {
     if (refreshError) setError("Cadastro atualizado, mas não foi possível recarregar a lista: " + refreshError.message);
     else setMembers((data ?? []) as AdminMember[]);
     setMessage(member.ativo ? `${member.nome} foi desativado e não aparecerá em novos despachos.` : `${member.nome} foi reativado para seleção no CAD.`);
+  };
+
+  const loadOccurrenceStatistics = async () => {
+    if (!statsStart || !statsEnd || statsStart > statsEnd) { setError("Informe um intervalo de datas válido para as estatísticas."); return; }
+    const start = new Date(`${statsStart}T00:00:00-03:00`);
+    const end = new Date(`${statsEnd}T00:00:00-03:00`); end.setDate(end.getDate() + 1);
+    if (end.getTime() - start.getTime() > 5 * 366 * 24 * 60 * 60 * 1000) { setError("Selecione um período de até cinco anos."); return; }
+    setStatsLoading(true); setError("");
+    const { data, error: statsError } = await adminSupabase.rpc("admin_occurrence_statistics", { _start: start.toISOString(), _end: end.toISOString() });
+    setStatsLoading(false);
+    if (statsError) { setError("Não foi possível gerar as estatísticas: " + statsError.message); return; }
+    setStatsRows((data ?? []) as StatsOccurrence[]); setStatsLoaded(true);
+  };
+
+  const printStatisticsReport = () => {
+    const win = window.open("", "_blank");
+    if (!win) { setError("Permita a abertura de janelas para gerar o relatório PDF."); return; }
+    const esc = (value: unknown) => String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    const countBy = (key: "categoria" | "status" | "prioridade" | "viatura") => { const counts = new Map<string, number>(); statsRows.forEach((row) => { const label = row[key] || "Não informado"; counts.set(label, (counts.get(label) ?? 0) + 1); }); return [...counts.entries()].sort((a,b) => b[1]-a[1]); };
+    const table = (title: string, rows: [string, number][]) => `<h2>${esc(title)}</h2><table><thead><tr><th>Classificação</th><th>Quantidade</th><th>Percentual</th></tr></thead><tbody>${rows.map(([label,count]) => `<tr><td>${esc(label)}</td><td>${count}</td><td>${statsRows.length ? (count*100/statsRows.length).toLocaleString("pt-BR",{maximumFractionDigits:1})+"%" : "0%"}</td></tr>`).join("")}</tbody></table>`;
+    const months = new Map<string,number>(); statsRows.forEach(row => { const month = row.created_at.slice(0,7); months.set(month,(months.get(month)||0)+1); });
+    const endInclusive = new Date(`${statsEnd}T12:00:00`);
+    win.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório Estatístico GCM Integrativa</title><style>body{font:12px Arial,sans-serif;color:#172033;margin:28px}h1{font-size:21px}h2{font-size:15px;margin-top:24px}p{line-height:1.5}.cards{display:flex;gap:12px}.card{border:1px solid #ccd4df;padding:12px;flex:1}table{border-collapse:collapse;width:100%;margin-top:8px}th,td{border:1px solid #ccd4df;text-align:left;padding:7px}th{background:#eef2f7}footer{margin-top:28px;font-size:10px;color:#4b5563}@media print{body{margin:15mm}}</style></head><body><h1>Guarda Civil Municipal de Araçoiaba da Serra</h1><p><b>GCM Integrativa — Segurança, Cidadania e Proteção</b><br>Relatório estatístico de ocorrências<br>Período: ${esc(new Date(`${statsStart}T12:00:00`).toLocaleDateString("pt-BR"))} a ${esc(endInclusive.toLocaleDateString("pt-BR"))}</p><div class="cards"><div class="card"><b>Total de registros</b><h2>${statsRows.length}</h2></div><div class="card"><b>Encerradas</b><h2>${statsRows.filter(x=>x.status.toLowerCase()==="encerrada").length}</h2></div><div class="card"><b>Alta prioridade</b><h2>${statsRows.filter(x=>/alta|urgente|alta prioridade/i.test(x.prioridade||"")).length}</h2></div></div>${table("Ocorrências por mês",[...months.entries()].sort((a,b)=>a[0].localeCompare(b[0])).map(([m,n])=>[new Date(`${m}-01T12:00:00`).toLocaleDateString("pt-BR",{month:"long",year:"numeric"}),n] as [string,number]))}${table("Por categoria",countBy("categoria"))}${table("Por status",countBy("status"))}${table("Por prioridade",countBy("prioridade"))}${table("Por viatura",countBy("viatura"))}<footer>Gerado em ${esc(new Date().toLocaleString("pt-BR"))}. Documento estatístico agregado, sem identificação de cidadãos. Baseado nos registros existentes no sistema no momento da emissão; não representa necessariamente todos os atendimentos da instituição.</footer><script>window.onload=()=>window.print()</script></body></html>`);
+    win.document.close();
   };
 
   const printAuditReport = (entry: AuditEntry) => {
@@ -751,6 +781,7 @@ function AdminPage() {
     { id: "ocorrencias", label: "Ocorrências", icon: ClipboardList },
     { id: "viaturas", label: "Viaturas", icon: CarFront },
     { id: "equipes", label: "Equipes / GCMs", icon: Users },
+    { id: "estatisticas", label: "Estatísticas", icon: BarChart3 },
     { id: "auditoria", label: "Auditoria", icon: History },
   ];
 
@@ -831,6 +862,12 @@ function AdminPage() {
             {members.map((member) => <tr key={member.id} className="border-t border-border"><td className="p-3 font-semibold">{member.nome}</td><td className="p-3">{member.matricula}</td><td className="p-3">{member.cargo}</td><td className="p-3"><span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">{member.equipe}</span></td><td className="p-3"><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${member.ativo ? "bg-success/10 text-success" : "bg-secondary text-muted-foreground"}`}>{member.ativo ? "Ativo no CAD" : "Inativo"}</span></td><td className="p-3"><div className="flex flex-wrap gap-2"><button type="button" onClick={() => { setEditingMemberId(member.id); setMemberForm({ nome: member.nome, matricula: member.matricula, cargo: member.cargo, equipe: member.equipe }); setMessage(""); setError(""); }} className="inline-flex items-center gap-1 rounded-lg bg-primary/10 px-3 py-2 text-xs font-semibold text-primary"><Pencil className="h-3.5 w-3.5" />Editar</button><button type="button" disabled={busyId === member.id} onClick={() => void toggleMemberActive(member)} className={`rounded-lg px-3 py-2 text-xs font-semibold disabled:opacity-50 ${member.ativo ? "bg-destructive/10 text-destructive" : "bg-success/10 text-success"}`}>{busyId === member.id ? "Salvando..." : member.ativo ? "Desativar" : "Reativar"}</button></div></td></tr>)}
             {members.length === 0 && <tr><td colSpan={6} className="p-5 text-center text-sm text-muted-foreground">Nenhum GCM cadastrado. Use o formulário acima para iniciar o cadastro.</td></tr>}
           </tbody></table></div>
+        </section>}
+        {allowed && tab === "estatisticas" && <section className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-6">
+          <div><h2 className="flex items-center gap-2 text-lg font-bold"><BarChart3 className="h-5 w-5 text-primary" /> Estatísticas operacionais</h2><p className="mt-1 text-sm text-muted-foreground">Consulte registros por período e gere um relatório em PDF. A análise usa somente campos estatísticos, sem dados pessoais dos solicitantes.</p></div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"><label className="space-y-1 text-sm"><span className="font-semibold">Data inicial</span><input type="date" value={statsStart} max={statsEnd || undefined} onChange={e=>setStatsStart(e.target.value)} className="w-full rounded-lg border border-border bg-background px-3 py-2.5" /></label><label className="space-y-1 text-sm"><span className="font-semibold">Data final</span><input type="date" value={statsEnd} min={statsStart || undefined} max={new Date().toISOString().slice(0,10)} onChange={e=>setStatsEnd(e.target.value)} className="w-full rounded-lg border border-border bg-background px-3 py-2.5" /></label><button type="button" onClick={()=>void loadOccurrenceStatistics()} disabled={statsLoading || !statsStart || !statsEnd} className="mt-auto inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50"><RefreshCw className={`h-4 w-4 ${statsLoading ? "animate-spin" : ""}`} />{statsLoading ? "Consultando..." : "Consultar estatísticas"}</button><button type="button" onClick={printStatisticsReport} disabled={!statsLoaded || statsLoading} className="mt-auto inline-flex items-center justify-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold disabled:opacity-50"><FileDown className="h-4 w-4" /> Gerar PDF</button></div>
+          {!statsLoaded && <div className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">Selecione o período e clique em “Consultar estatísticas”.</div>}
+          {statsLoaded && <><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{[{label:"Ocorrências registradas",value:statsRows.length,icon:ClipboardList},{label:"Encerradas",value:statsRows.filter(x=>x.status.toLowerCase()==="encerrada").length,icon:CheckCircle2},{label:"Alta prioridade",value:statsRows.filter(x=>/alta|urgente|alta prioridade/i.test(x.prioridade||"")).length,icon:AlertTriangle},{label:"Viaturas utilizadas",value:new Set(statsRows.map(x=>x.viatura).filter(Boolean)).size,icon:CarFront}].map(m=><div key={m.label} className="rounded-xl border border-border bg-background/50 p-4"><m.icon className="mb-2 h-5 w-5 text-primary" /><p className="text-2xl font-bold tabular-nums">{m.value}</p><p className="text-sm text-muted-foreground">{m.label}</p></div>)}</div><div className="grid gap-4 lg:grid-cols-2">{([{title:"Ocorrências por mês",key:"month"},{title:"Por categoria",key:"categoria"},{title:"Por status",key:"status"},{title:"Por prioridade",key:"prioridade"}] as const).map(group=>{const counts=new Map<string,number>();statsRows.forEach(row=>{const label=group.key==="month"?new Date(row.created_at).toLocaleDateString("pt-BR",{month:"short",year:"numeric"}):(row[group.key]||"Não informado");counts.set(label,(counts.get(label)||0)+1)});const entries=[...counts.entries()].sort((a,b)=>group.key==="month"?a[0].localeCompare(b[0]):b[1]-a[1]);const max=Math.max(1,...entries.map(([,n])=>n));return <div key={group.key} className="rounded-xl border border-border p-4"><h3 className="mb-3 font-semibold">{group.title}</h3>{!entries.length?<p className="text-sm text-muted-foreground">Nenhum registro no período.</p>:<div className="space-y-3">{entries.map(([label,count])=><div key={label} className="space-y-1"><div className="flex justify-between gap-3 text-xs"><span className="truncate">{label}</span><span className="font-semibold tabular-nums">{count} ({statsRows.length?(count*100/statsRows.length).toLocaleString("pt-BR",{maximumFractionDigits:1}):0}%)</span></div><div className="h-2 overflow-hidden rounded-full bg-secondary"><div className="h-full rounded-full bg-primary" style={{width:`${count/max*100}%`}} /></div></div>)}</div>}</div>})}</div><p className="text-xs text-muted-foreground">Os indicadores refletem os registros do sistema no período consultado.</p></>}
         </section>}
         {allowed && tab === "usuarios" && <section className="overflow-hidden rounded-2xl border border-border bg-card">
           <div className="border-b border-border p-4"><h2 className="font-bold">Usuários e permissões</h2>{editingProfile && <div className="m-4 space-y-3 rounded-xl border border-primary/30 bg-primary/5 p-4"><div className="flex items-center justify-between gap-2"><div><h3 className="font-bold">Identificação funcional do operador</h3><p className="text-xs text-muted-foreground">{editingProfile.email}</p></div><button onClick={() => setEditingProfile(null)} className="rounded-lg p-2 hover:bg-secondary" aria-label="Cancelar edição"><X className="h-4 w-4" /></button></div><div className="grid gap-3 sm:grid-cols-2"><label className="space-y-1 text-sm"><span>Nome de guerra</span><input value={profileForm.nome_completo} onChange={(e) => setProfileForm((v) => ({ ...v, nome_completo: e.target.value }))} className="w-full rounded-lg border border-border bg-background p-3" placeholder="Ex.: LEDIANO" /></label><label className="space-y-1 text-sm"><span>RM</span><input value={profileForm.matricula} onChange={(e) => setProfileForm((v) => ({ ...v, matricula: e.target.value }))} className="w-full rounded-lg border border-border bg-background p-3" placeholder="Ex.: RM-4963" /></label><label className="space-y-1 text-sm"><span>Posto/graduação</span><input value={profileForm.cargo} onChange={(e) => setProfileForm((v) => ({ ...v, cargo: e.target.value }))} className="w-full rounded-lg border border-border bg-background p-3" placeholder="Ex.: 1ª Classe" /></label><label className="space-y-1 text-sm"><span>Lotação</span><input value={profileForm.lotacao} onChange={(e) => setProfileForm((v) => ({ ...v, lotacao: e.target.value }))} className="w-full rounded-lg border border-border bg-background p-3" placeholder="Ex.: CAD / Central de Despacho" /></label></div><button disabled={busyId === editingProfile.user_id} onClick={() => void saveOperatorProfile()} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"><Save className="h-4 w-4" /> Salvar identificação funcional</button></div>}<p className="mt-1 text-sm text-muted-foreground">Somente contas aprovadas recebem a função de operador. Bloquear remove a permissão operacional; excluir cadastro remove a conta de autenticação e exige justificativa.</p></div>{selectedUserDeletion && <div className="m-4 space-y-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4"><div className="flex items-start gap-2"><AlertTriangle className="mt-0.5 h-5 w-5 text-destructive" /><div><p className="font-semibold">Excluir cadastro de {selectedUserDeletion.email ?? selectedUserDeletion.user_id}</p><p className="text-sm text-muted-foreground">A conta de autenticação será removida. Esta ação é definitiva; confirme que não há necessidade de manter o acesso dessa pessoa.</p></div></div><label className="block space-y-1 text-sm"><span>Justificativa obrigatória</span><textarea value={userDeleteReason} onChange={(event) => setUserDeleteReason(event.target.value)} rows={2} className="w-full rounded-lg border border-border bg-background p-3" placeholder="Informe o motivo da exclusão..." /></label><div className="flex flex-wrap gap-2"><button disabled={busyId === selectedUserDeletion.user_id || userDeleteReason.trim().length < 5} onClick={() => void deleteUserAccount()} className="inline-flex items-center gap-2 rounded-lg bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground disabled:opacity-50"><Trash2 className="h-4 w-4" /> Confirmar exclusão</button><button onClick={() => { setSelectedUserDeletion(null); setUserDeleteReason(""); }} className="rounded-lg bg-secondary px-4 py-2 text-sm font-semibold">Cancelar</button></div></div>}
