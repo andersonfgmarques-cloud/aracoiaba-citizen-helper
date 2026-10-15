@@ -554,7 +554,7 @@ function Index() {
         .print-receipt { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; max-width: none !important; margin: 0 !important; border: 1px solid #d1d5db !important; border-radius: 12px !important; background: #fff !important; color: #111827 !important; box-shadow: none !important; }
         .print-receipt .text-muted-foreground { color: #374151 !important; }
         .print-receipt .text-primary, .print-receipt .text-success { color: #111827 !important; }
-        .print-receipt .bg-secondary, .print-receipt .bg-secondary\/70, .print-receipt .bg-card { background: #fff !important; }
+        .print-receipt .bg-secondary, .print-receipt .bg-secondary/70, .print-receipt .bg-card { background: #fff !important; }
         .no-print { display: none !important; }
       }`}</style>
       <header className="bg-header flex items-center gap-3 border-b px-4 py-4 shadow-lg">
