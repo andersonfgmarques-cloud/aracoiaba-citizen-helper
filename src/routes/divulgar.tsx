@@ -18,12 +18,26 @@ function DivulgarPage() {
   return (
     <main className="min-h-screen bg-[#07182c] px-4 py-8 text-white sm:px-6">
       <style>{`
+        @page { size: A4 portrait; margin: 8mm; }
         @media print {
-          body { background: white !important; }
+          html, body, #root { width: 100% !important; min-height: 0 !important; height: auto !important; margin: 0 !important; padding: 0 !important; overflow: visible !important; background: #07182c !important; }
+          body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
           .no-print { display: none !important; }
-          .qr-poster { box-shadow: none !important; border: 1px solid #d4a72c !important; margin: 0 auto !important; background: #07182c !important; }
-          main { background: white !important; background-image: none !important; color: #07182c !important; padding: 0 !important; min-height: 0 !important; }
-          .poster-muted { color: #334155 !important; }
+          main { width: 100% !important; min-height: 0 !important; height: auto !important; margin: 0 !important; padding: 0 !important; overflow: visible !important; background: #07182c !important; color: white !important; }
+          .qr-poster { width: 100% !important; max-width: none !important; min-height: 0 !important; height: auto !important; box-sizing: border-box !important; overflow: visible !important; break-inside: avoid !important; page-break-inside: avoid !important; margin: 0 auto !important; padding: 8mm !important; border: 1px solid #d4a72c !important; border-radius: 5mm !important; box-shadow: none !important; background-color: #07182c !important; background-image: linear-gradient(rgba(4, 16, 31, 0.76), rgba(4, 16, 31, 0.84)), url('/aracoiaba-citizen-helper/FundoGCM.png') !important; background-size: cover !important; background-position: center !important; }
+          .qr-poster img { print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important; }
+          .qr-poster > div:nth-of-type(2) { margin-top: 5mm !important; margin-bottom: 5mm !important; }
+          .qr-poster > div:first-child { width: 27mm !important; height: 27mm !important; margin-bottom: 3mm !important; }
+          .qr-poster h1 { font-size: 27pt !important; line-height: 1.05 !important; }
+          .qr-poster h2 { font-size: 20pt !important; line-height: 1.1 !important; }
+          .qr-poster p { line-height: 1.25 !important; }
+          .qr-poster .text-base { font-size: 10pt !important; }
+          .qr-poster .text-lg { font-size: 11pt !important; }
+          .qr-poster .text-sm { font-size: 9pt !important; }
+          .qr-poster .h-64, .qr-poster .w-64 { width: 52mm !important; height: 52mm !important; }
+          .qr-poster .sm\\:p-5 { padding: 3mm !important; }
+          .qr-poster a.no-print { display: none !important; }
+          .poster-muted { color: #d7e1ed !important; }
         }
       `}</style>
       <div className="no-print mx-auto mb-5 flex max-w-4xl flex-wrap items-center justify-between gap-3">
