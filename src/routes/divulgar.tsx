@@ -16,7 +16,7 @@ export const Route = createFileRoute("/divulgar")({
 
 function DivulgarPage() {
   return (
-    <main className="min-h-screen bg-[#07182c] bg-cover bg-center bg-fixed bg-no-repeat px-4 py-8 text-white sm:px-6" style={{ backgroundImage: "linear-gradient(rgba(4, 16, 31, 0.68), rgba(4, 16, 31, 0.82)), url('/aracoiaba-citizen-helper/FundoGCM.png')" }}>
+    <main className="min-h-screen bg-[#07182c] px-4 py-8 text-white sm:px-6">
       <style>{`
         @media print {
           body { background: white !important; }
@@ -33,7 +33,7 @@ function DivulgarPage() {
           <a href={QR_URL} download="qr-atendimento-cidadao-gcm.png" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2 font-semibold hover:bg-white/10"><Download className="h-4 w-4" /> Baixar QR Code</a>
         </div>
       </div>
-      <section className="qr-poster mx-auto max-w-3xl rounded-3xl border border-[#f4bd36]/60 bg-[#07182c]/90 p-6 text-center shadow-2xl backdrop-blur-[2px] sm:p-10">
+      <section className="qr-poster mx-auto max-w-3xl rounded-3xl border border-[#f4bd36]/60 bg-[#07182c] bg-cover bg-center bg-no-repeat p-6 text-center shadow-2xl sm:p-10" style={{ backgroundImage: "linear-gradient(rgba(4, 16, 31, 0.76), rgba(4, 16, 31, 0.84)), url('/aracoiaba-citizen-helper/FundoGCM.png')" }}>
         <div className="mx-auto mb-5 flex h-32 w-32 items-center justify-center overflow-visible bg-transparent sm:h-40 sm:w-40">
           <img src="/aracoiaba-citizen-helper/BrasaoOfc.png" alt="Brasão oficial da Guarda Civil Municipal de Araçoiaba da Serra" className="h-full w-full scale-125 object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.45)]" />
         </div>
