@@ -41,6 +41,7 @@ export type Database = {
           observacao: string | null
           prioridade: string
           protocolo: string
+          public_tracking_token_hash: string | null
           status: string
           telefone: string
           updated_at: string
@@ -60,6 +61,7 @@ export type Database = {
           observacao?: string | null
           prioridade?: string
           protocolo: string
+          public_tracking_token_hash?: string | null
           status?: string
           telefone: string
           updated_at?: string
@@ -79,6 +81,7 @@ export type Database = {
           observacao?: string | null
           prioridade?: string
           protocolo?: string
+          public_tracking_token_hash?: string | null
           status?: string
           telefone?: string
           updated_at?: string
