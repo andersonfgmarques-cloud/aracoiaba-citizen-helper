@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowLeft, Download, ExternalLink, Printer, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Download, ExternalLink, Printer } from "lucide-react";
 
 const APP_URL = "https://andersonfgmarques-cloud.github.io/aracoiaba-citizen-helper/";
 const QR_URL = `https://api.qrserver.com/v1/create-qr-code/?size=720x720&margin=24&color=07182c&bgcolor=ffffff&data=${encodeURIComponent(APP_URL)}`;
@@ -34,8 +34,8 @@ function DivulgarPage() {
         </div>
       </div>
       <section className="qr-poster mx-auto max-w-3xl rounded-3xl border border-[#f4bd36]/60 bg-[#0b2038] p-6 text-center shadow-2xl sm:p-10">
-        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-[#f4bd36]/50 bg-white/5">
-          <ShieldCheck className="h-9 w-9 text-[#f4bd36]" />
+        <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-[#f4bd36]/50 bg-white/5 p-2">
+          <img src="/aracoiaba-citizen-helper/BrasaoOfc.png" alt="Brasão oficial da Guarda Civil Municipal de Araçoiaba da Serra" className="h-full w-full object-contain" />
         </div>
         <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#f4bd36]">Guarda Civil Municipal</p>
         <h1 className="mt-2 text-3xl font-black sm:text-5xl">Araçoiaba da Serra</h1>
