@@ -59,6 +59,7 @@ const STATUS: Record<string, { label: string; cls: string }> = {
   cancelada: { label: "Cancelada", cls: "bg-muted text-muted-foreground" },
 };
 type VehicleStatus = { vehicle: string; status: "disponivel" | "empenhada" | "indisponivel"; occurrence_id: string | null; note: string | null; updated_at: string };
+type GcmMember = { id: string; nome: string; matricula: string; cargo: string; equipe: "Alpha" | "Bravo" | "Charlie" | "Delta"; ativo: boolean };
 
 function escapeHtml(value: unknown): string {
   return String(value ?? "—").replace(/[&<>"']/g, (char) => ({
@@ -1169,17 +1170,37 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
   // O campo é para a próxima ação, não para reapresentar a observação já gravada na ocorrência.
   // Assim, ao reabrir ou selecionar novamente uma ocorrência, não repete o texto do despacho anterior.
   const [obs, setObs] = useState("");
-  const [ev, setEv] = useState("");
-  const [condutor, setCondutor] = useState("");
-  const [aux1, setAux1] = useState("");
-  const [aux2, setAux2] = useState("");
+  const [equipeOperacional, setEquipeOperacional] = useState<GcmMember["equipe"] | "">("");
+  const [membrosAtivos, setMembrosAtivos] = useState<GcmMember[]>([]);
+  const [membrosSelecionados, setMembrosSelecionados] = useState<string[]>([]);
+  const [funcoesIntegrantes, setFuncoesIntegrantes] = useState<Record<string, "Encarregado" | "Condutor" | "Auxiliar">>({});
+  const [membrosLoading, setMembrosLoading] = useState(true);
+  const [membrosError, setMembrosError] = useState("");
+
+  useEffect(() => {
+    let ativo = true;
+    void supabase.from("gcm_members").select("id,nome,matricula,cargo,equipe,ativo")
+      .eq("ativo", true).order("nome")
+      .then(({ data, error }) => {
+        if (!ativo) return;
+        if (error) setMembrosError("Não foi possível carregar os GCMs cadastrados no painel administrativo.");
+        else setMembrosAtivos((data ?? []) as GcmMember[]);
+        setMembrosLoading(false);
+      });
+    return () => { ativo = false; };
+  }, []);
+
+  const membrosDaEquipe = membrosAtivos.filter((membro) => membro.equipe === equipeOperacional);
+  const selecionados = membrosDaEquipe.filter((membro) => membrosSelecionados.includes(membro.id));
+  const encarregados = selecionados.filter((membro) => funcoesIntegrantes[membro.id] === "Encarregado").length;
+  const condutores = selecionados.filter((membro) => funcoesIntegrantes[membro.id] === "Condutor").length;
+  const equipeValida = Boolean(equipeOperacional && selecionados.length > 0 && encarregados === 1 && condutores === 1);
 
   const limparCamposComando = () => {
     setObs("");
-    setEv("");
-    setCondutor("");
-    setAux1("");
-    setAux2("");
+    setEquipeOperacional("");
+    setMembrosSelecionados([]);
+    setFuncoesIntegrantes({});
   };
 
   const despachoEquipe = [...historico].reverse().find((item) =>
@@ -1413,7 +1434,7 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
               const equipeEmpenhada = texto.includes("[EQUIPE EMPENHADA]");
               const linhas = texto.replace("[EQUIPE EMPENHADA]", "").split(/\s+(?=(?:EV|Encarregado|Condutor|AUX \(1\)|AUX \(2\)|Informações do despacho):)/i).map(item => item.trim()).filter(Boolean);
               const detalhes = linhas.find(item => item.startsWith("Informações do despacho:"))?.replace("Informações do despacho:", "").trim() || "";
-              const equipe = linhas.filter(item => /^(EV|Encarregado|Condutor|AUX \\(1\\)|AUX \\(2\\)):/i.test(item)).map(item => item.replace(/^EV:/i, "Encarregado:"));
+              const equipe = linhas.filter(item => /^(Equipe operacional|EV|Encarregado|Condutor|AUX \\(\\d+\\)):/i.test(item)).map(item => item.replace(/^EV:/i, "Encarregado:"));
               if (!equipeEmpenhada) return <p className="mt-1 whitespace-pre-wrap break-words text-xs leading-5 text-muted-foreground">{texto.replace(/^EV:/gm, "Encarregado:")}</p>;
               return <div className="mt-2 space-y-2">
                 <div className="flex flex-wrap gap-1.5">{equipe.map((item, index) => {
@@ -1440,11 +1461,37 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
           ))}
         </div>
         {o.status !== "em_atendimento" && o.status !== "encerrada" && o.status !== "cancelada" && (
-          <div className="grid gap-3 sm:grid-cols-2">
-            <label className="block space-y-1.5"><span className="text-xs font-semibold text-muted-foreground">EV — Encarregado</span><input value={ev} onChange={(e) => setEv(e.target.value)} maxLength={160} placeholder="Nome do encarregado" className="w-full rounded-xl border bg-input p-3 text-sm outline-none focus:ring-2 focus:ring-ring" /></label>
-            <label className="block space-y-1.5"><span className="text-xs font-semibold text-muted-foreground">Condutor</span><input value={condutor} onChange={(e) => setCondutor(e.target.value)} maxLength={160} placeholder="Nome do condutor" className="w-full rounded-xl border bg-input p-3 text-sm outline-none focus:ring-2 focus:ring-ring" /></label>
-            <label className="block space-y-1.5"><span className="text-xs font-semibold text-muted-foreground">AUX (1)</span><input value={aux1} onChange={(e) => setAux1(e.target.value)} maxLength={160} placeholder="Nome do auxiliar 1 (opcional)" className="w-full rounded-xl border bg-input p-3 text-sm outline-none focus:ring-2 focus:ring-ring" /></label>
-            <label className="block space-y-1.5"><span className="text-xs font-semibold text-muted-foreground">AUX (2)</span><input value={aux2} onChange={(e) => setAux2(e.target.value)} maxLength={160} placeholder="Nome do auxiliar 2 (opcional)" className="w-full rounded-xl border bg-input p-3 text-sm outline-none focus:ring-2 focus:ring-ring" /></label>
+          <div className="space-y-4 rounded-xl border border-border/70 bg-background/40 p-3 sm:p-4">
+            <div className="space-y-2">
+              <label htmlFor="equipe-operacional" className="text-xs font-semibold text-muted-foreground">Equipe operacional</label>
+              <select id="equipe-operacional" value={equipeOperacional} onChange={(event) => { setEquipeOperacional(event.target.value as GcmMember["equipe"] | ""); setMembrosSelecionados([]); setFuncoesIntegrantes({}); }} className="w-full rounded-xl border bg-input p-3 text-sm outline-none focus:ring-2 focus:ring-ring">
+                <option value="">Selecione Alpha, Bravo, Charlie ou Delta</option>
+                {(["Alpha", "Bravo", "Charlie", "Delta"] as const).map((equipe) => <option key={equipe} value={equipe}>{equipe}</option>)}
+              </select>
+            </div>
+            {membrosLoading && <p className="text-xs text-muted-foreground">Carregando cadastro de GCMs…</p>}
+            {membrosError && <p role="alert" className="rounded-lg bg-destructive/10 p-2 text-xs text-destructive">{membrosError}</p>}
+            {!membrosLoading && equipeOperacional && membrosDaEquipe.length === 0 && <p className="rounded-lg border border-dashed p-3 text-xs text-muted-foreground">Não há GCMs ativos vinculados à equipe {equipeOperacional}. O administrador precisa cadastrar ou ativar os integrantes.</p>}
+            {equipeOperacional && membrosDaEquipe.length > 0 && <div className="space-y-2">
+              <p className="text-xs font-semibold text-muted-foreground">Integrantes disponíveis — selecione quem será empenhado</p>
+              {membrosDaEquipe.map((membro) => {
+                const marcado = membrosSelecionados.includes(membro.id);
+                return <div key={membro.id} className="flex flex-col gap-2 rounded-xl border border-border/70 bg-card p-3 sm:flex-row sm:items-center">
+                  <label className="flex min-w-0 flex-1 items-start gap-3">
+                    <input type="checkbox" checked={marcado} onChange={(event) => {
+                      setMembrosSelecionados((current) => event.target.checked ? [...current, membro.id] : current.filter((id) => id !== membro.id));
+                      if (!event.target.checked) setFuncoesIntegrantes((current) => { const next = { ...current }; delete next[membro.id]; return next; });
+                      else setFuncoesIntegrantes((current) => ({ ...current, [membro.id]: "Auxiliar" }));
+                    }} className="mt-1 h-4 w-4 accent-primary" />
+                    <span className="min-w-0"><span className="block break-words text-sm font-semibold">{membro.nome}</span><span className="block text-xs text-muted-foreground">{membro.cargo} · RM-{membro.matricula.replace(/^RM-/i, "")}</span></span>
+                  </label>
+                  {marcado && <select aria-label={`Função de ${membro.nome}`} value={funcoesIntegrantes[membro.id] ?? "Auxiliar"} onChange={(event) => setFuncoesIntegrantes((current) => ({ ...current, [membro.id]: event.target.value as "Encarregado" | "Condutor" | "Auxiliar" }))} className="w-full rounded-lg border bg-input px-2 py-2 text-xs sm:w-36">
+                    <option value="Encarregado">Encarregado</option><option value="Condutor">Condutor</option><option value="Auxiliar">Auxiliar</option>
+                  </select>}
+                </div>;
+              })}
+              <p className={`text-xs ${equipeValida ? "text-success" : "text-muted-foreground"}`}>Para despachar, selecione ao menos um integrante e atribua exatamente um Encarregado e um Condutor.</p>
+            </div>}
           </div>
         )}
         <label className="block space-y-1.5">
@@ -1462,14 +1509,18 @@ function Detalhe({ o, update, saving, session, perfilOperador, perfilFuncionalUs
         <div className="flex flex-wrap gap-2">
           {o.status !== "em_atendimento" && o.status !== "encerrada" && o.status !== "cancelada" && (
             <button
-              disabled={saving || !vtr || vehicleStatuses.find(item => item.vehicle === vtr)?.status !== "disponivel" || !ev.trim() || !condutor.trim() || !obs.trim()}
+              disabled={saving || !vtr || vehicleStatuses.find(item => item.vehicle === vtr)?.status !== "disponivel" || !equipeValida || !obs.trim() || membrosLoading || Boolean(membrosError)}
               onClick={async () => {
+                const porFuncao = (funcao: "Encarregado" | "Condutor" | "Auxiliar") => selecionados
+                  .filter((membro) => funcoesIntegrantes[membro.id] === funcao)
+                  .map((membro) => `${membro.nome} (RM-${membro.matricula.replace(/^RM-/i, "")})`);
+                const auxiliares = porFuncao("Auxiliar");
                 const equipe = [
                   "[EQUIPE EMPENHADA]",
-                  `EV: ${ev.trim()}`,
-                  `Condutor: ${condutor.trim()}`,
-                  `AUX (1): ${aux1.trim() || "Não informado"}`,
-                  `AUX (2): ${aux2.trim() || "Não informado"}`,
+                  `Equipe operacional: ${equipeOperacional}`,
+                  `Encarregado: ${porFuncao("Encarregado")[0]}`,
+                  `Condutor: ${porFuncao("Condutor")[0]}`,
+                  ...auxiliares.map((nome, index) => `AUX (${index + 1}): ${nome}`),
                   "",
                   "Informações do despacho:",
                   obs.trim(),
