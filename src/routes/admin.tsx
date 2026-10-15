@@ -65,7 +65,7 @@ type AuditEntry = {
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
-      { title: "Administração CAD | GCM Araçoiaba da Serra" },
+      { title: "Administração CAD | GCM Integrativa · Araçoiaba da Serra" },
       { name: "robots", content: "noindex,nofollow" },
     ],
   }),
@@ -669,7 +669,7 @@ function AdminPage() {
         <form onSubmit={login} className="w-full max-w-md space-y-5 rounded-2xl border border-border bg-card p-6 shadow-xl">
           <div className="flex items-center gap-3">
             <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full"><img src="/aracoiaba-citizen-helper/android-chrome-192x192.png" alt="Emblema oficial da Guarda Civil Municipal" className="h-full w-full rounded-full object-cover" /></div>
-            <div><h1 className="text-xl font-bold">Administração CAD</h1><p className="text-sm text-muted-foreground">GCM Araçoiaba da Serra</p></div>
+            <div><h1 className="text-xl font-bold">Administração CAD · GCM Integrativa</h1><p className="text-sm text-muted-foreground">Araçoiaba da Serra · SP</p></div>
           </div>
           <p className="text-sm text-muted-foreground">Entre com a conta administrativa autorizada. A permissão será validada também pelo banco de dados.</p>
           <label className="block space-y-1 text-sm"><span>E-mail</span><input type="email" autoComplete="username" required value={email} onChange={(event) => setEmail(event.target.value)} className="w-full rounded-xl border bg-background px-3 py-3" placeholder="E-mail administrativo" /></label>
@@ -705,7 +705,7 @@ function AdminPage() {
       <header className="border-b border-border bg-card/90 px-4 py-4 md:px-8">
         <div className="mx-auto flex max-w-7xl items-center gap-3">
           <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full"><img src="/aracoiaba-citizen-helper/android-chrome-192x192.png" alt="Emblema oficial da Guarda Civil Municipal" className="h-full w-full rounded-full object-cover" /></div>
-          <div className="min-w-0 flex-1"><p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">GCM · Araçoiaba da Serra</p><h1 className="text-xl font-bold md:text-2xl">Painel Administrativo</h1><p className="text-xs text-muted-foreground">{session.user.email}</p></div>
+          <div className="min-w-0 flex-1"><p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">GCM Integrativa · Araçoiaba da Serra</p><h1 className="text-xl font-bold md:text-2xl">Painel Administrativo</h1><p className="text-xs text-muted-foreground">{session.user.email}</p></div>
           <div className={`flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold ${liveConnection === "connected" ? "bg-success/10 text-success" : liveConnection === "disconnected" ? "bg-destructive/10 text-destructive" : "bg-secondary text-muted-foreground"}`} role="status" aria-live="polite" title={liveConnection === "connected" ? "Notificações em tempo real conectadas" : liveConnection === "disconnected" ? "Conexão de notificações interrompida" : "Conectando notificações"}><span className={`h-2 w-2 rounded-full ${liveConnection === "connected" ? "bg-success" : liveConnection === "disconnected" ? "bg-destructive" : "bg-amber-500 animate-pulse"}`} />{liveConnection === "connected" ? "Ao vivo" : liveConnection === "disconnected" ? "Sem conexão" : "Conectando"}</div>
           <button onClick={toggleAdminSound} className={`rounded-lg p-2.5 ${adminSoundEnabled ? "bg-primary/15 text-primary" : "bg-secondary"}`} title={adminSoundEnabled ? "Desativar alertas sonoros" : "Ativar alertas sonoros"} aria-pressed={adminSoundEnabled}>{adminSoundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}</button>
           <button onClick={() => { setNewAdminOccurrenceCount(0); setMessage(""); void load(); }} disabled={loading} className="relative rounded-lg bg-secondary p-2.5" title="Atualizar dados"><RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />{newAdminOccurrenceCount > 0 && <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">{newAdminOccurrenceCount > 99 ? "99+" : newAdminOccurrenceCount}</span>}</button>
