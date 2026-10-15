@@ -14,6 +14,12 @@ export type Database = {
   }
   public: {
     Tables: {
+      gcm_members: {
+        Row: { id: string; nome: string; matricula: string; cargo: string; equipe: string; ativo: boolean; created_at: string; created_by: string | null }
+        Insert: { id?: string; nome: string; matricula: string; cargo: string; equipe: string; ativo?: boolean; created_at?: string; created_by?: string | null }
+        Update: { id?: string; nome?: string; matricula?: string; cargo?: string; equipe?: string; ativo?: boolean; created_at?: string; created_by?: string | null }
+        Relationships: []
+      }
       gcm_vehicles: {
         Row: { vehicle: string; active: boolean; created_at: string; created_by: string | null }
         Insert: { vehicle: string; active?: boolean; created_at?: string; created_by?: string | null }
