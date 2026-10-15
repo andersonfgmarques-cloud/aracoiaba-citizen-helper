@@ -154,6 +154,7 @@ function AdminPage() {
   const [savingVehicle, setSavingVehicle] = useState(false);
   const [members, setMembers] = useState<AdminMember[]>([]);
   const [memberForm, setMemberForm] = useState({ nome: "", matricula: "", cargo: "", equipe: "Alpha" as AdminMember["equipe"] });
+  const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [savingMember, setSavingMember] = useState(false);
   const [occurrences, setOccurrences] = useState<AdminOccurrence[]>([]);
   const [protocolSearch, setProtocolSearch] = useState("");
@@ -247,17 +248,23 @@ function AdminPage() {
       return;
     }
     setSavingMember(true); setError(""); setMessage("");
-    const { error: insertError } = await adminSupabase.from("gcm_members").insert(payload);
+    const { error: saveError } = editingMemberId
+      ? await adminSupabase.from("gcm_members").update({
+          nome: payload.nome, matricula: payload.matricula, cargo: payload.cargo, equipe: payload.equipe,
+        }).eq("id", editingMemberId)
+      : await adminSupabase.from("gcm_members").insert(payload);
     setSavingMember(false);
-    if (insertError) {
-      setError(insertError.code === "23505" ? "Já existe um GCM cadastrado com essa matrícula." : "Não foi possível cadastrar o GCM: " + insertError.message);
+    if (saveError) {
+      setError(saveError.code === "23505" ? "Já existe um GCM cadastrado com essa matrícula." : "Não foi possível salvar o cadastro do GCM: " + saveError.message);
       return;
     }
+    const estavaEditando = Boolean(editingMemberId);
+    setEditingMemberId(null);
     setMemberForm({ nome: "", matricula: "", cargo: "", equipe: memberForm.equipe });
     const { data, error: refreshError } = await adminSupabase.from("gcm_members").select("id,nome,matricula,cargo,equipe,ativo,created_at,created_by").order("equipe").order("nome");
-    if (refreshError) setError("GCM cadastrado, mas não foi possível atualizar a lista: " + refreshError.message);
+    if (refreshError) setError("Cadastro salvo, mas não foi possível atualizar a lista: " + refreshError.message);
     else setMembers((data ?? []) as AdminMember[]);
-    setMessage("GCM cadastrado e disponibilizado para seleção no CAD.");
+    setMessage(estavaEditando ? "Cadastro do GCM atualizado." : "GCM cadastrado e disponibilizado para seleção no CAD.");
   };
 
   const toggleMemberActive = async (member: AdminMember) => {
@@ -818,10 +825,10 @@ function AdminPage() {
             <label className="space-y-1 text-sm"><span className="font-semibold">Matrícula funcional</span><input required minLength={2} maxLength={30} value={memberForm.matricula} onChange={(event) => setMemberForm((current) => ({ ...current, matricula: event.target.value }))} placeholder="Ex.: RM-1234" className="w-full rounded-lg border border-border bg-background px-3 py-2.5" /></label>
             <label className="space-y-1 text-sm"><span className="font-semibold">Cargo / graduação</span><input required minLength={2} maxLength={80} value={memberForm.cargo} onChange={(event) => setMemberForm((current) => ({ ...current, cargo: event.target.value }))} placeholder="Ex.: 1ª Classe" className="w-full rounded-lg border border-border bg-background px-3 py-2.5" /></label>
             <label className="space-y-1 text-sm"><span className="font-semibold">Equipe operacional</span><select value={memberForm.equipe} onChange={(event) => setMemberForm((current) => ({ ...current, equipe: event.target.value as AdminMember["equipe"] }))} className="w-full rounded-lg border border-border bg-background px-3 py-2.5">{(["Alpha", "Bravo", "Charlie", "Delta"] as const).map((equipe) => <option key={equipe} value={equipe}>{equipe}</option>)}</select></label>
-            <div className="sm:col-span-2"><button type="submit" disabled={savingMember} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50"><Plus className="h-4 w-4" />{savingMember ? "Cadastrando..." : "Cadastrar GCM"}</button></div>
+            <div className="flex flex-wrap gap-2 sm:col-span-2"><button type="submit" disabled={savingMember} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50">{editingMemberId ? <Save className="h-4 w-4" /> : <Plus className="h-4 w-4" />}{savingMember ? "Salvando..." : editingMemberId ? "Salvar alterações" : "Cadastrar GCM"}</button>{editingMemberId && <button type="button" onClick={() => { setEditingMemberId(null); setMemberForm({ nome: "", matricula: "", cargo: "", equipe: "Alpha" }); }} className="rounded-lg bg-secondary px-4 py-2.5 text-sm font-semibold">Cancelar edição</button>}</div>
           </form>
           <div className="overflow-x-auto"><table className="w-full min-w-[760px] text-left text-sm"><thead className="bg-secondary/60 text-xs uppercase text-muted-foreground"><tr><th className="p-3">Integrante</th><th className="p-3">Matrícula</th><th className="p-3">Cargo / graduação</th><th className="p-3">Equipe</th><th className="p-3">Situação</th><th className="p-3">Ação</th></tr></thead><tbody>
-            {members.map((member) => <tr key={member.id} className="border-t border-border"><td className="p-3 font-semibold">{member.nome}</td><td className="p-3">{member.matricula}</td><td className="p-3">{member.cargo}</td><td className="p-3"><span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">{member.equipe}</span></td><td className="p-3"><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${member.ativo ? "bg-success/10 text-success" : "bg-secondary text-muted-foreground"}`}>{member.ativo ? "Ativo no CAD" : "Inativo"}</span></td><td className="p-3"><button type="button" disabled={busyId === member.id} onClick={() => void toggleMemberActive(member)} className={`rounded-lg px-3 py-2 text-xs font-semibold disabled:opacity-50 ${member.ativo ? "bg-destructive/10 text-destructive" : "bg-success/10 text-success"}`}>{busyId === member.id ? "Salvando..." : member.ativo ? "Desativar" : "Reativar"}</button></td></tr>)}
+            {members.map((member) => <tr key={member.id} className="border-t border-border"><td className="p-3 font-semibold">{member.nome}</td><td className="p-3">{member.matricula}</td><td className="p-3">{member.cargo}</td><td className="p-3"><span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">{member.equipe}</span></td><td className="p-3"><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${member.ativo ? "bg-success/10 text-success" : "bg-secondary text-muted-foreground"}`}>{member.ativo ? "Ativo no CAD" : "Inativo"}</span></td><td className="p-3"><div className="flex flex-wrap gap-2"><button type="button" onClick={() => { setEditingMemberId(member.id); setMemberForm({ nome: member.nome, matricula: member.matricula, cargo: member.cargo, equipe: member.equipe }); setMessage(""); setError(""); }} className="inline-flex items-center gap-1 rounded-lg bg-primary/10 px-3 py-2 text-xs font-semibold text-primary"><Pencil className="h-3.5 w-3.5" />Editar</button><button type="button" disabled={busyId === member.id} onClick={() => void toggleMemberActive(member)} className={`rounded-lg px-3 py-2 text-xs font-semibold disabled:opacity-50 ${member.ativo ? "bg-destructive/10 text-destructive" : "bg-success/10 text-success"}`}>{busyId === member.id ? "Salvando..." : member.ativo ? "Desativar" : "Reativar"}</button></div></td></tr>)}
             {members.length === 0 && <tr><td colSpan={6} className="p-5 text-center text-sm text-muted-foreground">Nenhum GCM cadastrado. Use o formulário acima para iniciar o cadastro.</td></tr>}
           </tbody></table></div>
         </section>}
