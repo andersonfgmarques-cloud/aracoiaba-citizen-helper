@@ -7,8 +7,8 @@ const QR_URL = `https://api.qrserver.com/v1/create-qr-code/?size=720x720&margin=
 export const Route = createFileRoute("/divulgar")({
   head: () => ({
     meta: [
-      { title: "Divulgue o Atendimento ao Cidadão | GCM Araçoiaba da Serra" },
-      { name: "description", content: "QR Code para acessar o Atendimento ao Cidadão da Guarda Civil Municipal de Araçoiaba da Serra." },
+      { title: "GCM Integrativa | Divulgação do Atendimento ao Cidadão" },
+      { name: "description", content: "QR Code para acessar o Atendimento ao Cidadão da GCM Integrativa em Araçoiaba da Serra." },
     ],
   }),
   component: DivulgarPage,
@@ -52,10 +52,11 @@ function DivulgarPage() {
           <img src="/aracoiaba-citizen-helper/BrasaoOfc.png" alt="Brasão oficial da Guarda Civil Municipal de Araçoiaba da Serra" className="h-full w-full scale-125 object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.45)]" />
         </div>
         <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#f4bd36]">Guarda Civil Municipal</p>
-        <h1 className="mt-2 text-3xl font-black sm:text-5xl">Araçoiaba da Serra</h1>
+        <h1 className="mt-2 text-3xl font-black sm:text-5xl">GCM Integrativa</h1>
+        <p className="mt-2 text-base font-semibold text-white">Araçoiaba da Serra — SP</p>
         <div className="mx-auto my-6 h-1 w-24 rounded-full bg-[#f4bd36]" />
         <h2 className="text-2xl font-extrabold sm:text-4xl">Atendimento ao Cidadão</h2>
-        <p className="poster-muted mx-auto mt-3 max-w-xl text-base text-slate-300 sm:text-lg">Aponte a câmera do celular para o QR Code e acesse o atendimento online da GCM.</p>
+        <p className="poster-muted mx-auto mt-3 max-w-xl text-base text-slate-300 sm:text-lg">Segurança, Cidadania e Proteção. Aponte a câmera do celular para o QR Code e acesse o atendimento online da GCM.</p>
         <div className="mx-auto my-7 inline-block rounded-2xl bg-white p-3 sm:p-5">
           <img src={QR_URL} alt="QR Code para abrir o Atendimento ao Cidadão da GCM Araçoiaba da Serra" className="h-64 w-64 sm:h-80 sm:w-80" />
         </div>
