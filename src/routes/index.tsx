@@ -27,7 +27,7 @@ export const Route = createFileRoute("/")({
 type Msg =
   | { from: "bot"; text: string; contacts?: Contact[]; urgent?: boolean; digitalDelegacia?: boolean; depaUrl?: string }
   | { from: "user"; text: string }
-  | { from: "done"; protocol: string; category: string; trackingUrl: string };
+  | { from: "done"; protocol: string; category: string; trackingUrl?: string };
 
 type SpeechRecognitionResultLike = { transcript: string; isFinal: boolean };
 type SpeechRecognitionEventLike = {
@@ -364,10 +364,20 @@ function Index() {
       };
       // Registra primeiro a ocorrência; o Storage valida que o protocolo já existe.
       let insertError: { message: string } | null = null;
+      let trackingEnabled = true;
       for (let tentativa = 0; tentativa < 3; tentativa++) {
         const { error } = await supabase.from("ocorrencias").insert(payload);
         insertError = error;
         if (!error) break;
+        const missingTrackingColumn = /public_tracking_token_hash/i.test(error.message) && /column|schema cache|does not exist|not found/i.test(error.message);
+        if (missingTrackingColumn) {
+          // Keep citizen intake working while the database migration is being applied.
+          trackingEnabled = false;
+          const { public_tracking_token_hash: _trackingHash, ...legacyPayload } = payload;
+          const { error: fallbackError } = await supabase.from("ocorrencias").insert(legacyPayload);
+          insertError = fallbackError;
+          if (!fallbackError) break;
+        }
         await new Promise((r) => setTimeout(r, 1000 * (tentativa + 1)));
       }
       if (!insertError && medidaFile) {
@@ -419,7 +429,7 @@ function Index() {
       setMsgs((m) => [
         ...m,
         { from: "user", text: input.trim() },
-        { from: "done", protocol, category: form.category, trackingUrl },
+        { from: "done", protocol, category: form.category, ...(trackingEnabled ? { trackingUrl } : {}) },
         ...(anexoFalhou ? [{ from: "bot" as const, text: "A ocorrência foi registrada, mas o documento não pôde ser anexado ou vinculado. A falta do arquivo não invalida a solicitação; a equipe do CAD foi alertada para essa pendência. Se houver risco imediato, ligue 190 ou 153." }] : []),
       ]);
     }
@@ -691,12 +701,16 @@ function Index() {
               </div>
               <p className="mt-2 text-sm text-muted-foreground">Categoria: {m.category}</p>
               <p className="mt-1 font-display text-xl font-bold text-primary">{m.protocol}</p>
-              <div className="mt-4 rounded-xl border border-primary/30 bg-secondary/70 p-3 text-center">
-                <p className="mb-2 text-sm font-semibold">Acompanhe esta solicitação pelo QR Code</p>
-                <img className="mx-auto h-40 w-40 rounded-lg bg-white p-2" loading="eager" alt={`QR Code de acompanhamento do protocolo ${m.protocol}`} src={`https://api.qrserver.com/v1/create-qr-code/?size=360x360&margin=12&data=${encodeURIComponent(m.trackingUrl)}`} />
-                <a className="mt-3 inline-flex min-h-10 items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground" href={m.trackingUrl} target="_blank" rel="noreferrer">Abrir acompanhamento</a>
-                <p className="mt-2 text-xs text-muted-foreground">O desfecho ficará disponível após o encerramento pelo CAD. Guarde este QR Code e não o compartilhe: ele permite consultar esta solicitação.</p>
-              </div>
+              {m.trackingUrl ? (
+                <div className="mt-4 rounded-xl border border-primary/30 bg-secondary/70 p-3 text-center">
+                  <p className="mb-2 text-sm font-semibold">Acompanhe esta solicitação pelo QR Code</p>
+                  <img className="mx-auto h-40 w-40 rounded-lg bg-white p-2" loading="eager" alt={`QR Code de acompanhamento do protocolo ${m.protocol}`} src={`https://api.qrserver.com/v1/create-qr-code/?size=360x360&margin=12&data=${encodeURIComponent(m.trackingUrl)}`} />
+                  <a className="mt-3 inline-flex min-h-10 items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground" href={m.trackingUrl} target="_blank" rel="noreferrer">Abrir acompanhamento</a>
+                  <p className="mt-2 text-xs text-muted-foreground">O desfecho ficará disponível após o encerramento pelo CAD. Guarde este QR Code e não o compartilhe: ele permite consultar esta solicitação.</p>
+                </div>
+              ) : (
+                <p className="mt-3 rounded-lg bg-secondary p-3 text-xs text-muted-foreground">O protocolo foi registrado. O acompanhamento por QR Code está em fase de ativação; guarde o número do protocolo.</p>
+              )}
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                 Sua solicitação foi registrada com sucesso. O atendimento será avaliado e
                 encaminhado conforme o grau de prioridade da ocorrência, considerando a urgência dos
