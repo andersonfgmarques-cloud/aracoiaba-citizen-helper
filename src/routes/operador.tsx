@@ -33,7 +33,7 @@ const TEMP_OPERATOR_EMAIL = "andersonf.g.marques@gmail.com";
 export const Route = createFileRoute("/operador")({
   head: () => ({
     meta: [
-      { title: "CAD – Central de Despacho | GCM Araçoiaba da Serra" },
+      { title: "CAD – Central de Despacho | GCM Integrativa · Araçoiaba da Serra" },
       {
         name: "description",
         content: "Área do operador para receber e despachar ocorrências da GCM.",
@@ -168,7 +168,7 @@ function Login({ onLogin }: { onLogin: (session: Session) => void }) {
             className="h-11 w-11 rounded-full object-cover"
           />
           <div>
-            <h1 className="font-bold">CAD – GCM</h1>
+            <h1 className="font-bold">CAD – GCM Integrativa</h1>
             <p className="text-xs text-muted-foreground">{cadastro ? "Solicitação de acesso operacional" : "Acesso restrito a operadores autorizados"}</p>
           </div>
         </div>
@@ -739,7 +739,7 @@ function Painel({ session, demoOperator = false }: { session: Session | null; de
           alt="Emblema da Guarda Civil Municipal"
           className="h-8 w-8 shrink-0 rounded-full object-cover"
         />
-        <h1 className="min-w-0 flex-1 text-sm font-bold leading-tight sm:flex-none sm:text-base">CAD · Central de Despacho GCM</h1>
+        <h1 className="min-w-0 flex-1 text-sm font-bold leading-tight sm:flex-none sm:text-base">CAD · Central de Despacho GCM Integrativa</h1>
         <span className={`ml-0 flex shrink-0 items-center gap-1 whitespace-nowrap text-[10px] sm:ml-2 sm:gap-1.5 sm:text-xs ${connectionStatus === "connected" ? "text-success" : connectionStatus === "connecting" ? "text-primary" : "text-destructive"}`} role="status" aria-live="polite">
           {connectionStatus === "connected" ? <Wifi className="h-3.5 w-3.5" /> : <WifiOff className="h-3.5 w-3.5" />}
           {connectionStatus === "connected" ? "Ao vivo" : connectionStatus === "connecting" ? "Conectando…" : "Sem conexão em tempo real"}
