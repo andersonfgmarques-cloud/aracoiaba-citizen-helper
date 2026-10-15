@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { CheckCircle2, Clock3, FileText, LoaderCircle, RefreshCw, ShieldCheck, TriangleAlert } from "lucide-react";
+import { CheckCircle2, Clock3, FileText, LoaderCircle, QrCode, RefreshCw, ShieldCheck, TriangleAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 type TrackingRecord = {
@@ -55,6 +55,7 @@ function AcompanharPage() {
   const [record, setRecord] = useState<TrackingRecord | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showQrCode, setShowQrCode] = useState(false);
 
   const load = useCallback(async () => {
     if (!/^[a-f0-9]{64}$/.test(token)) {
@@ -123,9 +124,26 @@ function AcompanharPage() {
               </section>
             )}
             <div className="no-print mt-6 flex flex-wrap gap-2">
+              <button onClick={() => setShowQrCode((visible) => !visible)} className="inline-flex min-h-11 items-center gap-2 rounded-full border border-primary/40 px-4 py-2 font-semibold">
+                <QrCode className="h-4 w-4" /> {showQrCode ? "Ocultar QR Code" : "Voltar ao QR Code"}
+              </button>
               <button onClick={() => void load()} disabled={loading} className="inline-flex min-h-11 items-center gap-2 rounded-full border px-4 py-2 font-semibold disabled:opacity-50"><RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Atualizar status</button>
               {record.encerrada && <button onClick={() => window.print()} className="inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground"><FileText className="h-4 w-4" /> Imprimir / salvar PDF</button>}
             </div>
+            {showQrCode && (
+              <section className="no-print mt-4 rounded-xl border border-primary/30 bg-secondary/50 p-4 text-center">
+                <h3 className="font-bold">QR Code de acompanhamento</h3>
+                <p className="mt-1 text-sm text-muted-foreground">Use este código para abrir novamente o acompanhamento desta solicitação.</p>
+                <img
+                  className="mx-auto mt-3 h-48 w-48 rounded-lg bg-white p-2"
+                  alt={`QR Code de acompanhamento do protocolo ${record.protocolo}`}
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=360x360&margin=12&data=${encodeURIComponent(window.location.href)}`}
+                />
+                <button type="button" onClick={() => window.print()} className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
+                  <FileText className="h-4 w-4" /> Imprimir / salvar QR Code
+                </button>
+              </section>
+            )}
           </>
         )}
 
