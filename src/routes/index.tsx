@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Phone, RotateCcw, Send, AlertTriangle, CheckCircle2, Mic, MicOff, Paperclip, FileText, X, ShieldAlert, Landmark, CarFront, Trees, Volume2, Pill, CloudRain, Search, CircleHelp, Siren, ChevronRight, ExternalLink } from "lucide-react";
+import { Phone, RotateCcw, Send, AlertTriangle, CheckCircle2, Mic, MicOff, Paperclip, FileText, Printer, X, ShieldAlert, Landmark, CarFront, Trees, Volume2, Pill, CloudRain, Search, CircleHelp, Siren, ChevronRight, ExternalLink } from "lucide-react";
 import { TREE, CONTACTS, type Contact } from "@/lib/triage";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -547,6 +547,16 @@ function Index() {
 
   return (
     <div className="mx-auto flex h-screen max-w-lg flex-col">
+      <style>{`@media print {
+        @page { size: A4; margin: 16mm; }
+        body * { visibility: hidden !important; }
+        .print-receipt, .print-receipt * { visibility: visible !important; }
+        .print-receipt { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; max-width: none !important; margin: 0 !important; border: 1px solid #d1d5db !important; border-radius: 12px !important; background: #fff !important; color: #111827 !important; box-shadow: none !important; }
+        .print-receipt .text-muted-foreground { color: #374151 !important; }
+        .print-receipt .text-primary, .print-receipt .text-success { color: #111827 !important; }
+        .print-receipt .bg-secondary, .print-receipt .bg-secondary\/70, .print-receipt .bg-card { background: #fff !important; }
+        .no-print { display: none !important; }
+      }`}</style>
       <header className="bg-header flex items-center gap-3 border-b px-4 py-4 shadow-lg">
         <img
           src={`/aracoiaba-citizen-helper/android-chrome-192x192.png`}
@@ -695,12 +705,13 @@ function Index() {
               {m.text}
             </div>
           ) : m.from === "done" ? (
-            <div key={i} className="bubble-in rounded-2xl border border-success/40 bg-card p-4">
+            <div key={i} className="print-receipt bubble-in rounded-2xl border border-success/40 bg-card p-4">
               <div className="flex items-center gap-2 font-bold text-success">
                 <CheckCircle2 className="h-5 w-5" /> Solicitação registrada
               </div>
               <p className="mt-2 text-sm text-muted-foreground">Categoria: {m.category}</p>
               <p className="mt-1 font-display text-xl font-bold text-primary">{m.protocol}</p>
+              <p className="no-print mt-1 text-xs text-muted-foreground">Guarde este comprovante para consultar o andamento da solicitação.</p>
               {m.trackingUrl ? (
                 <div className="mt-4 rounded-xl border border-primary/30 bg-secondary/70 p-3 text-center">
                   <p className="mb-2 text-sm font-semibold">Acompanhe esta solicitação pelo QR Code</p>
@@ -711,6 +722,14 @@ function Index() {
               ) : (
                 <p className="mt-3 rounded-lg bg-secondary p-3 text-xs text-muted-foreground">O protocolo foi registrado. O acompanhamento por QR Code está em fase de ativação; guarde o número do protocolo.</p>
               )}
+              <div className="no-print mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <button type="button" onClick={() => window.print()} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
+                  <Printer className="h-4 w-4" /> Salvar comprovante / PDF
+                </button>
+                {m.trackingUrl && <a href={m.trackingUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-primary/40 px-4 py-2 text-sm font-semibold text-primary">
+                  <ExternalLink className="h-4 w-4" /> Abrir acompanhamento
+                </a>}
+              </div>
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                 Sua solicitação foi registrada com sucesso. O atendimento será avaliado e
                 encaminhado conforme o grau de prioridade da ocorrência, considerando a urgência dos
