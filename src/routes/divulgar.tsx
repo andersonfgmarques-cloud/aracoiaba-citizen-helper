@@ -34,8 +34,8 @@ function DivulgarPage() {
         </div>
       </div>
       <section className="qr-poster mx-auto max-w-3xl rounded-3xl border border-[#f4bd36]/60 bg-[#0b2038] p-6 text-center shadow-2xl sm:p-10">
-        <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-[#f4bd36]/50 bg-white/5 p-2">
-          <img src="/aracoiaba-citizen-helper/BrasaoOfc.png" alt="Brasão oficial da Guarda Civil Municipal de Araçoiaba da Serra" className="h-full w-full object-contain" />
+        <div className="mx-auto mb-5 flex h-32 w-32 items-center justify-center overflow-visible bg-transparent sm:h-40 sm:w-40">
+          <img src="/aracoiaba-citizen-helper/BrasaoOfc.png" alt="Brasão oficial da Guarda Civil Municipal de Araçoiaba da Serra" className="h-full w-full scale-125 object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.45)]" />
         </div>
         <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#f4bd36]">Guarda Civil Municipal</p>
         <h1 className="mt-2 text-3xl font-black sm:text-5xl">Araçoiaba da Serra</h1>
