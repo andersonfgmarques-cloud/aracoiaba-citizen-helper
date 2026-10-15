@@ -26,7 +26,7 @@ Deno.serve(async (req: Request) => {
 
     const hash = await sha256(token);
     const occurrenceResponse = await fetch(
-      `${url}/rest/v1/ocorrencias?public_tracking_token_hash=eq.${hash}&select=protocolo,categoria,status,created_at,updated_at&limit=1`,
+      `${url}/rest/v1/ocorrencias?public_tracking_token_hash=eq.${hash}&select=id,protocolo,categoria,status,created_at,updated_at&limit=1`,
       { headers: { apikey: key, Authorization: `Bearer ${key}` }, signal: AbortSignal.timeout(8000) },
     );
     if (!occurrenceResponse.ok) return json({ error: "Não foi possível consultar a solicitação." }, 502);
@@ -46,14 +46,13 @@ Deno.serve(async (req: Request) => {
     // Do not expose the final narrative until the CAD has explicitly closed the case.
     if (occurrence.status === "encerrada") {
       const historyResponse = await fetch(
-        `${url}/rest/v1/ocorrencia_historico?select=acao,observacao,criado_em&status_novo=eq.encerrada&ocorrencia_id=in.(select%20id%20from%20ocorrencias%20where%20public_tracking_token_hash%20eq%20'${hash}')&order=criado_em.desc&limit=1`,
+        `${url}/rest/v1/ocorrencia_historico?select=acao,observacao,criado_em&ocorrencia_id=eq.${encodeURIComponent(occurrence.id)}&status_novo=eq.encerrada&order=criado_em.desc&limit=1`,
         { headers: { apikey: key, Authorization: `Bearer ${key}` }, signal: AbortSignal.timeout(8000) },
       );
-      // History query may be restricted by PostgREST syntax/version; use occurrence id only after token match.
       if (historyResponse.ok) {
         const history = await historyResponse.json();
         const note = typeof history?.[0]?.observacao === "string" ? history[0].observacao : "";
-        result.desfecho = note.replace(/^\[OPERADOR_FUNCIONAL:[^\]]*\]\s*/i, "").trim() || "Atendimento encerrado. Não há desfecho público registrado.";
+        result.desfecho = note.replace(/^\\[OPERADOR_FUNCIONAL:[^\\]]*\\]\\s*/i, "").trim() || "Atendimento encerrado. Não há desfecho público registrado.";
         result.encerrada_em = history?.[0]?.criado_em ?? occurrence.updated_at;
       } else {
         result.desfecho = "Atendimento encerrado. Consulte a Central da GCM para informações adicionais.";
