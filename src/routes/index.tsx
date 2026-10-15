@@ -7,15 +7,15 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "GCM Araçoiaba da Serra – Atendimento ao Cidadão" },
+      { title: "GCM Integrativa | Araçoiaba da Serra – Atendimento ao Cidadão" },
       {
         name: "description",
-        content: "Assistente de triagem da Guarda Civil Municipal de Araçoiaba da Serra – SP.",
+        content: "GCM Integrativa: atendimento ao cidadão, triagem e encaminhamento à Guarda Civil Municipal de Araçoiaba da Serra – SP.",
       },
-      { property: "og:title", content: "GCM Araçoiaba da Serra – Atendimento" },
+      { property: "og:title", content: "GCM Integrativa – Atendimento ao Cidadão" },
       {
         property: "og:description",
-        content: "Solicite a GCM e saiba qual órgão acionar em cada situação.",
+        content: "GCM Integrativa: atendimento ao cidadão, orientação e encaminhamento em Araçoiaba da Serra.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -450,7 +450,7 @@ function Index() {
         <div className="mx-auto flex min-h-screen max-w-lg flex-col bg-background">
           <header className="bg-header flex items-center gap-3 border-b px-4 py-4 shadow-lg">
             <img src={`/aracoiaba-citizen-helper/android-chrome-192x192.png`} alt="Emblema da Guarda Civil Municipal" className="h-11 w-11 shrink-0 rounded-full object-contain" />
-            <div className="min-w-0 flex-1"><h1 className="text-base font-bold">GCM Araçoiaba da Serra</h1><p className="text-xs text-muted-foreground">Atendimento ao cidadão</p></div>
+            <div className="min-w-0 flex-1"><h1 className="text-base font-bold">GCM Integrativa · Araçoiaba da Serra</h1><p className="text-xs text-muted-foreground">Atendimento ao cidadão</p></div>
           </header>
           <main className="flex flex-1 items-center px-4 py-6">
             <div className="w-full rounded-2xl border bg-card p-5 shadow-sm">
